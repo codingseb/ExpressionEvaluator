@@ -21,7 +21,7 @@ internal class ExpressionEvaluator
     }
 
     /// <summary>
-    /// Evaluate the specified mathexpression
+    /// Evaluate the specified math expression
     /// </summary>
     /// <param name="expr">the math expression to evaluate</param>
     /// <returns>The result of the operation if syntax is correct</returns>
@@ -71,7 +71,7 @@ internal class ExpressionEvaluator
                         throw new Exception($"At least one ')' character is missing in expression : [{expr}]");
 
                     double funcResult;
-                    if(defaultFunctions(match.Groups["name"].Value.ToLower(), funcArgs, out funcResult))
+                    if(DefaultFunctions(match.Groups["name"].Value.ToLower(), funcArgs, out funcResult))
                     {
                         value = funcResult.ToString();
                     }
@@ -281,7 +281,7 @@ internal class ExpressionEvaluator
         return Convert.ToDouble(stack.Pop());
     }
 
-    private bool defaultFunctions(string name, List<string> args, out double result)
+    private bool DefaultFunctions(string name, List<string> args, out double result)
     {
         bool functionExists = true;
 
