@@ -71,7 +71,7 @@ internal class ExpressionEvaluator
                         throw new Exception($"At least one ')' character is missing in expression : [{expr}]");
 
                     double funcResult;
-                    if(DefaultFunctions(match.Groups["name"].Value.ToLower(), funcArgs, out funcResult))
+                    if (DefaultFunctions(match.Groups["name"].Value.ToLower(), funcArgs, out funcResult))
                     {
                         value = funcResult.ToString();
                     }
@@ -88,11 +88,11 @@ internal class ExpressionEvaluator
                     {
                         value = Math.PI.ToString();
                     }
-                    else if(var.Equals("e"))
+                    else if (var.Equals("e"))
                     {
                         value = Math.E.ToString();
                     }
-                    else if(Variables.ContainsKey(var))
+                    else if (Variables.ContainsKey(var))
                     {
                         value = Variables[var].ToString();
                     }
@@ -185,7 +185,6 @@ internal class ExpressionEvaluator
 
                         if (i == (expr.Length - 1))
                             stack.Push(value);
-
                     }
                     else
                     {
@@ -203,9 +202,10 @@ internal class ExpressionEvaluator
                 list[i] = Math.Pow(Convert.ToDouble(list[i + 1]), Convert.ToDouble(list[i - 1])).ToString();
                 list.RemoveAt(i + 1);
                 list.RemoveAt(i - 1);
-                i -= 2;
+                i -= 1;
             }
         }
+
         for (int i = list.Count - 2; i >= 0; i--)
         {
             if (list[i] == "/")
@@ -213,39 +213,24 @@ internal class ExpressionEvaluator
                 list[i] = (Convert.ToDouble(list[i + 1]) / Convert.ToDouble(list[i - 1])).ToString();
                 list.RemoveAt(i + 1);
                 list.RemoveAt(i - 1);
-                i -= 2;
+                i -= 1;
             }
-        }
-        for (int i = list.Count - 2; i >= 0; i--)
-        {
-            if (list[i] == "*")
+            else if (list[i] == "*")
             {
                 list[i] = (Convert.ToDouble(list[i + 1]) * Convert.ToDouble(list[i - 1])).ToString();
                 list.RemoveAt(i + 1);
                 list.RemoveAt(i - 1);
-                i -= 2;
+                i -= 1;
             }
-        }
-        for (int i = list.Count - 2; i >= 0; i--)
-        {
-            if (list[i] == "%")
+            else if (list[i] == "%")
             {
                 list[i] = (Convert.ToDouble(list[i + 1]) % Convert.ToDouble(list[i - 1])).ToString();
                 list.RemoveAt(i + 1);
                 list.RemoveAt(i - 1);
-                i -= 2;
+                i -= 1;
             }
         }
-        for (int i = list.Count - 2; i >= 0; i--)
-        {
-            if (list[i] == "+")
-            {
-                list[i] = (Convert.ToDouble(list[i + 1]) + Convert.ToDouble(list[i - 1])).ToString();
-                list.RemoveAt(i + 1);
-                list.RemoveAt(i - 1);
-                i -= 2;
-            }
-        }
+
         for (int i = list.Count - 2; i >= 0; i--)
         {
             if (list[i] == "-")
@@ -253,7 +238,14 @@ internal class ExpressionEvaluator
                 list[i] = (Convert.ToDouble(list[i + 1]) - Convert.ToDouble(list[i - 1])).ToString();
                 list.RemoveAt(i + 1);
                 list.RemoveAt(i - 1);
-                i -= 2;
+                i -= 1;
+            }
+            else if (list[i] == "+")
+            {
+                list[i] = (Convert.ToDouble(list[i + 1]) + Convert.ToDouble(list[i - 1])).ToString();
+                list.RemoveAt(i + 1);
+                list.RemoveAt(i - 1);
+                i -= 1;
             }
         }
         stack.Clear();
@@ -277,7 +269,7 @@ internal class ExpressionEvaluator
 
             stack.Push(result.ToString());
         }
-            
+
         return Convert.ToDouble(stack.Pop());
     }
 
@@ -285,11 +277,11 @@ internal class ExpressionEvaluator
     {
         bool functionExists = true;
 
-        if(name.Equals("abs"))
+        if (name.Equals("abs"))
         {
             result = Math.Abs(Evaluate(args[0]));
         }
-        else if(name.Equals("acos"))
+        else if (name.Equals("acos"))
         {
             result = Math.Acos(Evaluate(args[0]));
         }
@@ -381,14 +373,14 @@ internal class ExpressionEvaluator
         {
             result = Math.Truncate(Evaluate(args[0]));
         }
-        else if(name.Equals("if"))
+        else if (name.Equals("if"))
         {
             if (Evaluate(args[0]) == 0)
                 result = Evaluate(args[2]);
             else
                 result = Evaluate(args[1]);
         }
-        else if(name.Equals("in"))
+        else if (name.Equals("in"))
         {
             double valueToFind = Evaluate(args[0]);
 
@@ -405,4 +397,3 @@ internal class ExpressionEvaluator
         return functionExists;
     }
 }
-
