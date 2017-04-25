@@ -3,7 +3,7 @@ A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
 It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
 
-## Basic usage
+## Basic C# usage
 ```c#
 string expression;
 ...
@@ -130,14 +130,18 @@ The evaluation of functions names is case insensitive.
 |**Asin**(double d)|Return a double value that is the angle in radian whose d is the sine<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|`0.304692654015398d`|
 |**Atan**(double d)|Return a double value that is the angle in radian whose d is the tangent|`Atan(2.1)`|`1.1263771168938d`|
 |**Atan2**(double x, double y)|Return a double value that is the angle in radian whose the tangente is the quotient of x and y<br/>|`Atan2(2.1d, 3.4d)`|`0.553294325322293d`|
-|**Avg**(double nb1, double nb2 ,...)|Return a double value taht is the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|`1.425d`|
+|**Avg**(double nb1, double nb2 ,...)|Return a double value that is the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|`1.425d`|
 |**Ceiling**(double a)|Return a double value that is the smallest integer greater than or equal to the specified number.|`Ceiling(4.23d)`|`5d`|
 |**Cos**(double angle)|Return a double value that is the cosine of the specified angle in radian|`Cos(2 * Pi)`|`1d`|
 |**Cosh**(double angle)|Return a double value that is the hyperbolic cosine of the specified angle in radian|`Cosh(2d)`|`3.76219569108363d`|
 |**Exp**(double d)|Return a double value that is e raised to the specified d power|`Exp(3d)`|`20.0855369231877d`|
 |**Floor**(double d)|Return a double value that is the largest integer less than or equal to the specified d argument|`Floor(4.23d)`|`4d`|
+|**IEEERemainder**(double x, double y)|Return a double value that is the remainder resulting from the division of x by y|`IEEERemainder(9, 8)`|`1d`|
 |**if**(bool condition, object yes, object no)|Return the yes object value if condition is true.<br/>Return the no object if condition is false|`if(1>2, "It is true", "It is false")`|`"It is false"`|
 |**in**(object valueToFind, object obj1, object obj2...)|Return a boolean value that indicate if the first argument is found in the other arguments|`in(8, 4, 2, 8)`|`true`|
 |**List**(object obj1, object obj2 ,...)|Return a List (System.Collections.Generic.List<object>) of all given arguments|`List(1, "Hello", true)`|`new List<object>(){1, "Hello", true}`|
 |**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(64d, 2d)`|`6d`|
 |**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(1000d)`|`3d`|
+|**Max**(double nb1, double nb2 ,...)|Return a double value that is the maximum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`2.5d`|
+|**Min**(double nb1, double nb2 ,...)|Return a double value that is the minimum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`-4d`|
+|**Pow**(double x, double y)|Return a double value that is x elevate to the power y|`Pow(2,4)`|`16d`|
