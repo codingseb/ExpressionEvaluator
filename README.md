@@ -80,3 +80,25 @@ The evaluation of variables name is case insensitive so you can write it like yo
 |false|C# false value|System.Boolean|
 |Pi|3.14159265358979|System.Double|
 |E|2.71828182845905|System.Double|
+
+## Custom variables
+
+You can define your own variables
+
+Examples : 
+```C#
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+evaluator.Variables = new Dictionary<string, object>()
+{
+  { "x", 2,5 },
+  { "y", -3.6 },
+  { "myVar", "Hello World" }
+};
+```
+```
+x+y
+-1.1
+
+myVar + " !!!"
+Hello World !!!
+```
