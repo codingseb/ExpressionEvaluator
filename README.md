@@ -125,5 +125,8 @@ The evaluation of functions names is case insensitive.
 |Name|Description|Example|Result|
 |---|---|---|---|
 |**Abs**(double number)|Return a double that is the absolute value of number|`Abs(-3.2d)`|3.2d|
-|**Acos**(double d)|Return a double value that is the angle in radian to which d is the cosinus<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|2.0943951023032d|
-
+|**Acos**(double d)|Return a double value that is the angle in radian whose d is the cosinus<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|2.0943951023032d|
+|**Array**(object obj1, object obj2 ,...)|Return a array (System.Object[]) of all given arguments|`Array(1, "Hello", true)`|new object[]{1, "Hello", true)|
+|**Asin**(double d)|Return a double value that is the angle in radian whose d is the sinus<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|0.304692654015398d|
+|**Atan**(double d)|Return a double value that is the angle in radian whose d is the tangent<br/>|`Atan(2.1)`|1.1263771168938d|
+|**Avg**(double nb1, double nb2 ,...)|Return the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|1.425d|
