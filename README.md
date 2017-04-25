@@ -136,6 +136,6 @@ The evaluation of functions names is case insensitive.
 |**Cosh**(double angle)|Return a double value that is the hyperbolic cosine of the specified angle in radian|`Cosh(2d)`|`3.76219569108363d`|
 |**Exp**(double d)|Return a double value that is e raised to the specified d power|`Exp(3d)`|`20.0855369231877d`|
 |**Floor**(double d)|Return a double value that is the largest integer less than or equal to the specified d argument|`Floor(4.23d)`|`4d`|
-|**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(4d, 3d)`|`1.26185950714291d`|
-|**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(4d)`|`0.602059991327962d`|
-
+|**if**(bool condition, object yes, object no)|Return the yes object value if condition is true.<br/>Return the no object if condition is false|`if(1>2, "It is true", "It is false")`|`"It is false"`|
+|**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(64d, 2d)`|`6d`|
+|**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(1000d)`|`3d`|
