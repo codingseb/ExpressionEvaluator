@@ -19,6 +19,9 @@ Results with some expressions :
 2 + 3 * 2
 8
 
+(2 + 3) * 2
+10
+
 Pow(2, 4)
 16
 
