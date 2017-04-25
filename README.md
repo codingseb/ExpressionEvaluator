@@ -49,4 +49,19 @@ World
 
 @"Hello\nWorld"
 Hello\nWorld
+
+Regex.Match("Test 34 Hello/-World", @"\d+").Value
+34
+
+int.Parse(Regex.Match("Test 34 Hello/-World", @"\d+").Value) + 2
+36
+
+3 / 2
+1
+
+3d / 2d
+1.5
+
+(float)3 / (float)2
+1.5
 ```
