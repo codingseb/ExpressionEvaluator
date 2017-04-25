@@ -12,7 +12,7 @@ Console.Write(expression);
 Console.Write(evaluator.Evaluate(expression));
 ```
 Results with some expressions :
-```bat
+```
 1+1
 2
 
