@@ -39,4 +39,11 @@ Test 4 U
 
 if(Array(2, $"Test { 2 + 2 } U", true)[2], "yes" , "no")
 yes
+
+"Hello\nWorld"
+Hello
+World
+
+@"Hello\nWorld"
+Hello\nWorld
 ```
