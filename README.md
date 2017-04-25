@@ -93,6 +93,7 @@ evaluator.Variables = new Dictionary<string, object>()
   { "x", 2,5 },
   { "y", -3.6 },
   { "myVar", "Hello World" }
+  { "myArray", new object[] { 3.5, "Test", false}
 };
 ```
 ```
@@ -101,6 +102,28 @@ x+y
 
 myVar + " !!!"
 Hello World !!!
+
+myArray.Length
+3
+
+myArray[0]
+3.5
+
+myArray[1].Length
+4
+
+myArray[2] || true
+True
 ```
 
 *Remark : custom variable evaluation is case insensitive*
+
+## Standard Functions
+The following functions are internally defined. (Most of these are System.Math Methods directly accessible)
+The evaluation of functions names is case insensitive.
+
+|Name|Description|Example|Result|
+|---|---|---|---|
+|**Abs**(double number)|Return a double that is the absolute value of number|`Abs(-3.2d)`|3.2d|
+|**Acos**(double d)|Return a double value that is the angle in radian to which d is the cosinus<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|2.0943951023032d|
+
