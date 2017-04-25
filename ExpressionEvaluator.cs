@@ -27,36 +27,6 @@ internal class ExpressionEvaluator
     private static BindingFlags instanceBindingFlag = (BindingFlags.Default | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
     private static BindingFlags staticBindingFlag = (BindingFlags.Default | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Static);
 
-    /// <summary>
-    /// All assemblies needed to resolves Types
-    /// </summary>
-    public List<AssemblyName> ReferencedAssemblies { get; set; } = typeof(ExpressionEvaluator).Assembly.GetReferencedAssemblies().ToList();
-
-    /// <summary>
-    /// All Namespaces Where to find types
-    /// </summary>
-    public List<string> Namespaces { get; set; } = new List<string>
-    {
-        "System",
-        "System.Linq",
-        "System.IO",
-        "System.Text",
-        "System.Text.RegularExpressions",
-        "System.ComponentModel",
-        "System.Collections",
-        "System.Collections.Generic",
-        "System.Collections.Specialized",
-        "System.Globalization"
-    };
-
-    /// <summary>
-    /// A list of statics types where to find extensions methods
-    /// </summary>
-    public List<Type> StaticTypesForExtensionsMethods { get; set; } = new List<Type>()
-    {
-        typeof(Enumerable) // For Linq extension methods
-    };
-
     private static Dictionary<string, Type> PrimaryTypesDict = new Dictionary<string, Type>()
     {
         { "object", typeof(object) },
@@ -142,7 +112,7 @@ internal class ExpressionEvaluator
         IndexingWithNullConditional
     }
 
-    private Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.OrdinalIgnoreCase)
+    private static Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.OrdinalIgnoreCase)
     {
         { "+", ExpressionOperator.Plus },
         { "-", ExpressionOperator.Minus },
@@ -168,16 +138,16 @@ internal class ExpressionEvaluator
         { "??", ExpressionOperator.NullCoalescing },
     };
 
-    private Dictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
+    private static Dictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
     {
     };
 
-    private Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
+    private static Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
     {
         {ExpressionOperator.LogicalNegation, true }
     };
 
-    private List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
+    private static List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
         new List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
     {
         new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
@@ -254,6 +224,81 @@ internal class ExpressionEvaluator
         { "false", false },
     };
 
+    private static Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>()
+    {
+        { "abs", Math.Abs },
+        { "acos", Math.Acos },
+        { "asin", Math.Asin },
+        { "atan", Math.Atan },
+        { "ceiling", Math.Ceiling },
+        { "cos", Math.Cos },
+        { "cosh", Math.Cosh },
+        { "exp", Math.Exp },
+        { "floor", Math.Floor },
+        { "log10", Math.Log10 },
+        { "round", Math.Round },
+        { "sin", Math.Sin },
+        { "sinh", Math.Sinh },
+        { "sqrt", Math.Sqrt },
+        { "tan", Math.Tan },
+        { "tanh", Math.Tanh },
+        { "truncate", Math.Truncate },
+    };
+
+    private static Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>()
+    {
+        { "atan2", Math.Atan2 },
+        { "ieeeremainder", Math.IEEERemainder },
+        { "log", Math.Log },
+        { "pow", Math.Pow },
+    };
+
+    private static Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>()
+    {
+        { "array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
+        { "avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
+        { "default", (self, args) => { Type type = (self.Evaluate(args[0]) as Type);
+            return(type != null && type.IsValueType ? Activator.CreateInstance(type): null); } },
+        { "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
+        { "in", (self, args) => args.Skip(1).ToList().ConvertAll(arg => self.Evaluate(arg)).Contains(self.Evaluate(args[0])) },
+        { "list", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
+        { "max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
+        { "min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
+        { "new", (self, args) => { List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
+            return Activator.CreateInstance(cArgs[0] as Type, cArgs.Skip(1).ToArray());}},
+        { "sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
+    };
+
+    /// <summary>
+    /// All assemblies needed to resolves Types
+    /// </summary>
+    public List<AssemblyName> ReferencedAssemblies { get; set; } = typeof(ExpressionEvaluator).Assembly.GetReferencedAssemblies().ToList();
+
+    /// <summary>
+    /// All Namespaces Where to find types
+    /// </summary>
+    public List<string> Namespaces { get; set; } = new List<string>
+    {
+        "System",
+        "System.Linq",
+        "System.IO",
+        "System.Text",
+        "System.Text.RegularExpressions",
+        "System.ComponentModel",
+        "System.Collections",
+        "System.Collections.Generic",
+        "System.Collections.Specialized",
+        "System.Globalization"
+    };
+
+    /// <summary>
+    /// A list of statics types where to find extensions methods
+    /// </summary>
+    public List<Type> StaticTypesForExtensionsMethods { get; set; } = new List<Type>()
+    {
+        typeof(Enumerable) // For Linq extension methods
+    };
+
     /// <summary>
     /// The Values of the variable use in the expressions
     /// </summary>
@@ -312,146 +357,22 @@ internal class ExpressionEvaluator
 
             if (!(EvaluateCast(restOfExpression, stack, ref i)
                 || EvaluateNumber(restOfExpression, stack, ref i)
-                || EvaluateVarOrFunc(expr, restOfExpression, stack, ref i)))
+                || EvaluateVarOrFunc(expr, restOfExpression, stack, ref i)
+                || EvaluateTwoCharsOperators(expr, stack, ref i)))
             {
-                String s = expr.Substring(i, 1);
-                if (i < expr.Length - 1)
+                string s = expr.Substring(i, 1);
+
+                if (EvaluateParenthis(expr, s, stack, ref i)
+                    || EvaluateIndexing(expr, s, stack, ref i)
+                    || EvaluateString(expr, s, restOfExpression, stack, ref i))
+                { }
+                else if (operatorsDictionary.ContainsKey(s))
                 {
-                    String op = expr.Substring(i, 2);
-                    if (operatorsDictionary.ContainsKey(op))
-                    {
-                        stack.Push(operatorsDictionary[op]);
-                        i++;
-                        continue;
-                    }
+                    stack.Push(operatorsDictionary[s]);
                 }
-
-                char chr = s.ToCharArray()[0];
-
-                if (s.Equals(")"))
+                else if (!s.Trim().Equals(string.Empty))
                 {
-                    throw new Exception($"To much ')' characters are defined in expression : [{expr}] : no corresponding '(' fund.");
-                }
-                else
-                {
-                    if (EvaluateParenthis(expr, s, stack, ref i)
-                        || EvaluateIndexing(expr, s, stack, ref i))
-                    { }
-                    else if (stringBeginningRegex.IsMatch(restOfExpression))
-                    {
-                        Match stringBeginningMatch = stringBeginningRegex.Match(restOfExpression);
-                        bool isEscaped = stringBeginningMatch.Groups["escaped"].Success;
-                        bool isInterpolated = stringBeginningMatch.Groups["interpolated"].Success;
-
-                        i += stringBeginningMatch.Length;
-
-                        Regex stringRegexPattern = new Regex($"^[^{(isEscaped ? "" : @"\\")}{(isInterpolated ? "{}" : "")}\"]*");
-
-                        bool endOfString = false;
-
-                        string resultString = string.Empty;
-
-                        while (!endOfString && i < expr.Length)
-                        {
-                            Match stringMatch = stringRegexPattern.Match(expr.Substring(i, expr.Length - i));
-
-                            resultString += stringMatch.Value;
-                            i += stringMatch.Length;
-
-                            if (expr.Substring(i)[0] == '"')
-                            {
-                                endOfString = true;
-                                stack.Push(resultString);
-                            }
-                            else if (expr.Substring(i)[0] == '{')
-                            {
-                                i++;
-
-                                if (expr.Substring(i)[0] == '{')
-                                {
-                                    resultString += @"{";
-                                    i++;
-                                }
-                                else
-                                {
-                                    string innerExp = "";
-                                    int bracketCount = 1;
-                                    for (; i < expr.Length; i++)
-                                    {
-                                        Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
-
-                                        if (internalStringMatch.Success)
-                                        {
-                                            string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
-                                            innerExp += innerString;
-                                            i += innerString.Length - 1;
-                                        }
-                                        else
-                                        {
-
-                                            s = expr.Substring(i, 1);
-
-                                            if (s.Equals("{")) bracketCount++;
-
-                                            if (s.Equals("}"))
-                                            {
-                                                bracketCount--;
-                                                i++;
-                                                if (bracketCount == 0) break;
-                                            }
-                                            innerExp += s;
-                                        }
-                                    }
-
-                                    if (bracketCount > 0)
-                                    {
-                                        string beVerb = bracketCount == 1 ? "is" : "are";
-                                        throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expr}]");
-                                    }
-                                    resultString += Evaluate(innerExp).ToString();
-                                }
-                            }
-                            else if (expr.Substring(i, expr.Length - i)[0] == '}')
-                            {
-                                i++;
-
-                                if (expr.Substring(i, expr.Length - i)[0] == '}')
-                                {
-                                    resultString += @"}";
-                                    i++;
-                                }
-                                else
-                                {
-                                    throw new ExpressionEvaluatorSyntaxErrorException("A character '}' must be escaped in a interpolated string.");
-                                }
-                            }
-                            else if (expr.Substring(i, expr.Length - i)[0] == '\\')
-                            {
-                                i++;
-
-                                if (stringEscapedCharDict.TryGetValue(expr.Substring(i, expr.Length - i)[0], out string escapedString))
-                                {
-                                    resultString += escapedString;
-                                    i++;
-                                }
-                                else
-                                {
-                                    throw new ExpressionEvaluatorSyntaxErrorException("There is no corresponding escaped character for \\" + expr.Substring(i, 1));
-                                }
-                            }
-                        }
-
-                        if (!endOfString)
-                            throw new ExpressionEvaluatorSyntaxErrorException("A \" character is missing.");
-                    }
-                    else if (operatorsDictionary.ContainsKey(s))
-                    {
-                        stack.Push(operatorsDictionary[s]);
-                    }
-                    else if (!s.Trim().Equals(string.Empty))
-                    {
-                        throw new ExpressionEvaluatorSyntaxErrorException("Invalid character.");
-                    }
+                    throw new ExpressionEvaluatorSyntaxErrorException("Invalid character.");
                 }
             }
         }
@@ -554,18 +475,7 @@ internal class ExpressionEvaluator
                             else
                             {
                                 List<object> oArgs = funcArgs.ConvertAll(arg => Evaluate(arg));
-                                BindingFlags flag = instanceBindingFlag;
-
-                                if (obj is Type)
-                                {
-                                    objType = obj as Type;
-                                    obj = null;
-                                    flag = staticBindingFlag;
-                                }
-                                else
-                                {
-                                    objType = obj.GetType();
-                                }
+                                BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
                                 // Standard Instance or public method find
                                 MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, func, flag, oArgs);
@@ -666,18 +576,7 @@ internal class ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    BindingFlags flag = instanceBindingFlag;
-
-                                    if (obj is Type)
-                                    {
-                                        objType = obj as Type;
-                                        obj = null;
-                                        flag = staticBindingFlag;
-                                    }
-                                    else
-                                    {
-                                        objType = obj.GetType();
-                                    }
+                                    BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
                                     object varValue = objType?.GetProperty(var, flag)?.GetValue(obj);
                                     if (varValue == null)
@@ -722,8 +621,27 @@ internal class ExpressionEvaluator
         }
     }
 
+    private bool EvaluateTwoCharsOperators(string expr, Stack<object> stack, ref int i)
+    {
+        if (i < expr.Length - 1)
+        {
+            String op = expr.Substring(i, 2);
+            if (operatorsDictionary.ContainsKey(op))
+            {
+                stack.Push(operatorsDictionary[op]);
+                i++;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private bool EvaluateParenthis(string expr, string s, Stack<object> stack, ref int i)
     {
+        if (s.Equals(")"))
+            throw new Exception($"To much ')' characters are defined in expression : [{expr}] : no corresponding '(' fund.");
+
         if (s.Equals("("))
         {
             i++;
@@ -790,6 +708,122 @@ internal class ExpressionEvaluator
             }
             stack.Push(indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing);
             stack.Push(Evaluate(innerExp));
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool EvaluateString(string expr, string s, string restOfExpression, Stack<object> stack, ref int i)
+    {
+        Match stringBeginningMatch = stringBeginningRegex.Match(restOfExpression);
+
+        if (stringBeginningMatch.Success)
+        {
+            bool isEscaped = stringBeginningMatch.Groups["escaped"].Success;
+            bool isInterpolated = stringBeginningMatch.Groups["interpolated"].Success;
+
+            i += stringBeginningMatch.Length;
+
+            Regex stringRegexPattern = new Regex($"^[^{(isEscaped ? "" : @"\\")}{(isInterpolated ? "{}" : "")}\"]*");
+
+            bool endOfString = false;
+
+            string resultString = string.Empty;
+
+            while (!endOfString && i < expr.Length)
+            {
+                Match stringMatch = stringRegexPattern.Match(expr.Substring(i, expr.Length - i));
+
+                resultString += stringMatch.Value;
+                i += stringMatch.Length;
+
+                if (expr.Substring(i)[0] == '"')
+                {
+                    endOfString = true;
+                    stack.Push(resultString);
+                }
+                else if (expr.Substring(i)[0] == '{')
+                {
+                    i++;
+
+                    if (expr.Substring(i)[0] == '{')
+                    {
+                        resultString += @"{";
+                        i++;
+                    }
+                    else
+                    {
+                        string innerExp = "";
+                        int bracketCount = 1;
+                        for (; i < expr.Length; i++)
+                        {
+                            Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
+
+                            if (internalStringMatch.Success)
+                            {
+                                string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
+                                innerExp += innerString;
+                                i += innerString.Length - 1;
+                            }
+                            else
+                            {
+
+                                s = expr.Substring(i, 1);
+
+                                if (s.Equals("{")) bracketCount++;
+
+                                if (s.Equals("}"))
+                                {
+                                    bracketCount--;
+                                    i++;
+                                    if (bracketCount == 0) break;
+                                }
+                                innerExp += s;
+                            }
+                        }
+
+                        if (bracketCount > 0)
+                        {
+                            string beVerb = bracketCount == 1 ? "is" : "are";
+                            throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expr}]");
+                        }
+                        resultString += Evaluate(innerExp).ToString();
+                    }
+                }
+                else if (expr.Substring(i, expr.Length - i)[0] == '}')
+                {
+                    i++;
+
+                    if (expr.Substring(i, expr.Length - i)[0] == '}')
+                    {
+                        resultString += @"}";
+                        i++;
+                    }
+                    else
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("A character '}' must be escaped in a interpolated string.");
+                    }
+                }
+                else if (expr.Substring(i, expr.Length - i)[0] == '\\')
+                {
+                    i++;
+
+                    if (stringEscapedCharDict.TryGetValue(expr.Substring(i, expr.Length - i)[0], out string escapedString))
+                    {
+                        resultString += escapedString;
+                        i++;
+                    }
+                    else
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("There is no corresponding escaped character for \\" + expr.Substring(i, 1));
+                    }
+                }
+            }
+
+            if (!endOfString)
+                throw new ExpressionEvaluatorSyntaxErrorException("A \" character is missing.");
 
             return true;
         }
@@ -910,10 +944,7 @@ internal class ExpressionEvaluator
 
         if (methodInfo != null)
         {
-            if (methodInfo.IsGenericMethod)
-            {
-                methodInfo = methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
-            }
+            methodInfo = MakeConcreteMethodIfGeneric(methodInfo);
         }
         else
         {
@@ -926,12 +957,11 @@ internal class ExpressionEvaluator
 
             for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
             {
-                if (methodInfos[m].IsGenericMethod)
-                {
-                    methodInfos[m] = methodInfos[m].MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfos[m].GetGenericArguments().Count()).ToArray());
-                }
+                methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m]);
 
                 bool parametersCastOK = true;
+
+                modifiedArgs = new List<object>(args);
 
                 for (int a = 0; a < modifiedArgs.Count; a++)
                 {
@@ -980,7 +1010,6 @@ internal class ExpressionEvaluator
                     methodInfo = methodInfos[m];
             }
 
-
             if (methodInfo != null)
             {
                 args.Clear();
@@ -989,6 +1018,31 @@ internal class ExpressionEvaluator
         }
 
         return methodInfo;
+    }
+
+    private MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo)
+    {
+        if (methodInfo.IsGenericMethod)
+        {
+            return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+        }
+
+        return methodInfo;
+    }
+
+    private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
+    {
+        if (obj is Type)
+        {
+            objType = obj as Type;
+            obj = null;
+            return staticBindingFlag;
+        }
+        else
+        {
+            objType = obj.GetType();
+            return instanceBindingFlag;
+        }
     }
 
     private List<string> GetExpressionsBetweenParenthis(string expr, ref int i, bool checkComas)
@@ -1048,150 +1102,21 @@ internal class ExpressionEvaluator
     {
         bool functionExists = true;
 
-        if (name.Equals("abs"))
+        if (simpleDoubleMathFuncsDictionary.TryGetValue(name, out Func<double, double> func))
         {
-            result = Math.Abs(Convert.ToDouble(Evaluate(args[0])));
+            result = func(Convert.ToDouble(Evaluate(args[0])));
         }
-        else if (name.Equals("acos"))
+        else if (doubleDoubleMathFuncsDictionary.TryGetValue(name, out Func<double, double, double> func2))
         {
-            result = Math.Acos(Convert.ToDouble(Evaluate(args[0])));
+            result = func2(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
         }
-        else if (name.Equals("array"))
+        else if (complexStandardFuncsDictionary.TryGetValue(name, out Func<ExpressionEvaluator, List<string>, object> complexFunc))
         {
-            result = args.ConvertAll(arg => Evaluate(arg)).ToArray();
-        }
-        else if (name.Equals("asin"))
-        {
-            result = Math.Asin(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("atan"))
-        {
-            result = Math.Atan(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("atan2"))
-        {
-            result = Math.Atan2(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
-        }
-        else if (name.Equals("avg"))
-        {
-            result = args.ConvertAll(arg => Convert.ToDouble(Evaluate(arg)))
-                .Sum() / args.Count;
-        }
-        else if (name.Equals("ceiling"))
-        {
-            result = Math.Ceiling(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("cos"))
-        {
-            result = Math.Cos(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("cosh"))
-        {
-            result = Math.Cosh(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("exp"))
-        {
-            result = Math.Exp(Convert.ToDouble(Evaluate(args[0])));
+            result = complexFunc(this, args);
         }
         else if (IsEvaluateFunctionActivated && name.Equals("evaluate"))
         {
             result = Evaluate((string)Evaluate(args[0]));
-        }
-        else if (name.Equals("floor"))
-        {
-            result = Math.Floor(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("ieeeremainder"))
-        {
-            result = Math.IEEERemainder(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
-        }
-        else if (name.Equals("list"))
-        {
-            result = args.ConvertAll(arg => Evaluate(arg));
-        }
-        else if (name.Equals("log"))
-        {
-            result = Math.Log(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
-        }
-        else if (name.Equals("log10"))
-        {
-            result = Math.Log10(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("max"))
-        {
-            result = args.ConvertAll(arg => Convert.ToDouble(Evaluate(arg))).Max();
-        }
-        else if (name.Equals("min"))
-        {
-            result = args.ConvertAll(arg => Convert.ToDouble(Evaluate(arg))).Min();
-        }
-        else if (name.Equals("new"))
-        {
-            List<object> cArgs = args.ConvertAll(arg => Evaluate(arg));
-            result = Activator.CreateInstance(cArgs[0] as Type, cArgs.Skip(1).ToArray());
-        }
-        else if (name.Equals("pow"))
-        {
-            result = Math.Pow(Convert.ToDouble(Evaluate(args[0])), Convert.ToDouble(Evaluate(args[1])));
-        }
-        else if (name.Equals("round"))
-        {
-            result = Math.Round(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("sign"))
-        {
-            result = Math.Sign(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("sin"))
-        {
-            result = Math.Sin(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("sinh"))
-        {
-            result = Math.Sinh(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("sqrt"))
-        {
-            result = Math.Sqrt(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("tan"))
-        {
-            result = Math.Tan(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("tanh"))
-        {
-            result = Math.Tanh(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("truncate"))
-        {
-            result = Math.Truncate(Convert.ToDouble(Evaluate(args[0])));
-        }
-        else if (name.Equals("if"))
-        {
-            if ((bool)Evaluate(args[0]))
-                result = Evaluate(args[1]);
-            else
-                result = Evaluate(args[2]);
-        }
-        else if (name.Equals("in"))
-        {
-            object valueToFind = Evaluate(args[0]);
-
-            result = args.Skip(1).ToList()
-                .ConvertAll(arg => Evaluate(arg))
-                .Contains(valueToFind);
-        }
-        else if (name.Equals("default"))
-        {
-            Type type = (Evaluate(args[0]) as Type);
-            if (type != null && type.IsValueType)
-            {
-                result = Activator.CreateInstance(type);
-            }
-            else
-            {
-                result = null;
-            }
         }
         else
         {
