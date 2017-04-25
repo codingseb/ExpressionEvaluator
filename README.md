@@ -68,3 +68,15 @@ int.Parse(Regex.Match("Test 34 Hello/-World", @"\d+").Value) + 2
 (float)3 / (float)2
 1.5
 ```
+
+## Standard constants (variables)
+
+The evaluation of variables name is case insensitive so you can write it like you want to.
+
+|Constant|Value|Type|
+|---|---|---|
+|null|C# null value|N/A|
+|true|C# true value|System.Boolean|
+|false|C# false value|System.Boolean|
+|Pi|3.14159265358979|System.Double|
+|E|2.71828182845905|System.Double|
