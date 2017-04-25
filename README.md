@@ -125,8 +125,14 @@ The evaluation of functions names is case insensitive.
 |Name|Description|Example|Result|
 |---|---|---|---|
 |**Abs**(double number)|Return a double that is the absolute value of number|`Abs(-3.2d)`|3.2d|
-|**Acos**(double d)|Return a double value that is the angle in radian whose d is the cosinus<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|2.0943951023032d|
+|**Acos**(double d)|Return a double value that is the angle in radian whose d is the cosine<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|2.0943951023032d|
 |**Array**(object obj1, object obj2 ,...)|Return a array (System.Object[]) of all given arguments|`Array(1, "Hello", true)`|new object[]{1, "Hello", true)|
-|**Asin**(double d)|Return a double value that is the angle in radian whose d is the sinus<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|0.304692654015398d|
-|**Atan**(double d)|Return a double value that is the angle in radian whose d is the tangent<br/>|`Atan(2.1)`|1.1263771168938d|
-|**Avg**(double nb1, double nb2 ,...)|Return the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|1.425d|
+|**Asin**(double d)|Return a double value that is the angle in radian whose d is the sine<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|0.304692654015398d|
+|**Atan**(double d)|Return a double value that is the angle in radian whose d is the tangent|`Atan(2.1)`|1.1263771168938d|
+|**Atan2**(double x, double y)|Return a double value that is the angle in radian whose the tangente is the quotient of x and y<br/>|`Atan2(2.1d, 3.4d)`|0.553294325322293d|
+|**Avg**(double nb1, double nb2 ,...)|Return a double value taht is the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|1.425d|
+|**Ceiling**(double a)|Return a double value that is the smallest integer greater than or equal to the specified number.|`Ceiling(4.23d)`|5d|
+|**Cos**(double a)|Return a double value that is the cosine of the specified angle in radian|`Cos(2 * Pi)`|1d|
+|**Cosh**(double a)|Return a double value that is the hyperbolic cosine of the specified angle in radian|`Cosh(2d)`|3.76219569108363d|
+
+
