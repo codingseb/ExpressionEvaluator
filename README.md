@@ -132,7 +132,10 @@ The evaluation of functions names is case insensitive.
 |**Atan2**(double x, double y)|Return a double value that is the angle in radian whose the tangente is the quotient of x and y<br/>|`Atan2(2.1d, 3.4d)`|`0.553294325322293d`|
 |**Avg**(double nb1, double nb2 ,...)|Return a double value taht is the average value of all given arguments|`Avg(1, 2.5, -4, 6.2)`|`1.425d`|
 |**Ceiling**(double a)|Return a double value that is the smallest integer greater than or equal to the specified number.|`Ceiling(4.23d)`|`5d`|
-|**Cos**(double a)|Return a double value that is the cosine of the specified angle in radian|`Cos(2 * Pi)`|`1d`|
-|**Cosh**(double a)|Return a double value that is the hyperbolic cosine of the specified angle in radian|`Cosh(2d)`|`3.76219569108363d`|
-
+|**Cos**(double angle)|Return a double value that is the cosine of the specified angle in radian|`Cos(2 * Pi)`|`1d`|
+|**Cosh**(double angle)|Return a double value that is the hyperbolic cosine of the specified angle in radian|`Cosh(2d)`|`3.76219569108363d`|
+|**Exp**(double d)|Return a double value that is e raised to the specified d power|`Exp(3d)`|`20.0855369231877d`|
+|**Floor**(double d)|Return a double value that is the largest integer less than or equal to the specified d argument|`Floor(4.23d)`|`4d`|
+|**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(4d, 3d)`|`1.26185950714291d`|
+|**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(4d)`|`0.602059991327962d`|
 
