@@ -102,3 +102,5 @@ x+y
 myVar + " !!!"
 Hello World !!!
 ```
+
+* Remark : custom variable evaluation is case insensitive *
