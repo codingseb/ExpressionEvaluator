@@ -126,7 +126,7 @@ The evaluation of functions names is case insensitive.
 |---|---|---|---|
 |**Abs**(double number)|Return a double that is the absolute value of number|`Abs(-3.2d)`|`3.2d`|
 |**Acos**(double d)|Return a double value that is the angle in radian whose d is the cosine<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|`2.0943951023032d`|
-|**Array**(object obj1, object obj2 ,...)|Return a array (System.Object[]) of all given arguments|`Array(1, "Hello", true)`|`new object[]{1, "Hello", true)`|
+|**Array**(object obj1, object obj2 ,...)|Return a array (System.Object[]) of all given arguments|`Array(1, "Hello", true)`|`new object[]{1, "Hello", true}`|
 |**Asin**(double d)|Return a double value that is the angle in radian whose d is the sine<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|`0.304692654015398d`|
 |**Atan**(double d)|Return a double value that is the angle in radian whose d is the tangent|`Atan(2.1)`|`1.1263771168938d`|
 |**Atan2**(double x, double y)|Return a double value that is the angle in radian whose the tangente is the quotient of x and y<br/>|`Atan2(2.1d, 3.4d)`|`0.553294325322293d`|
@@ -138,6 +138,6 @@ The evaluation of functions names is case insensitive.
 |**Floor**(double d)|Return a double value that is the largest integer less than or equal to the specified d argument|`Floor(4.23d)`|`4d`|
 |**if**(bool condition, object yes, object no)|Return the yes object value if condition is true.<br/>Return the no object if condition is false|`if(1>2, "It is true", "It is false")`|`"It is false"`|
 |**in**(object valueToFind, object obj1, object obj2...)|Return a boolean value that indicate if the first argument is found in the other arguments|`in(8, 4, 2, 8)`|`true`|
-|**List**(object obj1, object obj2 ,...)|Return a List (System.Collections.Generic.List<object>) of all given arguments|`List(1, "Hello", true)`|`new List<object>(){1, "Hello", true)`|
+|**List**(object obj1, object obj2 ,...)|Return a List (System.Collections.Generic.List<object>) of all given arguments|`List(1, "Hello", true)`|`new List<object>(){1, "Hello", true}`|
 |**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(64d, 2d)`|`6d`|
 |**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(1000d)`|`3d`|
