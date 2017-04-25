@@ -152,3 +152,4 @@ The evaluation of functions names is case insensitive.
 |**Sqrt**(double d)|Return a double value that is the square root of the specified d value|`Sqrt(4d)`|`2d`|
 |**Tan**(double angle)|Return a double value that is the tangent of the specified angle in radian|`Tan(Pi / 4)`|`1d`|
 |**Tanh**(double angle)|Return a double value that is the hyperbolic tangent of the specified angle in radian|`Tanh(2d)`|`0.964027580075817d`|
+|**Truncate**(double d)|Return a double value that is the ineger part of the specified d value|`Truncate(2.45d)`|`2d`|
