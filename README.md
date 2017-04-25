@@ -145,3 +145,10 @@ The evaluation of functions names is case insensitive.
 |**Max**(double nb1, double nb2 ,...)|Return a double value that is the maximum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`2.5d`|
 |**Min**(double nb1, double nb2 ,...)|Return a double value that is the minimum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`-4d`|
 |**Pow**(double x, double y)|Return a double value that is x elevate to the power y|`Pow(2,4)`|`16d`|
+|**Round**(double d, (optional) int digits)|Rounds d to the nearest integer or specified number of decimal places.|`Round(2.432,1)`|`2.4d`|
+|**Sign**(double d)|Return 1,-1 or 0 indicating the sign of d|`Sign(-12)`|`-1d`|
+|**Sin**(double angle)|Return a double value that is the sine of the specified angle in radian|`Sin(Pi/2)`|`1d`|
+|**Sinh**(double angle)|Return a double value that is the hyperbolic sine of the specified angle in radian|`Sinh(2d)`|`3.62686040784702d`|
+|**Sqrt**(double d)|Return a double value that is the square root of the specified d value|`Sqrt(4d)`|`2d`|
+|**Tan**(double angle)|Return a double value that is the tangent of the specified angle in radian|`Tan(Pi / 4)`|`1d`|
+|**Tanh**(double angle)|Return a double value that is the hyperbolic tangent of the specified angle in radian|`Tanh(2d)`|`0.964027580075817d`|
