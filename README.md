@@ -22,6 +22,9 @@ Results with some expressions :
 (2 + 3) * 2
 10
 
+Pi
+3.14159265358979
+
 Pow(2, 4)
 16
 
