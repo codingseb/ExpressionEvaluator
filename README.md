@@ -67,6 +67,9 @@ int.Parse(Regex.Match("Test 34 Hello/-World", @"\d+").Value) + 2
 
 (float)3 / (float)2
 1.5
+
+new(Random).next(1,10)
+4 // or a random value between 1 and 9
 ```
 
 ## Standard constants (variables)
