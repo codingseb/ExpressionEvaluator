@@ -70,6 +70,9 @@ int.Parse(Regex.Match("Test 34 Hello/-World", @"\d+").Value) + 2
 
 new(Random).next(1,10)
 4 // or a random value between 1 and 9
+
+List("Test", "Hello", "Bye", "How are you?").Find(t => t.Length < 4)
+Bye
 ```
 
 ## Standard constants (variables)
