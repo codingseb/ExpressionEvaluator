@@ -109,7 +109,7 @@ internal class ExpressionEvaluator
         NullCoalescing,
         Cast,
         Indexing,
-        IndexingWithNullConditional
+        IndexingWithNullConditional,
     }
 
     private static Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.OrdinalIgnoreCase)
@@ -236,7 +236,6 @@ internal class ExpressionEvaluator
         { "exp", Math.Exp },
         { "floor", Math.Floor },
         { "log10", Math.Log10 },
-        { "round", Math.Round },
         { "sin", Math.Sin },
         { "sinh", Math.Sinh },
         { "sqrt", Math.Sqrt },
@@ -266,6 +265,7 @@ internal class ExpressionEvaluator
         { "min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
         { "new", (self, args) => { List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
             return Activator.CreateInstance(cArgs[0] as Type, cArgs.Skip(1).ToArray());}},
+        { "round", (self, args) => { return args.Count > 1 ? Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1])) : Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } },
         { "sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
     };
 
@@ -708,6 +708,12 @@ internal class ExpressionEvaluator
             }
             stack.Push(indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing);
             stack.Push(Evaluate(innerExp));
+
+            dynamic right = stack.Pop();
+            ExpressionOperator op = (ExpressionOperator)stack.Pop();
+            dynamic left = stack.Pop();
+
+            stack.Push(operatorsEvaluations[0][op](left, right));
 
             return true;
         }
