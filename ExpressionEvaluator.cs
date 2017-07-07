@@ -182,7 +182,7 @@ internal class ExpressionEvaluator
             {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
             {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
             {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-            {ExpressionOperator.Is, (dynamic left, dynamic right) => ((Type)right).IsAssignableFrom(left.GetType()) },
+            {ExpressionOperator.Is, (dynamic left, dynamic right) => (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
         },
         new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
         {
@@ -600,7 +600,7 @@ internal class ExpressionEvaluator
 
                             if (staticType != null)
                             {
-                                stack.Push(staticType);
+                                stack.Push(new ClassOrTypeName() { Type = staticType });
                             }
                             else
                             {
@@ -946,7 +946,14 @@ internal class ExpressionEvaluator
             }
         }
 
-        methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+        if (args.Contains(null))
+        {
+            methodInfo = type.GetMethod(func, flag);
+        }
+        else
+        {
+            methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+        }
 
         if (methodInfo != null)
         {
@@ -1038,9 +1045,9 @@ internal class ExpressionEvaluator
 
     private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
     {
-        if (obj is Type)
+        if (obj is ClassOrTypeName classOrTypeName)
         {
-            objType = obj as Type;
+            objType = classOrTypeName.Type;
             obj = null;
             return staticBindingFlag;
         }
@@ -1234,6 +1241,11 @@ internal class ExpressionEvaluator
         }
 
         return result;
+    }
+
+    private class ClassOrTypeName
+    {
+        public Type Type { get; set; }
     }
 
     private class DelegateEncaps
