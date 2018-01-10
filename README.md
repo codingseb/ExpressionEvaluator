@@ -6,7 +6,7 @@ It is largely based on and inspired by the following resources [this post on st
 ## Basic C# usage
 ```c#
 string expression;
-...
+//...
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
 Console.Write(expression);
 Console.Write(evaluator.Evaluate(expression));
@@ -163,3 +163,37 @@ The evaluation of functions names is case insensitive.
 |**Tan**(double angle)|Return a double value that is the tangent of the specified angle in radian|`Tan(Pi / 4)`|`1d`|
 |**Tanh**(double angle)|Return a double value that is the hyperbolic tangent of the specified angle in radian|`Tanh(2d)`|`0.964027580075817d`|
 |**Truncate**(double d)|Return a double value that is the integer part of the specified d value|`Truncate(2.45d)`|`2d`|
+
+## On the fly variables and functions evaluation
+In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
+2 C# events are provided that are fired when variables or functions are not fund as standard ones in evaluation time.
+
+```C#
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+evaluator.EvaluateVariable += ExpressionEvaluator_EvaluateVariable;
+evaluator.EvaluateFunction += ExpressionEvaluator_EvaluateFunction;
+//...
+
+private void ExpressionEvaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
+{
+    if(e.Name.ToLower().Equals("myvar"))
+    {
+        e.Value = 8;
+    }
+}
+
+private void ExpressionEvaluator_EvaluateFunction(object sender, FunctionEvaluationEventArg e)
+{
+    if(e.Name.ToLower().Equals("sayhello") && e.Args.Count == 1)
+    {
+        e.Value = $"Hello {e.EvaluateArg(0)}";
+    }
+}
+```
+```
+myVar + 2
+10
+
+SayHello("Bob")
+Hello Bob
+```
