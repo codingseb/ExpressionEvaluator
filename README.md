@@ -1,4 +1,4 @@
- (# ExpressionEvaluator
+# ExpressionEvaluator
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
 It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
@@ -13,7 +13,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * C# basic types like (int, string, double, float, object...)
-* Use strings as in C# (@"", $"", $@"" avaiable)
+* Use strings as in C# (@"", $"", $@"" available)
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
 * Create instance with new(Type, constructorargs)
