@@ -197,3 +197,24 @@ myVar + 2
 SayHello("Bob")
 Hello Bob
 ```
+
+## Go Fluid with methods suffixing convention
+Since ExpressionEvaluator evaluate one expression at a time. 
+There are cases where we need to use void methods in a fluid syntax manner.
+
+To do so, simply suffix the method name with "Fluid" or "Fluent"
+
+```
+// Example Add on List
+List("hello", "bye").FluidAdd(\"test\").Count
+3
+
+List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[0]
+HELLO
+
+List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[1]
+BYE
+
+List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[2]
+test
+```
