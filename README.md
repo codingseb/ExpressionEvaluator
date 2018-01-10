@@ -81,7 +81,7 @@ Bye
 
 ## Standard constants (variables)
 
-The evaluation of variables name is case insensitive so you can write it like you want to.
+The evaluation of variables name is case insensitive so you can write it as you want.
 
 |Constant|Value|Type|
 |---|---|---|
