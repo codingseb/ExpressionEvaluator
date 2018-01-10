@@ -7,18 +7,18 @@ It is largely based on and inspired by the following resources [this post on st
 ## Features
 * Basic mathematical expression evaluation
 * System.Math methods and constants directly avaiable (some like Max, Min, Avg are improved)
-* Some useful functions to create List and Arrays
-* Custom variables definition
-* On the fly variables and functions evaluation (To easily extend possibilities)
+* Some useful [functions](#standard-functions) for example to create List and Arrays
+* [Custom variables definition](#custom-variables)
+* [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities)
 * A large set of C# operators availables (follow C# operators priorities)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * C# basic types like (int, string, double, float, object...)
 * Use strings as in C#
 * Linq, generics and lambda expressions
-* Classes like File, Directory, Regex, List ... available (You can extend the list of Namespaces)
+* Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
 * Create instance with new(Type, constructorargs)
-* Call void methods with fluid prefix convention to chain operations
+* [Call void methods with fluid prefix convention to chain operations]#go-fluid-with-a-simple-methods-prefixing-convention)
 
 ## Basic C# usage
 ```c#
@@ -234,4 +234,25 @@ BYE
 
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[2]
 test
+```
+## Namespaces
+By default the following list of namespaces are available
+
+* System
+* System.Linq
+* System.IO
+* System.Text
+* System.Text.RegularExpressions
+* System.ComponentModel
+* System.Collections
+* System.Collections.Generic
+* System.Collections.Specialized
+* System.Globalization
+
+You can extend or reduce this list :
+
+```C#
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+evaluator.Namespaces.Add(namespace);
+evaluator.Namespaces.Remove(namespaceToRemove);
 ```
