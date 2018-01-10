@@ -198,11 +198,11 @@ SayHello("Bob")
 Hello Bob
 ```
 
-## Go fluid with a simple methods suffixing convention
+## Go fluid with a simple methods prefixing convention
 Since ExpressionEvaluator evaluate one expression at a time. 
 There are cases where we need to use void methods in a fluid syntax manner.
 
-To do so, simply suffix the method name with "Fluid" or "Fluent"
+To do so, you only need to prefix the method name with "Fluid" or "Fluent"
 
 ```
 // Example Add on List
