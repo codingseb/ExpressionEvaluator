@@ -198,7 +198,7 @@ SayHello("Bob")
 Hello Bob
 ```
 
-## Go Fluid with methods suffixing convention
+## Go fluid with methods suffixing convention
 Since ExpressionEvaluator evaluate one expression at a time. 
 There are cases where we need to use void methods in a fluid syntax manner.
 
