@@ -1,4 +1,3 @@
-
 # ExpressionEvaluator
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
@@ -18,7 +17,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
 * Create instance with new(Type, constructorargs)
-* [Call void methods with fluid prefix convention to chain operations]#go-fluid-with-a-simple-methods-prefixing-convention)
+* [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 
 ## Basic C# usage
 ```c#
