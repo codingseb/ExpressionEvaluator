@@ -73,6 +73,10 @@ new(Random).next(1,10)
 
 List("Test", "Hello", "Bye", "How are you?").Find(t => t.Length < 4)
 Bye
+
+((x, y) => x * y)(4, 2)
+8
+
 ```
 
 ## Standard constants (variables)
