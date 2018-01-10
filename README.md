@@ -16,7 +16,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available (You can extend the list of Namespaces)
 * Create instance with new(Type, constructorargs)
-* Call void methods with fluid prefix convention
+* Call void methods with fluid prefix convention to chain operations
 
 ## Basic C# usage
 ```c#
