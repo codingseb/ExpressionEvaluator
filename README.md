@@ -128,7 +128,7 @@ True
 
 *Remark : custom variable evaluation is case insensitive*
 
-## Standard Functions
+## Standard functions
 The following functions are internally defined. (Most of these are System.Math Methods directly accessible)
 The evaluation of functions names is case insensitive.
 
