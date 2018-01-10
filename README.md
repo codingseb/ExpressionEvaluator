@@ -5,14 +5,15 @@ It is largely based on and inspired by the following resources [this post on st
 
 ## Features
 * Basic mathematical expression evaluation
-* System.Math methods and const directly avaiable (some like Max, Min, Avg are improved)
+* System.Math methods and constantes directly avaiable (some like Max, Min, Avg are improved)
 * Some useful functions to create List and Arrays
 * Custom variables definition
 * On the fly variables and functions evaluation (To easily extend possibilities)
 * A large set of C# operators availables (follow C# operators priorities)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
-* Linq, Generic and lambda expressions
+* C# basic types like (int, string, double, float, object...)
+* Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available (You can extend the list of Namespaces)
 * Create instance with new(Type, constructorargs)
 * Call void methods with fluid prefix convention
