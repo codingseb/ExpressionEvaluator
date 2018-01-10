@@ -5,7 +5,7 @@ It is largely based on and inspired by the following resources [this post on st
 
 ## Features
 * Basic mathematical expression evaluation
-* System.Math methods and constantes directly avaiable (some like Max, Min, Avg are improved)
+* System.Math methods and constants directly avaiable (some like Max, Min, Avg are improved)
 * Some useful functions to create List and Arrays
 * Custom variables definition
 * On the fly variables and functions evaluation (To easily extend possibilities)
