@@ -9,7 +9,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Some useful [functions](#standard-functions) for example to create List and Arrays
 * [Custom variables definition](#custom-variables)
 * [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities)
-* [A large set of C# operators availables](operators)
+* [A large set of C# operators availables](#operators)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * [C# primary types](#primary-types)
