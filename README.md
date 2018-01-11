@@ -9,14 +9,14 @@ It is largely based on and inspired by the following resources [this post on st
 * Some useful [functions](#standard-functions) for example to create List and Arrays
 * [Custom variables definition](#custom-variables)
 * [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities)
-* A large set of C# operators availables (follow C# operators priorities)
+* [A large set of C# operators availables](operators)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * [C# primary types](#primary-types)
 * Use strings as in C# (@"", $"", $@"" available)
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
-* Create instance with new(Type, constructorArgs)
+* Create instance with [new(TypeOrClass, constructorArgs)](#standard-functions)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 
 ## Basic C# usage
@@ -170,6 +170,7 @@ The evaluation of functions names is case insensitive.
 |**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(1000d)`|`3d`|
 |**Max**(double nb1, double nb2 ,...)|Return a double value that is the maximum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`2.5d`|
 |**Min**(double nb1, double nb2 ,...)|Return a double value that is the minimum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`-4d`|
+|**new**(TypeOrClass, constructorArg1, constructorArg2 ...)|Create an instance of the specified class as first argument and return it. A optional list of additional arguments can be passed as constructor arguments|`new(Random).next(0,10)`|`5d // or a random value between 1 and 9`|
 |**Pow**(double x, double y)|Return a double value that is x elevate to the power y|`Pow(2,4)`|`16d`|
 |**Round**(double d, (optional) int digits)|Rounds d to the nearest integer or specified number of decimal places.|`Round(2.432,1)`|`2.4d`|
 |**Sign**(double d)|Return 1,-1 or 0 indicating the sign of d|`Sign(-12)`|`-1d`|
@@ -284,7 +285,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
 |[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
 |[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
-|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use new() function instead|
+|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use [new() function](#standard-functions) instead|
 |[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Not Supported|
 |[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
 |[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
@@ -323,7 +324,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
 |[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
 |[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
-|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the if() function instead|
+|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the [if() function](#standard-functions) instead|
 |[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
 
 Assignment Operators are not supported in ExpressionEvaluator
