@@ -307,7 +307,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Type-testing|[as](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Not Supported|
 |Equality|[x == y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-comparison-operator)|Supported|
 |Equality|[x != y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/not-equal-operator)|Supported|
-|*Equality*|x <> y|Supported (Not in C# same as x != y)|
+|*Equality*|x <> y|Added (Not in C# same as x != y)|
 |Logical AND|[x & y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Supported|
 |Logical XOR|[x ^ y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-operator)|Supported|
 |Logical OR|[x &#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
