@@ -90,6 +90,15 @@ new(Random).next(1,10)
 List("Test", "Hello", "Bye", "How are you?").Find(t => t.Length < 4)
 Bye
 
+Enumerable.Range(1,4).Cast().Sum(x =>(int)x)
+10
+
+Enumerable.Repeat(3,6).Cast().ToList().Count
+6
+
+Enumerable.Repeat(3,6).Cast().ToList()[4]
+3
+
 ((x, y) => x * y)(4, 2)
 8
 
