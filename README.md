@@ -241,33 +241,22 @@ ExpressionEvaluator manage the following list of C# primary types
 
 * object
 * string
-* bool
-* bool?
-* byte
-* byte?
-* char
-* char?
-* decimal
-* decimal?
-* double
-* double?
-* short
-* short?
-* int
-* int?
-* long
-* long?
-* sbyte
-* sbyte?
-* float
-* float?
-* ushort
-* ushort?
-* uint
-* uint?
-* ulong
-* ulong?
+* bool/bool?
+* byte/byte?
+* char/char?
+* decimal/decimal?
+* double/double?
+* short/short?
+* int/int?
+* long/long?
+* sbyte/sbyte?
+* float/float?
+* ushort/ushort?
+* uint/uint?
+* ulong/ulong?
 * void
+
+Add the ? for nullable types
 
 ## Operators
 ExpressionEvaluator manage a large set of C# operators (See [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx))
