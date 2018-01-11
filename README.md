@@ -316,12 +316,12 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |[as](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Not Supported|
 |[x == y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-comparison-operator)|Supported|
 |[x != y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/not-equal-operator)|Supported|
-|x <> y|Supported (Not in C# sae as x != y)|
+|x <> y|Supported (Not in C# see as x != y)|
 |[x & y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Supported|
 |[x ^ y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-operator)|Supported|
-|[x | y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
+|[x &#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
 |[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
-|[x || y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
+|[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
 |[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
 |[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the if() function instead|
 |[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
