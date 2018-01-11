@@ -550,7 +550,7 @@ internal class ExpressionEvaluator
                 }
                 else
                 {
-                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(var);
+                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(completeVar);
 
                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
