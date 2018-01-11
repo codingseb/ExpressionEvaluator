@@ -5,18 +5,18 @@ It is largely based on and inspired by the following resources [this post on st
 
 ## Features
 * Basic mathematical expression evaluation
-* System.Math methods and constants directly avaiable (some like Max, Min, Avg are improved)
+* System.Math methods and constants directly available (some like Max, Min, Avg are improved)
 * Some useful [functions](#standard-functions) for example to create List and Arrays
 * [Custom variables definition](#custom-variables)
 * [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities)
 * A large set of C# operators availables (follow C# operators priorities)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
-* C# basic types like (int, string, double, float, object...)
+* [C# primary types](#primary-types)
 * Use strings as in C# (@"", $"", $@"" available)
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
-* Create instance with new(Type, constructorargs)
+* Create instance with new(Type, constructorArgs)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 
 ## Basic C# usage
@@ -234,6 +234,100 @@ BYE
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[2]
 test
 ```
+
+## Primary types
+ExpressionEvaluator manage the following list of C# primary types
+
+* object
+* string
+* bool
+* bool?
+* byte
+* byte?
+* char
+* char?
+* decimal
+* decimal?
+* double
+* double?
+* short
+* short?
+* int
+* int?
+* long
+* long?
+* sbyte
+* sbyte?
+* float
+* float?
+* ushort
+* ushort?
+* uint
+* uint?
+* ulong
+* ulong?
+* void
+
+## Operators
+ExpressionEvaluator manage a large set of C# operators (See [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx))
+
+ExpressionEvaluator respect the C# precedence rules of operators
+
+Here is a list of which operators are supported in ExpressionEvaluator or not
+
+|Operator|Support|
+|---|---|
+|[x.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operator)|Supported|
+|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
+|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
+|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
+|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
+|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
+|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
+|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use new() function instead|
+|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Not Supported|
+|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
+|[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
+|[default(T)](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/default-value-expressions)|Supported|
+|[delegate](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/anonymous-methods)|Not Supported|
+|[sizeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sizeof)|Not Supported|
+|[->](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/dereference-operator)|Not Supported|
+|[+x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
+|[!x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/logical-negation-operator)|Supported|
+|[~x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator)|Not Supported|
+|[++x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
+|[--x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
+|[(T)x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
+|[await](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/await)|Not Supported|
+|[&x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Not Supported|
+|[*x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Not Supported|
+|[x * y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Supported|
+|[x / y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/division-operator)|Supported|
+|[x % y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/modulus-operator)|Supported|
+|[x + y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
+|[x - y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
+|[x << y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-operator)|Supported|
+|[x >> y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-operator)|Supported|
+|[x < y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-operator)|Supported|
+|[x > y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-operator)|Supported|
+|[x <= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-equal-operator)|Supported|
+|[x >= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-equal-operator)|Supported|
+|[is](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Supported|
+|[as](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Not Supported|
+|[x == y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-comparison-operator)|Supported|
+|[x != y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/not-equal-operator)|Supported|
+|x <> y|Supported (Not in C# sae as x != y)|
+|[x & y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Supported|
+|[x ^ y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-operator)|Supported|
+|[x | y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
+|[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
+|[x || y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
+|[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
+|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the if() function instead|
+|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
+
+Assignment Operators are not supported in ExpressionEvaluator
+
 ## Namespaces
 By default the following list of namespaces are available
 
