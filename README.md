@@ -265,57 +265,57 @@ ExpressionEvaluator respect the C# precedence rules of operators
 
 Here is a list of which operators are supported in ExpressionEvaluator or not
 
-|Operator|Support|
-|---|---|
-|[x.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operator)|Supported|
-|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
-|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
-|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
-|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
-|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
-|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
-|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use [new() function](#standard-functions) instead|
-|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Not Supported|
-|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
-|[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
-|[default(T)](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/default-value-expressions)|Supported|
-|[delegate](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/anonymous-methods)|Not Supported|
-|[sizeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sizeof)|Not Supported|
-|[->](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/dereference-operator)|Not Supported|
-|[+x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
-|[-x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
-|[!x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/logical-negation-operator)|Supported|
-|[~x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator)|Not Supported|
-|[++x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
-|[--x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
-|[(T)x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
-|[await](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/await)|Not Supported|
-|[&x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Not Supported|
-|[*x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Not Supported|
-|[x * y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Supported|
-|[x / y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/division-operator)|Supported|
-|[x % y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/modulus-operator)|Supported|
-|[x + y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
-|[x - y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
-|[x << y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-operator)|Supported|
-|[x >> y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-operator)|Supported|
-|[x < y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-operator)|Supported|
-|[x > y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-operator)|Supported|
-|[x <= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-equal-operator)|Supported|
-|[x >= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-equal-operator)|Supported|
-|[is](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Supported|
-|[as](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Not Supported|
-|[x == y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-comparison-operator)|Supported|
-|[x != y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/not-equal-operator)|Supported|
-|x <> y|Supported (Not in C# see as x != y)|
-|[x & y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Supported|
-|[x ^ y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-operator)|Supported|
-|[x &#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
-|[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
-|[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
-|[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
-|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the [if() function](#standard-functions) instead|
-|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
+|Type|Operator|Support|
+|---|---|---|
+|Primary|[x.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operator)|Supported|
+|Primary|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
+|Primary|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
+|Primary|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
+|Primary|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
+|Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
+|Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
+|Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use [new() function](#standard-functions) instead|
+|Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Not Supported|
+|Primary|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
+|Primary|[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
+|Primary|[default(T)](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/default-value-expressions)|Supported|
+|Primary|[delegate](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/anonymous-methods)|Not Supported|
+|Primary|[sizeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sizeof)|Not Supported|
+|Primary|[->](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/dereference-operator)|Not Supported|
+|Unary|[+x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
+|Unary|[-x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
+|Unary|[!x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/logical-negation-operator)|Supported|
+|Unary|[~x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator)|Not Supported|
+|Unary|[++x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
+|Unary|[--x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
+|Unary|[(T)x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
+|Unary|[await](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/await)|Not Supported|
+|Unary|[&x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Not Supported|
+|Unary|[*x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Not Supported|
+|Multiplicative|[x * y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-operator)|Supported|
+|Multiplicative|[x / y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/division-operator)|Supported|
+|Multiplicative|[x % y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/modulus-operator)|Supported|
+|Additive|[x + y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
+|Additive|[x - y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
+|Shift|[x << y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-operator)|Supported|
+|Shift|[x >> y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-operator)|Supported|
+|Relational|[x < y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-operator)|Supported|
+|Relational|[x > y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-operator)|Supported|
+|Relational|[x <= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/less-than-equal-operator)|Supported|
+|Relational|[x >= y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/greater-than-equal-operator)|Supported|
+|Type-testing|[is](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Supported|
+|Type-testing|[as](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/is)|Not Supported|
+|Equality|[x == y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-comparison-operator)|Supported|
+|Equality|[x != y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/not-equal-operator)|Supported|
+|*Equality|x <> y|Supported (Not in C# same as x != y)|
+|Logical AND|[x & y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-operator)|Supported|
+|Logical XOR|[x ^ y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-operator)|Supported|
+|Logical OR|[x &#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-operator)|Supported|
+|Conditional AND|[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
+|Conditional OR|[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
+|Null-coalescing|[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
+|Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the [if() function](#standard-functions) instead|
+|Lambda|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
 
 Assignment Operators are not supported in ExpressionEvaluator
 
