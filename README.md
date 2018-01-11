@@ -294,6 +294,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |[sizeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sizeof)|Not Supported|
 |[->](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/dereference-operator)|Not Supported|
 |[+x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-operator)|Supported|
+|[-x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-operator)|Supported|
 |[!x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/logical-negation-operator)|Supported|
 |[~x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/bitwise-complement-operator)|Not Supported|
 |[++x](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
