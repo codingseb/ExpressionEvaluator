@@ -182,7 +182,7 @@ internal class ExpressionEvaluator
             {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
             {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
             {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-            {ExpressionOperator.Is, (dynamic left, dynamic right) => (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
+            {ExpressionOperator.Is, (dynamic left, dynamic right) => ((Type)right).IsAssignableFrom(left.GetType()) },
         },
         new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
         {
@@ -600,7 +600,7 @@ internal class ExpressionEvaluator
 
                             if (staticType != null)
                             {
-                                stack.Push(new ClassOrTypeName() { Type = staticType });
+                                stack.Push(staticType);
                             }
                             else
                             {
@@ -1045,9 +1045,9 @@ internal class ExpressionEvaluator
 
     private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
     {
-        if (obj is ClassOrTypeName classOrTypeName)
+        if (obj is Type)
         {
-            objType = classOrTypeName.Type;
+            objType = obj as Type;
             obj = null;
             return staticBindingFlag;
         }
@@ -1241,11 +1241,6 @@ internal class ExpressionEvaluator
         }
 
         return result;
-    }
-
-    private class ClassOrTypeName
-    {
-        public Type Type { get; set; }
     }
 
     private class DelegateEncaps
