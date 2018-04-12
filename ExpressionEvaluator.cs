@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 /// <summary>
 /// This class allow to evaluate a string math or pseudo C# expression 
 /// </summary>
-internal class ExpressionEvaluator
+public class ExpressionEvaluator
 {
     private static Regex varOrFunctionRegEx = new Regex(@"^(?<inObject>(?<nullConditional>[?])?\.)?(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<isfunction>[(])?", RegexOptions.IgnoreCase);
     private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
@@ -182,7 +182,7 @@ internal class ExpressionEvaluator
             {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
             {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
             {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-            {ExpressionOperator.Is, (dynamic left, dynamic right) => ((Type)right).IsAssignableFrom(left.GetType()) },
+            {ExpressionOperator.Is, (dynamic left, dynamic right) => (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
         },
         new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
         {
@@ -299,10 +299,16 @@ internal class ExpressionEvaluator
         typeof(Enumerable) // For Linq extension methods
     };
 
+    private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// The Values of the variable use in the expressions
     /// </summary>
-    public Dictionary<string, object> Variables { get; set; } = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, object> Variables
+    {
+        get { return variables; }
+        set { variables = new Dictionary<string, object>(value, StringComparer.OrdinalIgnoreCase); }
+    }
 
     /// <summary>
     /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
@@ -322,7 +328,7 @@ internal class ExpressionEvaluator
     /// <param name="variables">The Values of the variable use in the expressions</param>
     public ExpressionEvaluator(Dictionary<string, object> variables)
     {
-        this.Variables = variables;
+        Variables = variables;
     }
 
     /// <summary>
@@ -550,7 +556,7 @@ internal class ExpressionEvaluator
                 }
                 else
                 {
-                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(completeVar);
+                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(var);
 
                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -600,7 +606,7 @@ internal class ExpressionEvaluator
 
                             if (staticType != null)
                             {
-                                stack.Push(staticType);
+                                stack.Push(new ClassOrTypeName() { Type = staticType });
                             }
                             else
                             {
@@ -1045,9 +1051,9 @@ internal class ExpressionEvaluator
 
     private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
     {
-        if (obj is Type)
+        if (obj is ClassOrTypeName classOrTypeName)
         {
-            objType = obj as Type;
+            objType = classOrTypeName.Type;
             obj = null;
             return staticBindingFlag;
         }
@@ -1243,6 +1249,11 @@ internal class ExpressionEvaluator
         return result;
     }
 
+    private class ClassOrTypeName
+    {
+        public Type Type { get; set; }
+    }
+
     private class DelegateEncaps
     {
         private lambdaExpressionDelegate lambda;
@@ -1348,7 +1359,7 @@ public class ExpressionEvaluatorSyntaxErrorException : Exception
     { }
 }
 
-internal class VariableEvaluationEventArg : EventArgs
+public class VariableEvaluationEventArg : EventArgs
 {
     /// <summary>
     /// 
@@ -1384,7 +1395,8 @@ internal class VariableEvaluationEventArg : EventArgs
     /// </summary>
     public bool HasValue { get; set; } = false;
 }
-internal class FunctionEvaluationEventArg : EventArgs
+
+public class FunctionEvaluationEventArg : EventArgs
 {
     private Func<string, object> evaluateFunc = null;
 
