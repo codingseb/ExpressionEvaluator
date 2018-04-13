@@ -177,8 +177,8 @@ The evaluation of functions names is case insensitive.
 |**List**(object obj1, object obj2 ,...)|Return a List (System.Collections.Generic.List<object>) of all given arguments|`List(1, "Hello", true)`|`new List<object>(){1, "Hello", true}`|
 |**Log**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(64d, 2d)`|`6d`|
 |**Log10**(double a)|Return a double value that is the base 10 logarithm of a specified a|`Log10(1000d)`|`3d`|
-|**Max**(double nb1, double nb2 ,...)|Return a double value that is the maximum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`2.5d`|
-|**Min**(double nb1, double nb2 ,...)|Return a double value that is the minimum value of all given arguments|`Avg(1d, 2.5d, -4d)`|`-4d`|
+|**Max**(double nb1, double nb2 ,...)|Return a double value that is the maximum value of all given arguments|`Max(1d, 2.5d, -4d)`|`2.5d`|
+|**Min**(double nb1, double nb2 ,...)|Return a double value that is the minimum value of all given arguments|`Min(1d, 2.5d, -4d)`|`-4d`|
 |**new**(TypeOrClass, constructorArg1, constructorArg2 ...)|Create an instance of the specified class as first argument and return it. A optional list of additional arguments can be passed as constructor arguments|`new(Random).next(0,10)`|`5d // or a random value between 1 and 9`|
 |**Pow**(double x, double y)|Return a double value that is x elevate to the power y|`Pow(2,4)`|`16d`|
 |**Round**(double d, (optional) int digits)|Rounds d to the nearest integer or specified number of decimal places.|`Round(2.432,1)`|`2.4d`|
