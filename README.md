@@ -278,7 +278,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |---|---|---|
 |Primary|[x.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operator)|Supported|
 |Primary|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
-|Primary|[x?.y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
+|Primary|[x?[y]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
 |Primary|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
 |Primary|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
 |Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
