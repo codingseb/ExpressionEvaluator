@@ -306,7 +306,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
 |Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
 |Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use [new() function](#standard-functions) instead|
-|Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Not Supported|
+|Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Supported|
 |Primary|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
 |Primary|[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
 |Primary|[default(T)](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/default-value-expressions)|Supported|
