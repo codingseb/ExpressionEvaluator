@@ -322,7 +322,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Conditional AND|[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
 |Conditional OR|[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
 |Null-coalescing|[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
-|Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Not Supported use the [if() function](#standard-functions) instead|
+|Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Supported equivalent to the [if() function](#standard-functions)|
 |Lambda|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
 
 Assignment Operators are not supported in ExpressionEvaluator
