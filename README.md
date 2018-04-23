@@ -8,7 +8,7 @@ It is largely based on and inspired by the following resources [this post on st
 * System.Math methods and constants directly available (some like Max, Min, Avg are improved)
 * Some useful [functions](#standard-functions) for example to create List and Arrays
 * [Custom variables definition](#custom-variables)
-* [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities)
+* [On the fly variables and functions evaluation](#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities, Manage also on instance Property and Methods)
 * [A large set of C# operators availables](#operators)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
@@ -200,6 +200,7 @@ The evaluation of functions names is case insensitive.
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
 2 C# events are provided that are fired when variables or functions are not fund as standard ones in evaluation time.
+Can be use to define or redefine on object instance methods or properties.
 
 ```C#
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
@@ -213,6 +214,10 @@ private void ExpressionEvaluator_EvaluateVariable(object sender, VariableEvaluat
     {
         e.Value = 8;
     }
+    else if(e.Name.Equals("MultipliedBy2") && e.This is int intValue)
+    {
+        e.Value = intValue * 2;
+    }
 }
 
 private void ExpressionEvaluator_EvaluateFunction(object sender, FunctionEvaluationEventArg e)
@@ -220,6 +225,10 @@ private void ExpressionEvaluator_EvaluateFunction(object sender, FunctionEvaluat
     if(e.Name.ToLower().Equals("sayhello") && e.Args.Count == 1)
     {
         e.Value = $"Hello {e.EvaluateArg(0)}";
+    }
+    else if(e.Name.Equals("Add") && e.This is int intValue)
+    {
+        e.Value = intValue + (int)e.EvaluateArg(0);
     }
 }
 ```
@@ -229,6 +238,12 @@ myVar + 2
 
 SayHello("Bob")
 Hello Bob
+
+3.MultipliedBy2
+6
+
+3.Add(2)
+5
 ```
 
 ## Go fluid with a simple methods prefixing convention
