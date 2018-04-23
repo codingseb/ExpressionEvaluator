@@ -28,6 +28,7 @@ Console.Write(expression);
 Console.Write(evaluator.Evaluate(expression));
 ```
 Results with some expressions :
+
 ```
 1+1
 2
@@ -61,6 +62,12 @@ Test 4 U
 
 if(Array(2, $"Test { 2 + 2 } U", true)[2], "yes" , "no")
 yes
+
+Array(2, $"Test { 2 + 2 } U", true)[2] ? "yes" : "no"
+yes
+
+false ? "yes" : "no"
+no
 
 "Hello\nWorld"
 Hello
