@@ -409,6 +409,16 @@ public class ExpressionEvaluatorTests
     [TestCase("default(bool)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values")]
     #endregion
 
+    #region typeof keyword
+    [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "typeof keyword")]
+    [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "typeof keyword")]
+    [TestCase("typeof(string)", ExpectedResult = typeof(string), Category = "typeof keyword")]
+    [TestCase("typeof(Regex)", ExpectedResult = typeof(Regex), Category = "typeof keyword")]
+    [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "typeof keyword")]
+    [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "typeof keyword")]
+    [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof keyword")]
+    #endregion
+
     #region Logical And Shift Operators
     [TestCase("2 & 8", TestOf = typeof(int), ExpectedResult = 0, Category = "LogicalAndOperator")]
     [TestCase("10 & 8", TestOf = typeof(int), ExpectedResult = 8, Category = "LogicalAndOperator")]
@@ -439,14 +449,14 @@ public class ExpressionEvaluatorTests
     [TestCase("Abs(-4) > 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
     #endregion
 
-    #region C# Keywords
-    [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "C# Keywords,typeof")]
-    [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "C# Keywords,typeof")]
-    [TestCase("typeof(string)", ExpectedResult = typeof(string), Category = "C# Keywords,typeof")]
-    [TestCase("typeof(Regex)", ExpectedResult = typeof(Regex), Category = "C# Keywords,typeof")]
-    [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "C# Keywords,typeof")]
-    [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "C# Keywords,typeof")]
-    [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "C# Keywords,typeof")]
+    #region typeof
+    [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "typeof")]
+    [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "typeof")]
+    [TestCase("typeof(string)", ExpectedResult = typeof(string), Category = "typeof")]
+    [TestCase("typeof(Regex)", ExpectedResult = typeof(Regex), Category = "typeof")]
+    [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "typeof")]
+    [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "typeof")]
+    [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof")]
     #endregion
 
     #region Math Constants
