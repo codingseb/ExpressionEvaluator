@@ -295,6 +295,7 @@ public class ExpressionEvaluator
         // TODO Implement MidpointRounding Rounding variantes
         { "round", (self, args) => { return args.Count > 1 ? Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1])) : Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } },
         { "sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
+        { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
     };
 
     /// <summary>
