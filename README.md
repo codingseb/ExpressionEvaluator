@@ -200,7 +200,7 @@ The evaluation of functions names is case insensitive.
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
 2 C# events are provided that are fired when variables or functions are not fund as standard ones in evaluation time.
-Can be use to define or redefine on object instance methods or properties.
+Can be use to define or redefine on object instances methods or properties.
 
 ```C#
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
