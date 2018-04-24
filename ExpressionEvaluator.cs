@@ -379,7 +379,7 @@ public class ExpressionEvaluator
         {
             BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Instance;
 
-            if (CaseSensitiveEvaluation)
+            if (!CaseSensitiveEvaluation)
                 flag |= BindingFlags.IgnoreCase;
 
             return flag;
@@ -392,7 +392,7 @@ public class ExpressionEvaluator
         {
             BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Static;
 
-            if (CaseSensitiveEvaluation)
+            if (!CaseSensitiveEvaluation)
                 flag |= BindingFlags.IgnoreCase;
 
             return flag;
