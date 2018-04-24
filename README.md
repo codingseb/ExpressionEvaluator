@@ -160,7 +160,6 @@ True
 
 ## Standard functions
 The following functions are internally defined. (Most of these are [System.Math Methods](https://msdn.microsoft.com/en-us/library/system.math(v=vs.110).aspx) directly accessible)
-The evaluation of functions names is case insensitive.
 
 |Name|Description|Example|Result|
 |---|---|---|---|
