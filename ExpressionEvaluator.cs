@@ -291,7 +291,7 @@ public class ExpressionEvaluator
         { "max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
         { "min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
         { "new", (self, args) => { List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
-            return Activator.CreateInstance(cArgs[0] as Type, cArgs.Skip(1).ToArray());}},
+            return Activator.CreateInstance((cArgs[0] as ClassOrTypeName).Type, cArgs.Skip(1).ToArray());}},
         // TODO Implement MidpointRounding Rounding variantes
         { "round", (self, args) => { return args.Count > 1 ? Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1])) : Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } },
         { "sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
