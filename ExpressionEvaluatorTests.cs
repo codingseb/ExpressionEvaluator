@@ -449,16 +449,6 @@ public class ExpressionEvaluatorTests
     [TestCase("Abs(-4) > 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
     #endregion
 
-    #region typeof
-    [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "typeof")]
-    [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "typeof")]
-    [TestCase("typeof(string)", ExpectedResult = typeof(string), Category = "typeof")]
-    [TestCase("typeof(Regex)", ExpectedResult = typeof(Regex), Category = "typeof")]
-    [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "typeof")]
-    [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "typeof")]
-    [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof")]
-    #endregion
-
     #region Math Constants
     [TestCase("pi", TestOf = typeof(double), ExpectedResult = Math.PI, Category = "Math Constants")]
     [TestCase("e", TestOf = typeof(double), ExpectedResult = Math.E, Category = "Math Constants")]
