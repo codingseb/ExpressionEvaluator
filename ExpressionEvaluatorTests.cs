@@ -352,7 +352,7 @@ public class ExpressionEvaluatorTests
     [TestCase("6 % 3", TestOf = typeof(int), ExpectedResult = 0, Category = "SimpleModulo")]
     #endregion
 
-    #region BooleanTestsOperators
+    #region Boolean Tests Operators
     [TestCase("1 < 5", TestOf = typeof(bool), ExpectedResult = true, Category = "LowerThanBooleanOperator")]
     [TestCase("5 < 5", TestOf = typeof(bool), ExpectedResult = false, Category = "LowerThanBooleanOperator")]
     [TestCase("7 < 5", TestOf = typeof(bool), ExpectedResult = false, Category = "LowerThanBooleanOperator")]
@@ -679,7 +679,9 @@ public class ExpressionEvaluatorTests
     #endregion
 
     #region new Function
-    // TODO Tests For new Function
+    [TestCase("New(ClassForTest1).GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Standard Functions,New Function")]
+    [TestCase("New(ClassForTest2, 15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Standard Functions,New Function")]
+    [TestCase("New(ClassForTest2, 15).Value1", ExpectedResult = 15, Category = "Standard Functions,New Function")]
     #endregion
 
     #region Pow Function
@@ -788,6 +790,8 @@ public class ExpressionEvaluatorTests
     public object DirectExpressionEvaluation(string expression)
     {
         ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+        evaluator.Namespaces.Add("WpfMvvmFw.Utils.Tests");
 
         return evaluator.Evaluate(expression);
     }
