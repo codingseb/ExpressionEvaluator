@@ -1,11 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// This class allow to evaluate a string math or pseudo C# expression 
 /// </summary>
@@ -23,9 +15,6 @@ public class ExpressionEvaluator
     private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
     private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
     private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
-
-    private static BindingFlags instanceBindingFlag = (BindingFlags.Default | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-    private static BindingFlags staticBindingFlag = (BindingFlags.Default | BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Static);
 
     private static Dictionary<string, Type> PrimaryTypesDict = new Dictionary<string, Type>()
     {
@@ -59,8 +48,8 @@ public class ExpressionEvaluator
         { "ulong?", typeof(ulong?) },
         { "void", typeof(void) }
     };
-
-    private static Dictionary<string, Func<string, object>> numberSuffixToParse = new Dictionary<string, Func<string, object>>()
+    
+    private static Dictionary<string, Func<string, object>> numberSuffixToParse = new Dictionary<string, Func<string, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
     {
         { "f", number => float.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
         { "d", number => double.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
@@ -236,45 +225,45 @@ public class ExpressionEvaluator
 
     private static Dictionary<string, object> defaultVariables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
     {
-        { "pi", Math.PI },
-        { "e", Math.E },
+        { "Pi", Math.PI },
+        { "E", Math.E },
         { "null", null},
         { "true", true },
         { "false", false },
     };
 
-    private static Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>()
+    private static Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.OrdinalIgnoreCase)
     {
-        { "abs", Math.Abs },
-        { "acos", Math.Acos },
-        { "asin", Math.Asin },
-        { "atan", Math.Atan },
-        { "ceiling", Math.Ceiling },
-        { "cos", Math.Cos },
-        { "cosh", Math.Cosh },
-        { "exp", Math.Exp },
-        { "floor", Math.Floor },
-        { "log10", Math.Log10 },
-        { "sin", Math.Sin },
-        { "sinh", Math.Sinh },
-        { "sqrt", Math.Sqrt },
-        { "tan", Math.Tan },
-        { "tanh", Math.Tanh },
-        { "truncate", Math.Truncate },
+        { "Abs", Math.Abs },
+        { "Acos", Math.Acos },
+        { "Asin", Math.Asin },
+        { "Atan", Math.Atan },
+        { "Ceiling", Math.Ceiling },
+        { "Cos", Math.Cos },
+        { "Cosh", Math.Cosh },
+        { "Exp", Math.Exp },
+        { "Floor", Math.Floor },
+        { "Log10", Math.Log10 },
+        { "Sin", Math.Sin },
+        { "Sinh", Math.Sinh },
+        { "Sqrt", Math.Sqrt },
+        { "Tan", Math.Tan },
+        { "Tanh", Math.Tanh },
+        { "Truncate", Math.Truncate },
     };
 
-    private static Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>()
+    private static Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(StringComparer.OrdinalIgnoreCase)
     {
-        { "atan2", Math.Atan2 },
-        { "ieeeremainder", Math.IEEERemainder },
-        { "log", Math.Log },
-        { "pow", Math.Pow },
+        { "Atan2", Math.Atan2 },
+        { "IEEERemainder", Math.IEEERemainder },
+        { "Log", Math.Log },
+        { "Pow", Math.Pow },
     };
 
-    private static Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>()
+    private static Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.OrdinalIgnoreCase)
     {
-        { "array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
-        { "avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
+        { "Array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
+        { "Avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
         { "default", (self, args) => 
             {
                 object argValue = self.Evaluate(args[0]);
@@ -287,14 +276,36 @@ public class ExpressionEvaluator
         },
         { "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
         { "in", (self, args) => args.Skip(1).ToList().ConvertAll(arg => self.Evaluate(arg)).Contains(self.Evaluate(args[0])) },
-        { "list", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
-        { "max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
-        { "min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
-        { "new", (self, args) => { List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
-            return Activator.CreateInstance((cArgs[0] as ClassOrTypeName).Type, cArgs.Skip(1).ToArray());}},
-        // TODO Implement MidpointRounding Rounding variantes
-        { "round", (self, args) => { return args.Count > 1 ? Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1])) : Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } },
-        { "sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
+        { "List", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
+        { "Max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
+        { "Min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
+        { "new", (self, args) => 
+            {
+                List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
+                return Activator.CreateInstance((cArgs[0] as ClassOrTypeName).Type, cArgs.Skip(1).ToArray());
+            }
+        },
+        { "Round", (self, args) => 
+            {
+                if(args.Count == 3)
+                    return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)(self.Evaluate(args[1])), (MidpointRounding)self.Evaluate(args[2]));
+                else if(args.Count == 2)
+                {
+                    object arg2 = self.Evaluate(args[1]);
+
+                    if(arg2 is MidpointRounding midpointRounding)
+                        return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), midpointRounding);
+                    else
+                        return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)arg2);
+                }
+                else if(args.Count == 1)
+                    return Math.Round(Convert.ToDouble(self.Evaluate(args[0])));
+                else
+                    throw new ArgumentException();
+                    
+            }
+        },
+        { "Sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
         { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
     };
 
@@ -307,7 +318,7 @@ public class ExpressionEvaluator
     /// <summary>
     /// All Namespaces Where to find types
     /// </summary>
-    public List<string> Namespaces { get; set; } = new List<string>
+    public List<string> Namespaces { get; set; } = new List<string>()
     {
         "System",
         "System.Linq",
@@ -334,6 +345,60 @@ public class ExpressionEvaluator
         typeof(Enumerable) // For Linq extension methods
     };
 
+    private bool caseSensitiveEvaluation = false;
+    /// <summary>
+    /// if true all evaluation are case sensitives, if false evaluations are case insensitive.
+    /// By default = false
+    /// </summary>
+    public bool CaseSensitiveEvaluation
+    {
+        get { return caseSensitiveEvaluation; }
+        set
+        {
+            caseSensitiveEvaluation = value;
+            Variables = Variables;
+            operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
+            defaultVariables = new Dictionary<string, object>(defaultVariables, StringComparerForCasing);
+            simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
+            doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
+            complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
+        }
+    }
+
+    private StringComparer StringComparerForCasing
+    {
+        get
+        {
+            return CaseSensitiveEvaluation ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+        }
+    }
+
+    public BindingFlags InstanceBindingFlag
+    {
+        get
+        {
+            BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Instance;
+
+            if (CaseSensitiveEvaluation)
+                flag |= BindingFlags.IgnoreCase;
+
+            return flag;
+        }
+    }
+
+    public BindingFlags StaticBindingFlag
+    {
+        get
+        {
+            BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Static;
+
+            if (CaseSensitiveEvaluation)
+                flag |= BindingFlags.IgnoreCase;
+
+            return flag;
+        }
+    }
+
     private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
@@ -342,7 +407,7 @@ public class ExpressionEvaluator
     public Dictionary<string, object> Variables
     {
         get { return variables; }
-        set { variables = new Dictionary<string, object>(value, StringComparer.OrdinalIgnoreCase); }
+        set { variables = new Dictionary<string, object>(value, StringComparerForCasing); }
     }
 
     /// <summary>
@@ -492,7 +557,7 @@ public class ExpressionEvaluator
 
             if (numberMatch.Groups["type"].Success)
             {
-                string type = numberMatch.Groups["type"].Value.ToLower();
+                string type = numberMatch.Groups["type"].Value;
                 string numberNoType = numberMatch.Value.Replace(type, string.Empty);
 
                 if (numberSuffixToParse.TryGetValue(type, out Func<string, object> parseFunc))
@@ -530,6 +595,8 @@ public class ExpressionEvaluator
             || stack.Peek() is ExpressionOperator) 
         && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
         {
+            string varFuncName = varFuncMatch.Groups["name"].Value;
+
             i += varFuncMatch.Length;
 
             if (varFuncMatch.Groups["isfunction"].Success)
@@ -543,7 +610,6 @@ public class ExpressionEvaluator
                     }
                     else
                     {
-                        string func = varFuncMatch.Groups["name"].Value.ToLower();
                         object obj = stack.Pop();
                         Type objType = null;
 
@@ -555,7 +621,7 @@ public class ExpressionEvaluator
                             }
                             else
                             {
-                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncMatch.Groups["name"].Value, Evaluate, funcArgs, obj);
+                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, obj);
 
                                 EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -569,7 +635,7 @@ public class ExpressionEvaluator
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
                                     // Standard Instance or public method find
-                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, func, flag, oArgs);
+                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
 
                                     // if not found try to Find extension methods.
                                     if (methodInfo == null && obj != null)
@@ -580,7 +646,7 @@ public class ExpressionEvaluator
                                         for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                         {
                                             Type type = StaticTypesForExtensionsMethods[e];
-                                            methodInfo = GetRealMethod(ref type, ref obj, func, staticBindingFlag, oArgs);
+                                            methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
                                         }
                                     }
 
@@ -590,7 +656,7 @@ public class ExpressionEvaluator
                                     }
                                     else
                                     {
-                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{func}\".");
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
                                     }
                                 }
                             }
@@ -602,18 +668,18 @@ public class ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{func}\" on type [{objType.ToString()}] generate this error : {(ex.InnerException?.Message ?? ex.Message)}", ex);
+                            throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType.ToString()}] generate this error : {(ex.InnerException?.Message ?? ex.Message)}", ex);
                         }
 
                     }
                 }
-                else if (DefaultFunctions(varFuncMatch.Groups["name"].Value.ToLower(), funcArgs, out object funcResult))
+                else if (DefaultFunctions(varFuncName, funcArgs, out object funcResult))
                 {
                     stack.Push(funcResult);
                 }
                 else
                 {
-                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncMatch.Groups["name"].Value, Evaluate, funcArgs);
+                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs);
 
                     EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -623,20 +689,17 @@ public class ExpressionEvaluator
                     }
                     else
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncMatch.Groups["name"].Value}] unknown in expression : [{expr}]");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr}]");
                     }
                 }
             }
             else
             {
-                string completeVar = varFuncMatch.Groups["name"].Value;
-                string var = completeVar.ToLower();
-
-                if (defaultVariables.TryGetValue(var, out object varValueToPush))
+                if (defaultVariables.TryGetValue(varFuncName, out object varValueToPush))
                 {
                     stack.Push(varValueToPush);
                 }
-                else if (Variables.TryGetValue(var, out object cusVarValueToPush))
+                else if (Variables.TryGetValue(varFuncName, out object cusVarValueToPush))
                 {
                     stack.Push(cusVarValueToPush);
                 }
@@ -658,7 +721,7 @@ public class ExpressionEvaluator
                             }
                             else
                             {
-                                VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(completeVar, obj);
+                                VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, obj);
 
                                 EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -670,9 +733,9 @@ public class ExpressionEvaluator
                                 {
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                    object varValue = objType?.GetProperty(var, flag)?.GetValue(obj);
+                                    object varValue = objType?.GetProperty(varFuncName, flag)?.GetValue(obj);
                                     if (varValue == null)
-                                        varValue = objType.GetField(var, flag).GetValue(obj);
+                                        varValue = objType.GetField(varFuncName, flag).GetValue(obj);
 
                                     stack.Push(varValue);
                                 }
@@ -680,12 +743,12 @@ public class ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{var}\".", ex);
+                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".", ex);
                         }
                     }
                     else
                     {
-                        VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(completeVar);
+                        VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName);
 
                         EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -695,7 +758,7 @@ public class ExpressionEvaluator
                         }
                         else
                         {
-                            string typeName = $"{completeVar}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
+                            string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
                             Type staticType = GetTypeByFriendlyName(typeName);
 
                             if (typeName.EndsWith("?") && staticType != null)
@@ -707,7 +770,7 @@ public class ExpressionEvaluator
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{var}] unknown in expression : [{expr}]");
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
                             }
                         }
                     }
@@ -1056,9 +1119,9 @@ public class ExpressionEvaluator
         MethodInfo methodInfo = null;
         List<object> modifiedArgs = new List<object>(args);
 
-        if (func.StartsWith("fluid") || func.StartsWith("fluent"))
+        if (func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) || func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluent".ManageCasing(CaseSensitiveEvaluation)))
         {
-            methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("fluid") ? 5 : 6), flag, modifiedArgs);
+            methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(CaseSensitiveEvaluation).Substring(func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) ? 5 : 6), flag, modifiedArgs);
             if (methodInfo != null)
             {
                 if (methodInfo.ReturnType == typeof(void))
@@ -1077,11 +1140,11 @@ public class ExpressionEvaluator
 
         if (args.Contains(null))
         {
-            methodInfo = type.GetMethod(func, flag);
+            methodInfo = type.GetMethod(func.ManageCasing(CaseSensitiveEvaluation), flag);
         }
         else
         {
-            methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+            methodInfo = type.GetMethod(func.ManageCasing(CaseSensitiveEvaluation), flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
         }
 
         if (methodInfo != null)
@@ -1091,10 +1154,7 @@ public class ExpressionEvaluator
         else
         {
             List<MethodInfo> methodInfos = type.GetMethods(flag)
-            .Where(m =>
-            {
-                return m.Name.ToLower().Equals(func) && m.GetParameters().Length == modifiedArgs.Count;
-            })
+            .Where(m => m.Name.ManageCasing(CaseSensitiveEvaluation).Equals(func.ManageCasing(CaseSensitiveEvaluation)) && m.GetParameters().Length == modifiedArgs.Count)
             .ToList();
 
             for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
@@ -1178,12 +1238,12 @@ public class ExpressionEvaluator
         {
             objType = classOrTypeName.Type;
             obj = null;
-            return staticBindingFlag;
+            return StaticBindingFlag;
         }
         else
         {
             objType = obj.GetType();
-            return instanceBindingFlag;
+            return InstanceBindingFlag;
         }
     }
 
@@ -1288,7 +1348,7 @@ public class ExpressionEvaluator
 
             if(result == null)
             {
-                result = Types.Find(type => type.Name.ToLower().Equals(typeName.ToLower()));
+                result = Types.Find(type => type.Name.ManageCasing(CaseSensitiveEvaluation).Equals(typeName.ManageCasing(CaseSensitiveEvaluation)));
             }
 
             for (int a = 0; a < Assemblies.Count && result == null; a++)
@@ -1485,6 +1545,14 @@ public class ExpressionEvaluatorSyntaxErrorException : Exception
     { }
     public ExpressionEvaluatorSyntaxErrorException(string message, Exception innerException) : base(message, innerException)
     { }
+}
+
+internal static class StringCaseManagementForExpressionEvaluatorExtension
+{
+    public static string ManageCasing(this string text, bool isCaseSensitive)
+    {
+        return isCaseSensitive ? text : text.ToLower();
+    }
 }
 
 public class VariableEvaluationEventArg : EventArgs
