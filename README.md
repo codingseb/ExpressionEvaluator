@@ -16,7 +16,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Use strings as in C# (@"", $"", $@"" available)
 * Linq, generics and lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
-* Create instance with [new(TypeOrClass, constructorArgs)](#standard-functions)
+* Create instance with [new(MyClassName, constructorArgs)](#standard-functions) or [new MyClassName(constructorArgs)](#operators)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 
 ## Basic C# usage
