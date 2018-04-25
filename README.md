@@ -91,8 +91,13 @@ int.Parse(Regex.Match("Test 34 Hello/-World", @"\d+").Value) + 2
 (float)3 / (float)2
 1.5
 
-new(Random).next(1,10)
+// use new as a function
+new(Random).Next(1,10)
 4 // or a random value between 1 and 9
+
+// or as a keyword
+new Regex(@"\w*[n]\w*").Match("Which word contains the desired letter ?").Value
+contains
 
 List("Test", "Hello", "Bye", "How are you?").Find(t => t.Length < 4)
 Bye
@@ -249,7 +254,7 @@ There are cases where we need to use void methods in a fluid syntax manner.
 
 To do so, you only need to prefix the method name with "Fluid" or "Fluent"
 
-```
+```C#
 // Example Add on List
 List("hello", "bye").FluidAdd(\"test\").Count
 3
@@ -262,6 +267,12 @@ BYE
 
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[2]
 test
+```
+
+If needed this fonctionality can be disabled with :
+
+```
+evaluator.FluidPrefixingActive = false;
 ```
 
 ## Primary types
@@ -302,7 +313,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Primary|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
 |Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
 |Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
-|Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Not Supported as this use [new() function](#standard-functions) instead|
+|Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Supported you can also use [new() function](#standard-functions)|
 |Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Supported|
 |Primary|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
 |Primary|[unchecked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/unchecked)|Not Supported|
@@ -346,8 +357,8 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 
 Assignment Operators are not supported in ExpressionEvaluator
 
-## Namespaces
-By default the following list of namespaces are available
+## Namespaces and types
+By default the following list of namespaces are available :
 
 * System
 * System.Linq
@@ -366,4 +377,12 @@ You can extend or reduce this list :
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
 evaluator.Namespaces.Add(namespace);
 evaluator.Namespaces.Remove(namespaceToRemove);
+```
+
+All types define in these namespaces are accessibles.
+
+You can also add a specific type :
+
+```C#
+evaluator.Types.Add(typeof(MyClass));
 ```

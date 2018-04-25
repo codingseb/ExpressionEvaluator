@@ -419,6 +419,14 @@ public class ExpressionEvaluatorTests
     [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof keyword")]
     #endregion
 
+    #region Create instance with new Keyword
+    [TestCase("new ClassForTest1().GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Create instance with new Keyword")]
+    [TestCase("new ClassForTest2(15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Create instance with new Keyword")]
+    [TestCase("new ClassForTest2(15).Value1", ExpectedResult = 15, Category = "Create instance with new Keyword")]
+    [TestCase("new WpfMvvmFw.Utils.Tests.TestsUtils.OtherNamespace.ClassInOtherNameSpace1().Value1", ExpectedResult = 26, Category = "Create instance with new Keyword")]
+    [TestCase("new Regex(@\"\\w*[n]\\w*\").Match(\"Which word contains the desired letter ?\").Value", ExpectedResult = "contains", Category = "Create instance with new Keyword")]
+    #endregion
+
     #region Logical And Shift Operators
     [TestCase("2 & 8", TestOf = typeof(int), ExpectedResult = 0, Category = "LogicalAndOperator")]
     [TestCase("10 & 8", TestOf = typeof(int), ExpectedResult = 8, Category = "LogicalAndOperator")]
@@ -450,14 +458,14 @@ public class ExpressionEvaluatorTests
     #endregion
 
     #region Math Constants
-    [TestCase("pi", TestOf = typeof(double), ExpectedResult = Math.PI, Category = "Math Constants")]
-    [TestCase("e", TestOf = typeof(double), ExpectedResult = Math.E, Category = "Math Constants")]
-    [TestCase("+pi", TestOf = typeof(double), ExpectedResult = +Math.PI, Category = "Math Constants,Unary +")]
-    [TestCase("+e", TestOf = typeof(double), ExpectedResult = +Math.E, Category = "Math Constants,Unary +")]
-    [TestCase("-pi", TestOf = typeof(double), ExpectedResult = -Math.PI, Category = "Math Constants,Unary -")]
-    [TestCase("-e", TestOf = typeof(double), ExpectedResult = -Math.E, Category = "Math Constants,Unary -")]
-    [TestCase("-pi + +pi", TestOf = typeof(double), ExpectedResult = 0, Category = "Math Constants,Unary -")]
-    [TestCase("-e - -e", TestOf = typeof(double), ExpectedResult = 0, Category = "Math Constants,Unary -")]
+    [TestCase("Pi", TestOf = typeof(double), ExpectedResult = Math.PI, Category = "Math Constants")]
+    [TestCase("E", TestOf = typeof(double), ExpectedResult = Math.E, Category = "Math Constants")]
+    [TestCase("+Pi", TestOf = typeof(double), ExpectedResult = +Math.PI, Category = "Math Constants,Unary +")]
+    [TestCase("+E", TestOf = typeof(double), ExpectedResult = +Math.E, Category = "Math Constants,Unary +")]
+    [TestCase("-Pi", TestOf = typeof(double), ExpectedResult = -Math.PI, Category = "Math Constants,Unary -")]
+    [TestCase("-E", TestOf = typeof(double), ExpectedResult = -Math.E, Category = "Math Constants,Unary -")]
+    [TestCase("-Pi + +Pi", TestOf = typeof(double), ExpectedResult = 0, Category = "Math Constants,Unary -")]
+    [TestCase("-E - -E", TestOf = typeof(double), ExpectedResult = 0, Category = "Math Constants,Unary -")]
     #endregion
 
     #region Lambda functions
@@ -512,13 +520,13 @@ public class ExpressionEvaluatorTests
     #endregion
 
     #region Atan Function
-    [TestCase("Atan(-pi)", ExpectedResult = -1.2626272556789118d, Category = "Standard Functions,Atan Function")]
+    [TestCase("Atan(-Pi)", ExpectedResult = -1.2626272556789118d, Category = "Standard Functions,Atan Function")]
     [TestCase("Atan(-1)", ExpectedResult = -0.78539816339744828d, Category = "Standard Functions,Atan Function")]
     [TestCase("Atan(0)", ExpectedResult = 0, Category = "Standard Functions,Atan Function")]
     [TestCase("Atan(0.5)", ExpectedResult = 0.46364760900080609d, Category = "Standard Functions,Atan Function")]
     [TestCase("Atan(1)", ExpectedResult = 0.78539816339744828d, Category = "Standard Functions,Atan Function")]
     [TestCase("Atan(2)", ExpectedResult = 1.1071487177940904d, Category = "Standard Functions,Atan Function")]
-    [TestCase("Atan(pi)", ExpectedResult = 1.2626272556789118d, Category = "Standard Functions,Atan Function")]
+    [TestCase("Atan(Pi)", ExpectedResult = 1.2626272556789118d, Category = "Standard Functions,Atan Function")]
     #endregion
 
     #region Atan2 Function
@@ -527,7 +535,7 @@ public class ExpressionEvaluatorTests
     [TestCase("Atan2(0d, 0.5)", ExpectedResult = 0, Category = "Standard Functions,Atan2 Function")]
     [TestCase("Atan2(0.5, 2d)", ExpectedResult = 0.24497866312686414d, Category = "Standard Functions,Atan2 Function")]
     [TestCase("Atan2(1, 1)", ExpectedResult = 0.78539816339744828d, Category = "Standard Functions,Atan2 Function")]
-    [TestCase("Atan2(pi, 1d)", ExpectedResult = 1.2626272556789118d, Category = "Standard Functions,Atan2 Function")]
+    [TestCase("Atan2(Pi, 1d)", ExpectedResult = 1.2626272556789118d, Category = "Standard Functions,Atan2 Function")]
     #endregion
 
     #region Avg Function
@@ -679,9 +687,9 @@ public class ExpressionEvaluatorTests
     #endregion
 
     #region new Function
-    [TestCase("New(ClassForTest1).GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Standard Functions,New Function")]
-    [TestCase("New(ClassForTest2, 15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Standard Functions,New Function")]
-    [TestCase("New(ClassForTest2, 15).Value1", ExpectedResult = 15, Category = "Standard Functions,New Function")]
+    [TestCase("new(ClassForTest1).GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Standard Functions,new Function")]
+    [TestCase("new(ClassForTest2, 15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Standard Functions,new Function")]
+    [TestCase("new(ClassForTest2, 15).Value1", ExpectedResult = 15, Category = "Standard Functions,new Function")]
     #endregion
 
     #region Pow Function
@@ -704,7 +712,10 @@ public class ExpressionEvaluatorTests
     [TestCase("Round(-1.5)", ExpectedResult = -2, Category = "Standard Functions,Round Function")]
     [TestCase("Round(4)", ExpectedResult = 4, Category = "Standard Functions,Round Function")]
     [TestCase("Round(Pi, 2)", ExpectedResult = 3.14, Category = "Standard Functions,Round Function")]
-    // TODO Tests for MidpointRounding
+    [TestCase("Round(2.5, MidpointRounding.AwayFromZero)", ExpectedResult = 3, Category = "Standard Functions,Round Function")]
+    [TestCase("Round(2.5, MidpointRounding.ToEven)", ExpectedResult = 2, Category = "Standard Functions,Round Function")]
+    [TestCase("Round(2.25, 1, MidpointRounding.AwayFromZero)", ExpectedResult = 2.3, Category = "Standard Functions,Round Function")]
+    [TestCase("Round(2.25, 1, MidpointRounding.ToEven)", ExpectedResult = 2.2, Category = "Standard Functions,Round Function")]      
     #endregion
 
     #region Sign Function
@@ -810,48 +821,48 @@ public class ExpressionEvaluatorTests
                 { "isThisReal", true },
             };
 
-            yield return new TestCaseData("hello", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection").Returns("Test");
-            yield return new TestCaseData("x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection").Returns(5);
-            yield return new TestCaseData("isThisReal", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection").Returns(true);
+            yield return new TestCaseData("hello", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection").Returns("Test");
+            yield return new TestCaseData("x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection").Returns(5);
+            yield return new TestCaseData("isThisReal", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection").Returns(true);
 
-            yield return new TestCaseData("+x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(5);
-            yield return new TestCaseData("-5 + +x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-            yield return new TestCaseData("-5++x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-            yield return new TestCaseData("5 + +x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
-            yield return new TestCaseData("5++x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
-            yield return new TestCaseData("5 - +x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-            yield return new TestCaseData("5-+x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-            yield return new TestCaseData("-5 - +x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
-            yield return new TestCaseData("-5-+x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
-            yield return new TestCaseData("+y - +x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(15);
-            yield return new TestCaseData("+y-+x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary +").Returns(15);
-            yield return new TestCaseData("-x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(-5);
-            yield return new TestCaseData("-5 + -x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(-10);
-            yield return new TestCaseData("-5+-x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(-10);
-            yield return new TestCaseData("5 + -x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-            yield return new TestCaseData("5+-x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-            yield return new TestCaseData("-5 - -x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-            yield return new TestCaseData("-5--x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-            yield return new TestCaseData("5 - -x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
-            yield return new TestCaseData("5--x", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
-            yield return new TestCaseData("-x - -y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
-            yield return new TestCaseData("-x--y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
-            yield return new TestCaseData("+x - -y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
-            yield return new TestCaseData("+x--y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
-            yield return new TestCaseData("+x + -y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
-            yield return new TestCaseData("+x+-y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
-            yield return new TestCaseData("-x - +y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
-            yield return new TestCaseData("-x-+y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
-            yield return new TestCaseData("-x + +y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-            yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-            yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-            yield return new TestCaseData("(-x + +y)", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-            yield return new TestCaseData("(-x++y)", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-            yield return new TestCaseData("-(-x++y)", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(-15);
+            yield return new TestCaseData("+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(5);
+            yield return new TestCaseData("-5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
+            yield return new TestCaseData("-5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
+            yield return new TestCaseData("5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
+            yield return new TestCaseData("5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
+            yield return new TestCaseData("5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
+            yield return new TestCaseData("5-+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
+            yield return new TestCaseData("-5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
+            yield return new TestCaseData("-5-+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
+            yield return new TestCaseData("+y - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(15);
+            yield return new TestCaseData("+y-+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(15);
+            yield return new TestCaseData("-x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(-5);
+            yield return new TestCaseData("-5 + -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(-10);
+            yield return new TestCaseData("-5+-x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(-10);
+            yield return new TestCaseData("5 + -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
+            yield return new TestCaseData("5+-x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
+            yield return new TestCaseData("-5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
+            yield return new TestCaseData("-5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
+            yield return new TestCaseData("5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
+            yield return new TestCaseData("5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
+            yield return new TestCaseData("-x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
+            yield return new TestCaseData("-x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
+            yield return new TestCaseData("+x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
+            yield return new TestCaseData("+x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
+            yield return new TestCaseData("+x + -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
+            yield return new TestCaseData("+x+-y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
+            yield return new TestCaseData("-x - +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
+            yield return new TestCaseData("-x-+y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
+            yield return new TestCaseData("-x + +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
+            yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
+            yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
+            yield return new TestCaseData("(-x + +y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
+            yield return new TestCaseData("(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
+            yield return new TestCaseData("-(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(-15);
             
-            yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
-            yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
-            yield return new TestCaseData("iStHISrEAL", variablesForSimpleVariablesInjection).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
+            yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
+            yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
+            yield return new TestCaseData("iStHISrEAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
 
             #endregion
 
@@ -868,9 +879,9 @@ public class ExpressionEvaluatorTests
                 }
             };
 
-            yield return new TestCaseData("dictionary[\"Test[\"]", variablesForStringWithSquareBracketInIndexing).SetCategory("StringWithSquareBracketInIndexing").Returns("Test1");
-            yield return new TestCaseData("dictionary[\"Test]\"]", variablesForStringWithSquareBracketInIndexing).SetCategory("StringWithSquareBracketInIndexing").Returns("Test2");
-            yield return new TestCaseData("dictionary[\"Test[]\"]", variablesForStringWithSquareBracketInIndexing).SetCategory("StringWithSquareBracketInIndexing").Returns("Test3");
+            yield return new TestCaseData("dictionary[\"Test[\"]", variablesForStringWithSquareBracketInIndexing, true).SetCategory("StringWithSquareBracketInIndexing").Returns("Test1");
+            yield return new TestCaseData("dictionary[\"Test]\"]", variablesForStringWithSquareBracketInIndexing, true).SetCategory("StringWithSquareBracketInIndexing").Returns("Test2");
+            yield return new TestCaseData("dictionary[\"Test[]\"]", variablesForStringWithSquareBracketInIndexing, true).SetCategory("StringWithSquareBracketInIndexing").Returns("Test3");
 
             #endregion
 
@@ -888,47 +899,49 @@ public class ExpressionEvaluatorTests
                 { "customObject", new ClassForTest1() }
             };
 
-            yield return new TestCaseData("simpleArray.Length", onInstanceVariables).SetCategory("Instance Property").Returns(3);
-            yield return new TestCaseData("simpleList.Count", onInstanceVariables).SetCategory("Instance Property").Returns(4);
-            yield return new TestCaseData("simpleArray?.Length", onInstanceVariables).SetCategory("Instance Property,Null Conditional Property").Returns(3);
-            yield return new TestCaseData("simpleList?.Count", onInstanceVariables).SetCategory("Instance Property,Null Conditional Property").Returns(4);
-            yield return new TestCaseData("nullVar?.Length", onInstanceVariables).SetCategory("Instance Property,Null Conditional Property").Returns(null);
-            yield return new TestCaseData("nullVar?.Count", onInstanceVariables).SetCategory("Instance Property,Null Conditional Property").Returns(null);
-            yield return new TestCaseData("simpleArray?[2]", onInstanceVariables).SetCategory("Instance Property,Null Conditional indexing").Returns(true);
-            yield return new TestCaseData("simpleList?[2]", onInstanceVariables).SetCategory("Instance Property,Null Conditional indexing").Returns(-15);
-            yield return new TestCaseData("nullVar?[2]", onInstanceVariables).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
+            yield return new TestCaseData("simpleArray.Length", onInstanceVariables, true).SetCategory("Instance Property").Returns(3);
+            yield return new TestCaseData("simpleList.Count", onInstanceVariables, true).SetCategory("Instance Property").Returns(4);
+            yield return new TestCaseData("simpleArray?.Length", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(3);
+            yield return new TestCaseData("simpleList?.Count", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(4);
+            yield return new TestCaseData("nullVar?.Length", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(null);
+            yield return new TestCaseData("nullVar?.Count", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(null);
+            yield return new TestCaseData("simpleArray?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(true);
+            yield return new TestCaseData("simpleList?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(-15);
+            yield return new TestCaseData("nullVar?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
 
-            yield return new TestCaseData("simpleInt.ToString()", onInstanceVariables).SetCategory("Instance Method").Returns("42");
-            yield return new TestCaseData("simpleInt.ToString().Length", onInstanceVariables).SetCategory("Instance Method,Instance Property").Returns(2);
+            yield return new TestCaseData("simpleInt.ToString()", onInstanceVariables, true).SetCategory("Instance Method").Returns("42");
+            yield return new TestCaseData("simpleInt.ToString().Length", onInstanceVariables, true).SetCategory("Instance Method,Instance Property").Returns(2);
 
-            yield return new TestCaseData("customObject.IntProperty", onInstanceVariables).SetCategory("Instance Property").Returns(25);
-            yield return new TestCaseData("customObject?.IntProperty", onInstanceVariables).SetCategory("Instance Property").Returns(25);
-            yield return new TestCaseData("customObject.Add3To(9)", onInstanceVariables).SetCategory("Instance Method").Returns(12);
-            yield return new TestCaseData("customObject?.Add3To(5)", onInstanceVariables).SetCategory("Instance Method").Returns(8);
+            yield return new TestCaseData("customObject.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
+            yield return new TestCaseData("customObject?.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
+            yield return new TestCaseData("customObject.Add3To(9)", onInstanceVariables, true).SetCategory("Instance Method").Returns(12);
+            yield return new TestCaseData("customObject?.Add3To(5)", onInstanceVariables, true).SetCategory("Instance Method").Returns(8);
 
-            yield return new TestCaseData("ClassForTest1.StaticIntProperty", onInstanceVariables).SetCategory("Static Property").Returns(67);
-            yield return new TestCaseData("ClassForTest1.StaticStringMethod(\"Bob\")", onInstanceVariables).SetCategory("Static Method").Returns("Hello Bob");
+            yield return new TestCaseData("ClassForTest1.StaticIntProperty", onInstanceVariables, true).SetCategory("Static Property").Returns(67);
+            yield return new TestCaseData("ClassForTest1.StaticStringMethod(\"Bob\")", onInstanceVariables, true).SetCategory("Static Method").Returns("Hello Bob");
 
-            yield return new TestCaseData("simpleInt.GetType()", onInstanceVariables).SetCategory("Instance Method,Instance Property,Type Manage").Returns(typeof(int));
-            yield return new TestCaseData("simpleInt.GetType().Name", onInstanceVariables).SetCategory("Instance Method,Instance Property,Type Manage").Returns("Int32");
+            yield return new TestCaseData("simpleInt.GetType()", onInstanceVariables, true).SetCategory("Instance Method,Instance Property,Type Manage").Returns(typeof(int));
+            yield return new TestCaseData("simpleInt.GetType().Name", onInstanceVariables, true).SetCategory("Instance Method,Instance Property,Type Manage").Returns("Int32");
 
-            yield return new TestCaseData("simpleInt.GetType().Name", onInstanceVariables).SetCategory("Instance Method,Instance Property,Type Manage").Returns("Int32");
+            yield return new TestCaseData("simpleInt.GetType().Name", onInstanceVariables, true).SetCategory("Instance Method,Instance Property,Type Manage").Returns("Int32");
 
-            yield return new TestCaseData("simpleList.Find(o => o is int)", onInstanceVariables).SetCategory("Lambda function,Instance method,is Operator").Returns(-15);
+            yield return new TestCaseData("simpleList.Find(o => o is int)", onInstanceVariables, true).SetCategory("Lambda function,Instance method,is Operator").Returns(-15);
 
-            yield return new TestCaseData("List(simpleArray[1], simpleList?[0], nullVar?[4] ?? \"Bye\", \"How are you ?\").Find(t => t.Length < 4)", onInstanceVariables).SetCategory("Complex expression,Lambda function,Instance method,Instance Property,Null Conditional indexing, Null Coalescing Operator").Returns("Bye");
-            yield return new TestCaseData("int.Parse(Regex.Match(\"Test 34 Hello / -World\", @\"\\d+\").Value) + simpleArray.ToList().Find(val => val is int)", onInstanceVariables).SetCategory("Complex expression,Static Method,Lambda function").Returns(36);
-            yield return new TestCaseData("otherArray[3].IntProperty", onInstanceVariables).SetCategory("Indexing,Instance Property").Returns(18);
-            yield return new TestCaseData("(() => simpleInt + 1)()", onInstanceVariables).SetCategory("Complex expression").Returns(43);
+            yield return new TestCaseData("List(simpleArray[1], simpleList?[0], nullVar?[4] ?? \"Bye\", \"How are you ?\").Find(t => t.Length < 4)", onInstanceVariables, true).SetCategory("Complex expression,Lambda function,Instance method,Instance Property,Null Conditional indexing, Null Coalescing Operator").Returns("Bye");
+            yield return new TestCaseData("int.Parse(Regex.Match(\"Test 34 Hello / -World\", @\"\\d+\").Value) + simpleArray.ToList().Find(val => val is int)", onInstanceVariables, true).SetCategory("Complex expression,Static Method,Lambda function").Returns(36);
+            yield return new TestCaseData("otherArray[3].IntProperty", onInstanceVariables, true).SetCategory("Indexing,Instance Property").Returns(18);
+            yield return new TestCaseData("(() => simpleInt + 1)()", onInstanceVariables, true).SetCategory("Complex expression").Returns(43);
 
             #endregion
         }
     }
 
     [TestCaseSource("TestCasesForWithCustomVariablesExpressionEvaluation")]
-    public object WithCustomVariablesExpressionEvaluation(string expression, Dictionary<string, object> variables)
+    public object WithCustomVariablesExpressionEvaluation(string expression, Dictionary<string, object> variables, bool caseSensitiveEvaluation)
     {
         ExpressionEvaluator evaluator = new ExpressionEvaluator(variables);
+
+        evaluator.CaseSensitiveEvaluation = caseSensitiveEvaluation;
 
         evaluator.Namespaces.Add("WpfMvvmFw.Utils.Tests");
 
