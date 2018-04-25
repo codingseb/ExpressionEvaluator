@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
+
 /// <summary>
 /// This class allow to evaluate a string math or pseudo C# expression 
 /// </summary>
@@ -8,7 +16,6 @@ public class ExpressionEvaluator
     private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
     private static Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
     private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-    private static Regex primaryTypesRegex = new Regex(@"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)");
     private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
     private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
     private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
@@ -16,7 +23,12 @@ public class ExpressionEvaluator
     private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
     private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
-    private static Dictionary<string, Type> PrimaryTypesDict = new Dictionary<string, Type>()
+    private static string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
+    private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
+    private static string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
+    private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
+
+    private Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
     {
         { "object", typeof(object) },
         { "string", typeof(string) },
@@ -117,7 +129,7 @@ public class ExpressionEvaluator
         IndexingWithNullConditional,
     }
 
-    private static Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.Ordinal)
     {
         { "+", ExpressionOperator.Plus },
         { "-", ExpressionOperator.Minus },
@@ -156,74 +168,74 @@ public class ExpressionEvaluator
     private static List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
         new List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
     {
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left[right] },
-        {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left?[right] },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.UnaryPlus, (dynamic left, dynamic right) => +right },
-        {ExpressionOperator.UnaryMinus, (dynamic left, dynamic right) => -right },
-        {ExpressionOperator.LogicalNegation, (dynamic left, dynamic right) => !right },
-        {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.Multiply, (dynamic left, dynamic right) => left * right },
-        {ExpressionOperator.Divide, (dynamic left, dynamic right) => left / right },
-        {ExpressionOperator.Modulo, (dynamic left, dynamic right) => left % right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.Plus, (dynamic left, dynamic right) => left + right  },
-        {ExpressionOperator.Minus, (dynamic left, dynamic right) => left - right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.ShiftBitsLeft, (dynamic left, dynamic right) => left << right },
-        {ExpressionOperator.ShiftBitsRight, (dynamic left, dynamic right) => left >> right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.Lower, (dynamic left, dynamic right) => left < right },
-        {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
-        {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
-        {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-        {ExpressionOperator.Is, (dynamic left, dynamic right) => left != null && (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.Equal, (dynamic left, dynamic right) => left == right },
-        {ExpressionOperator.NotEqual, (dynamic left, dynamic right) => left != right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.LogicalAnd, (dynamic left, dynamic right) => left & right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.LogicalXor, (dynamic left, dynamic right) => left ^ right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.LogicalOr, (dynamic left, dynamic right) => left | right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => left && right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => left || right },
-    },
-    new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-    {
-        {ExpressionOperator.NullCoalescing, (dynamic left, dynamic right) => left ?? right },
-    },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left[right] },
+            {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left?[right] },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.UnaryPlus, (dynamic left, dynamic right) => +right },
+            {ExpressionOperator.UnaryMinus, (dynamic left, dynamic right) => -right },
+            {ExpressionOperator.LogicalNegation, (dynamic left, dynamic right) => !right },
+            {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.Multiply, (dynamic left, dynamic right) => left * right },
+            {ExpressionOperator.Divide, (dynamic left, dynamic right) => left / right },
+            {ExpressionOperator.Modulo, (dynamic left, dynamic right) => left % right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.Plus, (dynamic left, dynamic right) => left + right  },
+            {ExpressionOperator.Minus, (dynamic left, dynamic right) => left - right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.ShiftBitsLeft, (dynamic left, dynamic right) => left << right },
+            {ExpressionOperator.ShiftBitsRight, (dynamic left, dynamic right) => left >> right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.Lower, (dynamic left, dynamic right) => left < right },
+            {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
+            {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
+            {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
+            {ExpressionOperator.Is, (dynamic left, dynamic right) => left != null && (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.Equal, (dynamic left, dynamic right) => left == right },
+            {ExpressionOperator.NotEqual, (dynamic left, dynamic right) => left != right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.LogicalAnd, (dynamic left, dynamic right) => left & right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.LogicalXor, (dynamic left, dynamic right) => left ^ right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.LogicalOr, (dynamic left, dynamic right) => left | right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => left && right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => left || right },
+        },
+        new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
+        {
+            {ExpressionOperator.NullCoalescing, (dynamic left, dynamic right) => left ?? right },
+        },
     };
 
-    private static Dictionary<string, object> defaultVariables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, object> defaultVariables = new Dictionary<string, object>(StringComparer.Ordinal)
     {
         { "Pi", Math.PI },
         { "E", Math.E },
@@ -232,7 +244,7 @@ public class ExpressionEvaluator
         { "false", false },
     };
 
-    private static Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.Ordinal)
     {
         { "Abs", Math.Abs },
         { "Acos", Math.Acos },
@@ -252,7 +264,7 @@ public class ExpressionEvaluator
         { "Truncate", Math.Truncate },
     };
 
-    private static Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(StringComparer.Ordinal)
     {
         { "Atan2", Math.Atan2 },
         { "IEEERemainder", Math.IEEERemainder },
@@ -260,7 +272,7 @@ public class ExpressionEvaluator
         { "Pow", Math.Pow },
     };
 
-    private static Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.OrdinalIgnoreCase)
+    private Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.Ordinal)
     {
         { "Array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
         { "Avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
@@ -345,10 +357,11 @@ public class ExpressionEvaluator
         typeof(Enumerable) // For Linq extension methods
     };
 
-    private bool caseSensitiveEvaluation = false;
+    private bool caseSensitiveEvaluation = true;
+    
     /// <summary>
     /// if true all evaluation are case sensitives, if false evaluations are case insensitive.
-    /// By default = false
+    /// By default = true
     /// </summary>
     public bool CaseSensitiveEvaluation
     {
@@ -357,13 +370,22 @@ public class ExpressionEvaluator
         {
             caseSensitiveEvaluation = value;
             Variables = Variables;
+            primaryTypesDict = new Dictionary<string, Type>(primaryTypesDict, StringComparerForCasing);
             operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
             defaultVariables = new Dictionary<string, object>(defaultVariables, StringComparerForCasing);
             simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
             doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
             complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
+            instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, caseSensitiveEvaluation ? RegexOptions.None : RegexOptions.IgnoreCase);
+            primaryTypesRegex = new Regex(primaryTypesRegexPattern, caseSensitiveEvaluation ? RegexOptions.None : RegexOptions.IgnoreCase);
         }
     }
+
+    /// <summary>
+    /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
+    /// if false unactive this functionality.
+    /// </summary>
+    public bool FluidPrefixingActive { get; set; } = true;
 
     private StringComparer StringComparerForCasing
     {
@@ -399,7 +421,7 @@ public class ExpressionEvaluator
         }
     }
 
-    private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
     /// <summary>
     /// The Values of the variable use in the expressions
@@ -467,6 +489,7 @@ public class ExpressionEvaluator
 
             if (!(EvaluateCast(restOfExpression, stack, ref i)
                 || EvaluateNumber(restOfExpression, stack, ref i)
+                || EvaluateInstanceCreationWithNewKeyword(expr, restOfExpression,stack, ref i)
                 || EvaluateVarOrFunc(expr, restOfExpression, stack, ref i)
                 || EvaluateTwoCharsOperators(expr, stack, ref i)))
             {
@@ -576,6 +599,36 @@ public class ExpressionEvaluator
                     stack.Push(int.Parse(numberMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
                 }
             }
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool EvaluateInstanceCreationWithNewKeyword(string expr, string restOfExpression, Stack<object> stack, ref int i)
+    {
+        Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(restOfExpression);
+
+        if(instanceCreationMatch.Success && 
+            (stack.Count == 0
+            || stack.Peek() is ExpressionOperator))
+        {
+            string completeName = instanceCreationMatch.Groups["name"].Value;
+
+            i += instanceCreationMatch.Length;
+
+            if (!instanceCreationMatch.Groups["isfunction"].Success)
+                throw new ExpressionEvaluatorSyntaxErrorException($"No '(' found after {instanceCreationMatch.Value}");
+
+            List<string> constructorArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
+
+            Type type = GetTypeByFriendlyName(completeName, true);
+
+            List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
+            stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
 
             return true;
         }
@@ -1119,7 +1172,9 @@ public class ExpressionEvaluator
         MethodInfo methodInfo = null;
         List<object> modifiedArgs = new List<object>(args);
 
-        if (func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) || func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluent".ManageCasing(CaseSensitiveEvaluation)))
+        if (FluidPrefixingActive &&
+            (func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) 
+                || func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluent".ManageCasing(CaseSensitiveEvaluation))))
         {
             methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(CaseSensitiveEvaluation).Substring(func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) ? 5 : 6), flag, modifiedArgs);
             if (methodInfo != null)
@@ -1329,7 +1384,7 @@ public class ExpressionEvaluator
         return functionExists;
     }
 
-    private Type GetTypeByFriendlyName(string typeName)
+    private Type GetTypeByFriendlyName(string typeName, bool tryWithNamespaceInclude = false)
     {
         Type result = null;
         try
@@ -1340,7 +1395,7 @@ public class ExpressionEvaluator
             {
                 typeName = primaryTypesRegex.Replace(typeName, delegate (Match match)
                 {
-                    return PrimaryTypesDict[match.Value].ToString();
+                    return primaryTypesDict[match.Value].ToString();
                 });
 
                 result = Type.GetType(typeName, false, true);
@@ -1353,6 +1408,9 @@ public class ExpressionEvaluator
 
             for (int a = 0; a < Assemblies.Count && result == null; a++)
             {
+                if (tryWithNamespaceInclude)
+                    result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, true);
+
                 for (int i = 0; i < Namespaces.Count && result == null; i++)
                 {
                     result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, true);
