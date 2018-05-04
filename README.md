@@ -1,7 +1,9 @@
 # ExpressionEvaluator
 
-[![Build Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/1/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=1)
-[![Dev Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/2/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=2)
+|Branch|Status|
+|---|---|
+|master|[![Build Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/1/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=1)|
+|dev|[![Dev Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/2/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=2)|
 
 
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
