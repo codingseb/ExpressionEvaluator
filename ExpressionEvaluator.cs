@@ -14,6 +14,7 @@ public class ExpressionEvaluator
     private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?", RegexOptions.IgnoreCase);
     private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
     private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
+    private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
     private static Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
     private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
     private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
@@ -495,7 +496,8 @@ public class ExpressionEvaluator
             {
                 string s = expr.Substring(i, 1);
 
-                if (EvaluateParenthis(expr, s, stack, ref i)
+                if (EvaluateChar(expr, s, stack, ref i)
+                    || EvaluateParenthis(expr, s, stack, ref i)
                     || EvaluateIndexing(expr, s, stack, ref i)
                     || EvaluateString(expr, s, restOfExpression, stack, ref i))
                 { }
@@ -723,7 +725,6 @@ public class ExpressionEvaluator
                         {
                             throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType.ToString()}] generate this error : {(ex.InnerException?.Message ?? ex.Message)}", ex);
                         }
-
                     }
                 }
                 else if (DefaultFunctions(varFuncName, funcArgs, out object funcResult))
@@ -845,6 +846,51 @@ public class ExpressionEvaluator
         {
             return false;
         }
+    }
+
+    private bool EvaluateChar(string expr, string s, Stack<object> stack, ref int i)
+    {
+        if (s.Equals("'"))
+        {
+            i++;
+
+            if(expr.Substring(i, 1).Equals(@"\"))
+            {
+                i++;
+                char escapedChar = expr[i];
+
+                if (charEscapedCharDict.ContainsKey(escapedChar))
+                {
+                    stack.Push(charEscapedCharDict[escapedChar]);
+                    i++;
+                }
+                else
+                {
+                    throw new ExpressionEvaluatorSyntaxErrorException("Not known escape sequence in literal character");
+                }
+                
+            }
+            else if(expr.Substring(i, 1).Equals("'"))
+            {
+                throw new ExpressionEvaluatorSyntaxErrorException("Empty literal character is not valid");
+            }
+            else
+            {
+                stack.Push(expr[i]);
+                i++;
+            }
+
+            if (expr.Substring(i, 1).Equals("'"))
+            {
+                return true;
+            }
+            else
+            {
+                throw new ExpressionEvaluatorSyntaxErrorException("Too much characters in the literal character");
+            }
+        }
+        else
+            return false;
     }
 
     private bool EvaluateTwoCharsOperators(string expr, Stack<object> stack, ref int i)
@@ -1020,7 +1066,6 @@ public class ExpressionEvaluator
                             }
                             else
                             {
-
                                 s = expr.Substring(i, 1);
 
                                 if (s.Equals("{")) bracketCount++;
@@ -1312,12 +1357,18 @@ public class ExpressionEvaluator
         for (; i < expr.Length; i++)
         {
             Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
+            Match internalCharMatch = internalCharRegex.Match(expr.Substring(i));
 
             if (internalStringMatch.Success)
             {
                 string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
                 currentExpression += innerString;
                 i += innerString.Length - 1;
+            }
+            else if (internalCharMatch.Success)
+            {
+                currentExpression += internalCharMatch.Value;
+                i += internalCharMatch.Length - 1;
             }
             else
             {
