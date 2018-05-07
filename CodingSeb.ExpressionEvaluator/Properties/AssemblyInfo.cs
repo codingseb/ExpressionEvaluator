@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("CodingSeb.ExpressionEvaluator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("EMP/PTM")]
+[assembly: AssemblyCompany("Coding Seb")]
 [assembly: AssemblyProduct("CodingSeb.ExpressionEvaluator")]
-[assembly: AssemblyCopyright("Copyright © EMP/PTM 2018")]
+[assembly: AssemblyCopyright("Copyright © Coding Seb 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
