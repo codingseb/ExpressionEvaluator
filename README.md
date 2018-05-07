@@ -137,6 +137,8 @@ Enumerable.Repeat(3,6).Cast().ToList()[4]
 ((x, y) => x * y)(4, 2)
 8
 
+"Hello"[2] == 'l'
+true
 ```
 
 ## Standard constants (variables)
