@@ -1,14 +1,16 @@
 # ExpressionEvaluator
 
+A Simple Math and Pseudo C# Expression Evaluator in One C# File.
+
+It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
+
+## Status
+
 |Branch|Status|
 |---|---|
 |master|[![Build Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/1/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=1)|
 |dev|[![Dev Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/2/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=2)|
 
-
-A Simple Math and Pseudo C# Expression Evaluator in One C# File.
-
-It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
 
 ## Features
 * Basic mathematical expression evaluation
@@ -26,8 +28,22 @@ It is largely based on and inspired by the following resources [this post on st
 * Create instance with [new(MyClassName, constructorArgs)](#standard-functions) or [new MyClassName(constructorArgs)](#operators)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 
+## Getting started
+
+Install the following nuget package : 
+
+```
+Install-Package CodingSeb.ExpressionEvaluator
+```
+[See on Nuget.org](https://www.nuget.org/packages/CodingSeb.ExpressionEvaluator/)
+
+or copy the [CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project :
+
+
 ## Basic C# usage
 ```c#
+using CodingSeb.ExpressionEvaluator;
+//...
 string expression;
 //...
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
