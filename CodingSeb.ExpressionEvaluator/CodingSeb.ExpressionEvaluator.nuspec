@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>CodingSeb.ExpressionEvaluator</id>
+        <version>$version$</version>
+        <title>CodingSeb.ExpressionEvaluator</title>
+        <authors>Coding Seb</authors>
+        <owners>Coding Seb</owners>
+        <licenseUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md</licenseUrl>
+        <projectUrl>https://github.com/codingseb/ExpressionEvaluator</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A Simple Math and Pseudo C# Expression Evaluator in One C# File</description>
+        <tags>evaluation math expression-evaluator expression parser eval evaluate fluid</tags>
+    </metadata>
+    <files>
+        <file src="bin\Release\CodingSeb.ExpressionEvaluator.dll" target="lib\net45\CodingSeb.ExpressionEvaluator.dll" />
+    </files>
+</package>
