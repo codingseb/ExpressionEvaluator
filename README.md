@@ -281,7 +281,7 @@ To do so, you only need to prefix the method name with "Fluid" or "Fluent"
 
 ```C#
 // Example Add on List
-List("hello", "bye").FluidAdd(\"test\").Count
+List("hello", "bye").FluidAdd("test").Count
 3
 
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[0]
