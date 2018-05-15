@@ -10,7 +10,7 @@
         <projectUrl>https://github.com/codingseb/ExpressionEvaluator</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A Simple Math and Pseudo C# Expression Evaluator in One C# File</description>
-        <tags>evaluation math expression-evaluator expression parser eval evaluate fluid</tags>
+        <tags>evaluation math expression-evaluator expression parser eval evaluate fluid C# execute</tags>
     </metadata>
     <files>
         <file src="bin\Release\CodingSeb.ExpressionEvaluator.dll" target="lib\net45\CodingSeb.ExpressionEvaluator.dll" />
