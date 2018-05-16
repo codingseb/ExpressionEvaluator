@@ -1,13 +1,12 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("CodingSeb.ExpressionEvaluator.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("EMP/PTM")]
+[assembly: AssemblyCompany("Coding Seb")]
 [assembly: AssemblyProduct("CodingSeb.ExpressionEvaluator.Tests")]
-[assembly: AssemblyCopyright("Copyright © EMP/PTM 2018")]
+[assembly: AssemblyCopyright("Copyright © Coding Seb 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

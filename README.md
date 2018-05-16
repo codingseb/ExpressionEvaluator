@@ -10,7 +10,7 @@ It is largely based on and inspired by the following resources [this post on st
 |---|---|
 |master|[![Build Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/1/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=1)|
 |dev|[![Dev Status](https://coding-seb.visualstudio.com/_apis/public/build/definitions/cbe8d2f2-9c7a-48aa-8366-89ef39381eff/2/badge)](https://coding-seb.visualstudio.com/ExpressionEvaluator/_build/index?definitionId=2)|
-
+|nuget|[![NuGet Status](http://img.shields.io/nuget/v/CodingSeb.ExpressionEvaluator.svg?style=flat&max-age=86400)](https://www.nuget.org/packages/CodingSeb.ExpressionEvaluator/)|
 
 ## Features
 * Basic mathematical expression evaluation
@@ -281,7 +281,7 @@ To do so, you only need to prefix the method name with "Fluid" or "Fluent"
 
 ```C#
 // Example Add on List
-List("hello", "bye").FluidAdd(\"test\").Count
+List("hello", "bye").FluidAdd("test").Count
 3
 
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[0]

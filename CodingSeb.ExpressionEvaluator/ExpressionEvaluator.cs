@@ -473,35 +473,46 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Evaluate the specified math or pseudo C# expression
         /// </summary>
-        /// <param name="expr">the math or pseudo C# expression to evaluate</param>
+        /// <typeparam name="T">The type in which to cast the result of the expression</typeparam>
+        /// <param name="expression">the math or pseudo C# expression to evaluate</param>
+        /// <returns>The result of the operation if syntax is correct casted in the specified type</returns>
+        public T Evaluate<T>(string expression)
+        {
+            return (T)Evaluate(expression);
+        }
+
+        /// <summary>
+        /// Evaluate the specified math or pseudo C# expression
+        /// </summary>
+        /// <param name="expression">the math or pseudo C# expression to evaluate</param>
         /// <returns>The result of the operation if syntax is correct</returns>
-        public object Evaluate(string expr)
+        public object Evaluate(string expression)
         {
             bool continueEvaluation = true;
 
-            expr = expr.Trim();
+            expression = expression.Trim();
 
             Stack<object> stack = new Stack<object>();
 
-            if (GetLambdaExpression(expr, stack))
+            if (GetLambdaExpression(expression, stack))
                 return stack.Pop();
 
-            for (int i = 0; i < expr.Length && continueEvaluation; i++)
+            for (int i = 0; i < expression.Length && continueEvaluation; i++)
             {
-                string restOfExpression = expr.Substring(i, expr.Length - i);
+                string restOfExpression = expression.Substring(i, expression.Length - i);
 
                 if (!(EvaluateCast(restOfExpression, stack, ref i)
                     || EvaluateNumber(restOfExpression, stack, ref i)
-                    || EvaluateInstanceCreationWithNewKeyword(expr, restOfExpression, stack, ref i)
-                    || EvaluateVarOrFunc(expr, restOfExpression, stack, ref i)
-                    || EvaluateTwoCharsOperators(expr, stack, ref i)))
+                    || EvaluateInstanceCreationWithNewKeyword(expression, restOfExpression, stack, ref i)
+                    || EvaluateVarOrFunc(expression, restOfExpression, stack, ref i)
+                    || EvaluateTwoCharsOperators(expression, stack, ref i)))
                 {
-                    string s = expr.Substring(i, 1);
+                    string s = expression.Substring(i, 1);
 
-                    if (EvaluateChar(expr, s, stack, ref i)
-                        || EvaluateParenthis(expr, s, stack, ref i)
-                        || EvaluateIndexing(expr, s, stack, ref i)
-                        || EvaluateString(expr, s, restOfExpression, stack, ref i))
+                    if (EvaluateChar(expression, s, stack, ref i)
+                        || EvaluateParenthis(expression, s, stack, ref i)
+                        || EvaluateIndexing(expression, s, stack, ref i)
+                        || EvaluateString(expression, s, restOfExpression, stack, ref i))
                     { }
                     else if (operatorsDictionary.ContainsKey(s))
                     {
