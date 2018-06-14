@@ -385,6 +385,11 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// if set to <c>true</c> allow multiline evaluation with variables assignations
+        /// </summary>
+        public bool ScriptModeActive { get; set; } = false;
+
+        /// <summary>
         /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
         /// if false unactive this functionality.
         /// </summary>

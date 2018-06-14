@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodingSeb.ExpressionEvaluat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodingSeb.ExpressionEvaluator.Tests", "CodingSeb.ExpressionEvaluator.Tests\CodingSeb.ExpressionEvaluator.Tests.csproj", "{8794CB3B-EAB2-411D-B912-7AD3425D6C62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryWindow", "TryWindow\TryWindow.csproj", "{22B6187F-8C49-4A3E-9439-2C287ED7710C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22B6187F-8C49-4A3E-9439-2C287ED7710C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22B6187F-8C49-4A3E-9439-2C287ED7710C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22B6187F-8C49-4A3E-9439-2C287ED7710C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22B6187F-8C49-4A3E-9439-2C287ED7710C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
