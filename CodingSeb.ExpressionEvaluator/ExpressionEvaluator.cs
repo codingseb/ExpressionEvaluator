@@ -25,6 +25,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
         private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
+        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -497,6 +498,21 @@ namespace CodingSeb.ExpressionEvaluator
 
             expression = expression.Trim();
 
+            bool isAssignation = false;
+            string variableToAssign = string.Empty;
+
+            if(ScriptModeActive)
+            {
+                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+
+                if(variableAssignationMatch.Success)
+                {
+                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
+                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
+                    isAssignation = true;
+                }
+            }
+
             Stack<object> stack = new Stack<object>();
 
             if (GetLambdaExpression(expression, stack))
@@ -562,7 +578,14 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            return ProcessStack(stack);
+            object result = ProcessStack(stack);
+
+            if(isAssignation)
+            {
+                Variables[variableToAssign] = result;
+            }
+
+            return result;
         }
 
         private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)

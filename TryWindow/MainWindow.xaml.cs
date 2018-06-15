@@ -22,17 +22,17 @@ namespace TryWindow
     /// </summary>
     public partial class MainWindow : Window
     {
+        ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
         public MainWindow()
         {
             InitializeComponent();
+            evaluator.ScriptModeActive = true;
+            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
         }
 
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
-
             try
             {
                 ResultTextBlock.Text = evaluator.Evaluate(ScriptTextBox.Text).ToString();
