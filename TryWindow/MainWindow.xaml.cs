@@ -1,19 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using CodingSeb.ExpressionEvaluator;
+﻿using CodingSeb.ExpressionEvaluator;
 using Newtonsoft.Json;
+using System;
+using System.Windows;
 
 namespace TryWindow
 {
@@ -22,20 +10,20 @@ namespace TryWindow
     /// </summary>
     public partial class MainWindow : Window
     {
-        ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
         public MainWindow()
         {
             InitializeComponent();
-            evaluator.ScriptModeActive = true;
-            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
         }
 
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
+
             try
             {
-                ResultTextBlock.Text = evaluator.Evaluate(ScriptTextBox.Text).ToString();
+                ResultTextBlock.Text = evaluator.ScriptEvaluate(ScriptTextBox.Text).ToString();
             }
             catch(Exception exception)
             {

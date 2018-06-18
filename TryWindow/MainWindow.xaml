@@ -7,7 +7,10 @@
         mc:Ignorable="d"
         Title="Expression Evaluate" Width="400" SizeToContent="Height">
     <StackPanel>
-        <TextBox x:Name="ScriptTextBox" />
+        <TextBox x:Name="ScriptTextBox" 
+                 AcceptsReturn="True"
+                 Height="150"
+                 VerticalScrollBarVisibility="Auto"/>
         <Button x:Name="CalculateButton" Content="_Calculate" IsDefault="True" Click="CalculateButton_Click" />
         <TextBlock x:Name="ResultTextBlock" />
     </StackPanel>

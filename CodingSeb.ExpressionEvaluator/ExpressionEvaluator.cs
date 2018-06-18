@@ -25,6 +25,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
         private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
+
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
@@ -386,11 +387,6 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if set to <c>true</c> allow multiline evaluation with variables assignations
-        /// </summary>
-        public bool ScriptModeActive { get; set; } = false;
-
-        /// <summary>
         /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
         /// if false unactive this functionality.
         /// </summary>
@@ -476,6 +472,44 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
+        public object ScriptEvaluate(string script)
+        {
+            string[] expressions = script.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            object lastResult = null;
+            int line = 0;
+            bool isAssignation = false;
+            string variableToAssign = string.Empty;
+
+            while (line < expressions.Length)
+            {
+                string expression = expressions[line].Trim();
+
+                if (!expression.Equals(string.Empty))
+                {
+                    Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+
+                    if (variableAssignationMatch.Success)
+                    {
+                        variableToAssign = variableAssignationMatch.Groups["name"].Value;
+                        expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
+                        isAssignation = true;
+                    }
+
+                    lastResult = Evaluate(expression);
+
+                    if (isAssignation)
+                    {
+                        Variables[variableToAssign] = lastResult;
+                    }
+                }
+
+                line++;
+            }
+
+            return lastResult;
+        }
+        
         /// <summary>
         /// Evaluate the specified math or pseudo C# expression
         /// </summary>
@@ -497,21 +531,6 @@ namespace CodingSeb.ExpressionEvaluator
             bool continueEvaluation = true;
 
             expression = expression.Trim();
-
-            bool isAssignation = false;
-            string variableToAssign = string.Empty;
-
-            if(ScriptModeActive)
-            {
-                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
-
-                if(variableAssignationMatch.Success)
-                {
-                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
-                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
-                    isAssignation = true;
-                }
-            }
 
             Stack<object> stack = new Stack<object>();
 
@@ -578,14 +597,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            object result = ProcessStack(stack);
-
-            if(isAssignation)
-            {
-                Variables[variableToAssign] = result;
-            }
-
-            return result;
+            return ProcessStack(stack);
         }
 
         private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
