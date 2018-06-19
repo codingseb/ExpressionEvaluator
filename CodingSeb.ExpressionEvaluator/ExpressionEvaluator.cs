@@ -26,6 +26,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
+        // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
@@ -472,20 +473,38 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
+        /// <summary>
+        /// Is Fired when the next char in evaluation is not known
+        /// Hooks allow to extends evaluation possibilities
+        /// </summary>
+        public event EventHandler<CharNotKnownHookEventArg> CharNotKnownHook;
+
         public object ScriptEvaluate(string script)
         {
-            string[] expressions = script.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            string expression = script.Trim();
 
+            bool semiColonFound = true; 
             object lastResult = null;
-            int line = 0;
             bool isAssignation = false;
             string variableToAssign = string.Empty;
 
-            while (line < expressions.Length)
+            void ExpressionEvaluator_CharNotKnownHook(object sender, CharNotKnownHookEventArg e)
             {
-                string expression = expressions[line].Trim();
+                if(e.Expression[e.Index] == ';')
+                {
+                    semiColonFound = true;
+                    e.Index++;
+                    e.ThrowException = false;
+                    e.ContinueEvaluation = false;
+                    expression = e.Expression.Remove(0, e.Index);
+                }
+            }
 
-                if (!expression.Equals(string.Empty))
+            this.CharNotKnownHook += ExpressionEvaluator_CharNotKnownHook;
+
+            try
+            {
+                while (!expression.Equals(string.Empty) && semiColonFound)
                 {
                     Match variableAssignationMatch = variableAssignationRegex.Match(expression);
 
@@ -496,6 +515,8 @@ namespace CodingSeb.ExpressionEvaluator
                         isAssignation = true;
                     }
 
+                    semiColonFound = false;
+
                     lastResult = Evaluate(expression);
 
                     if (isAssignation)
@@ -503,13 +524,15 @@ namespace CodingSeb.ExpressionEvaluator
                         Variables[variableToAssign] = lastResult;
                     }
                 }
-
-                line++;
+            }
+            finally
+            {
+                this.CharNotKnownHook -= ExpressionEvaluator_CharNotKnownHook;
             }
 
             return lastResult;
         }
-        
+
         /// <summary>
         /// Evaluate the specified math or pseudo C# expression
         /// </summary>
@@ -592,7 +615,21 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (!s.Trim().Equals(string.Empty))
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException("Invalid character.");
+                        CharNotKnownHookEventArg charNotKnownHookEventArg = new CharNotKnownHookEventArg()
+                        {
+                            Expression=expression,
+                            Index=i,
+                            Stack = stack                            
+                        };
+
+                        CharNotKnownHook?.Invoke(this, charNotKnownHookEventArg);
+
+                        expression = charNotKnownHookEventArg.Expression;
+                        i= charNotKnownHookEventArg.Index;
+                        continueEvaluation= charNotKnownHookEventArg.ContinueEvaluation;
+
+                        if(charNotKnownHookEventArg.ThrowException)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{((int)s[0])}:{s}]");
                     }
                 }
             }
@@ -1609,7 +1646,7 @@ namespace CodingSeb.ExpressionEvaluator
             private lambdaExpressionDelegate lambda;
 
             private MethodInfo methodInfo;
-            private object target;
+            private readonly object target;
 
             public DelegateEncaps(lambdaExpressionDelegate lambda)
             {
@@ -1717,6 +1754,15 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    public class CharNotKnownHookEventArg : EventArgs
+    {
+        public string Expression { get; set; }
+        public int Index { get; set; }
+        public bool ContinueEvaluation { get; set; } = true;
+        public bool ThrowException { get; set; } = true;
+        public Stack<object> Stack { get; set; }
+    }
+
     public class VariableEvaluationEventArg : EventArgs
     {
         /// <summary>
@@ -1763,7 +1809,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     public class FunctionEvaluationEventArg : EventArgs
     {
-        private Func<string, object> evaluateFunc = null;
+        private readonly Func<string, object> evaluateFunc = null;
 
         public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, object onInstance = null)
         {
