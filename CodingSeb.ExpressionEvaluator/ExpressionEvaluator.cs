@@ -28,6 +28,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
+        private static Regex ifBlockBeginingRegex = new Regex(@"^if\s*[(]");
+        private static Regex whileBlockBeginingRegex = new Regex(@"^while\s*[(]");
+        private static Regex forBlockBeginingRegex = new Regex(@"^for\s*[(]");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -292,7 +295,7 @@ namespace CodingSeb.ExpressionEvaluator
                         return null;
                 }
             },
-            { "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
+            //{ "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
             { "in", (self, args) => args.Skip(1).ToList().ConvertAll(arg => self.Evaluate(arg)).Contains(self.Evaluate(args[0])) },
             { "List", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
             { "Max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
@@ -474,61 +477,73 @@ namespace CodingSeb.ExpressionEvaluator
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
         /// <summary>
-        /// Is Fired when the next char in evaluation is not known
-        /// Hooks allow to extends evaluation possibilities
+        /// Evaluate a script (multiple expressions separated by semicolon)
+        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
         /// </summary>
-        public event EventHandler<CharNotKnownHookEventArg> CharNotKnownHook;
-
+        /// <param name="script">the script to evaluate</param>
+        /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
-            string expression = script.Trim();
-
-            bool semiColonFound = true; 
             object lastResult = null;
-            bool isAssignation = false;
-            string variableToAssign = string.Empty;
+            string restOfScript = script;
+            int startOfExpression = 0;
 
-            void ExpressionEvaluator_CharNotKnownHook(object sender, CharNotKnownHookEventArg e)
+            void ScriptExpressionEvaluate(ref int endIndex)
             {
-                if(e.Expression[e.Index] == ';')
+                bool isAssignation = false;
+                string variableToAssign = string.Empty;
+                string expression = script.Substring(startOfExpression, endIndex - startOfExpression).Trim();
+
+                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+
+                if (variableAssignationMatch.Success)
                 {
-                    semiColonFound = true;
-                    e.Index++;
-                    e.ThrowException = false;
-                    e.ContinueEvaluation = false;
-                    expression = e.Expression.Remove(0, e.Index);
+                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
+                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
+                    isAssignation = true;
                 }
-            }
 
-            this.CharNotKnownHook += ExpressionEvaluator_CharNotKnownHook;
+                lastResult = Evaluate(expression);
 
-            try
-            {
-                while (!expression.Equals(string.Empty) && semiColonFound)
+                if (isAssignation)
                 {
-                    Match variableAssignationMatch = variableAssignationRegex.Match(expression);
-
-                    if (variableAssignationMatch.Success)
-                    {
-                        variableToAssign = variableAssignationMatch.Groups["name"].Value;
-                        expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
-                        isAssignation = true;
-                    }
-
-                    semiColonFound = false;
-
-                    lastResult = Evaluate(expression);
-
-                    if (isAssignation)
-                    {
-                        Variables[variableToAssign] = lastResult;
-                    }
+                    Variables[variableToAssign] = lastResult;
                 }
+
+                endIndex++;
+                startOfExpression = endIndex;
             }
-            finally
+
+            int i = 0;
+
+            while(i < script.Length)
             {
-                this.CharNotKnownHook -= ExpressionEvaluator_CharNotKnownHook;
+                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(i));
+
+                if (internalStringMatch.Success)
+                {
+                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(restOfScript.Substring(i + internalStringMatch.Length), internalStringMatch);
+                    i += innerString.Length - 1;
+                }
+                else if (script[i] == '(')
+                {
+                    i++;
+                    GetExpressionsBetweenParenthis(script, ref i, false);
+                }
+                else if(script.Length-i > 2 && script.Substring(i, 3).Equals("';'"))
+                {
+                    i += 3;
+                }
+                else if (script[i] == ';')
+                {
+                    ScriptExpressionEvaluate(ref i);
+                }
+
+                i++;
             }
+
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty))
+                ScriptExpressionEvaluate(ref i);
 
             return lastResult;
         }
@@ -615,21 +630,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (!s.Trim().Equals(string.Empty))
                     {
-                        CharNotKnownHookEventArg charNotKnownHookEventArg = new CharNotKnownHookEventArg()
-                        {
-                            Expression=expression,
-                            Index=i,
-                            Stack = stack                            
-                        };
-
-                        CharNotKnownHook?.Invoke(this, charNotKnownHookEventArg);
-
-                        expression = charNotKnownHookEventArg.Expression;
-                        i= charNotKnownHookEventArg.Index;
-                        continueEvaluation= charNotKnownHookEventArg.ContinueEvaluation;
-
-                        if(charNotKnownHookEventArg.ThrowException)
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{((int)s[0])}:{s}]");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{((int)s[0])}:{s}]");
                     }
                 }
             }
@@ -1752,15 +1753,6 @@ namespace CodingSeb.ExpressionEvaluator
         {
             return isCaseSensitive ? text : text.ToLower();
         }
-    }
-
-    public class CharNotKnownHookEventArg : EventArgs
-    {
-        public string Expression { get; set; }
-        public int Index { get; set; }
-        public bool ContinueEvaluation { get; set; } = true;
-        public bool ThrowException { get; set; } = true;
-        public Stack<object> Stack { get; set; }
     }
 
     public class VariableEvaluationEventArg : EventArgs

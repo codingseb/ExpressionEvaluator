@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TryWindow"
+        Closing="Window_Closing"
         mc:Ignorable="d"
         Title="Expression Evaluate" Width="400" SizeToContent="Height">
     <StackPanel>
@@ -11,7 +12,7 @@
                  AcceptsReturn="True"
                  Height="150"
                  VerticalScrollBarVisibility="Auto"/>
-        <Button x:Name="CalculateButton" Content="_Calculate" IsDefault="True" Click="CalculateButton_Click" />
+        <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
         <TextBlock x:Name="ResultTextBlock" />
     </StackPanel>
 </Window>
