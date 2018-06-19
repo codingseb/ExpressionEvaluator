@@ -28,9 +28,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
-        private static Regex ifBlockBeginingRegex = new Regex(@"^if\s*[(]");
-        private static Regex whileBlockBeginingRegex = new Regex(@"^while\s*[(]");
-        private static Regex forBlockBeginingRegex = new Regex(@"^for\s*[(]");
+        private static Regex blockKeywordsBeginingRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
