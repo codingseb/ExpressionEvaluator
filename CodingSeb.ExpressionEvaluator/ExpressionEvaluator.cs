@@ -28,7 +28,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
-        private static Regex blockKeywordsBeginingRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]");
+        private static Regex blockKeywordsBeginingRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -486,11 +486,10 @@ namespace CodingSeb.ExpressionEvaluator
             string restOfScript = script;
             int startOfExpression = 0;
 
-            void ScriptExpressionEvaluate(ref int endIndex)
+            void AssignationOrExpressionEval(string expression)
             {
                 bool isAssignation = false;
                 string variableToAssign = string.Empty;
-                string expression = script.Substring(startOfExpression, endIndex - startOfExpression).Trim();
 
                 Match variableAssignationMatch = variableAssignationRegex.Match(expression);
 
@@ -507,6 +506,13 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     Variables[variableToAssign] = lastResult;
                 }
+            }
+
+            void ScriptExpressionEvaluate(ref int endIndex)
+            {
+                string expression = script.Substring(startOfExpression, endIndex - startOfExpression).Trim();
+
+                AssignationOrExpressionEval(expression);
 
                 endIndex++;
                 startOfExpression = endIndex;
@@ -516,9 +522,19 @@ namespace CodingSeb.ExpressionEvaluator
 
             while(i < script.Length)
             {
+                Match blockKeywordsBeginingMatch = blockKeywordsBeginingRegex.Match(script.Substring(i));
                 Match internalStringMatch = stringBeginningRegex.Match(script.Substring(i));
 
-                if (internalStringMatch.Success)
+                if(blockKeywordsBeginingMatch.Success)
+                {
+                    i += blockKeywordsBeginingMatch.Length;
+                    string keyword = blockKeywordsBeginingMatch.Groups["keyword"].Value;
+                    List<string> keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true);
+
+                    if (!CaseSensitiveEvaluation)
+                        keyword = keyword.ToLower();
+                }
+                else if (internalStringMatch.Success)
                 {
                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(restOfScript.Substring(i + internalStringMatch.Length), internalStringMatch);
                     i += innerString.Length - 1;
@@ -530,7 +546,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else if(script.Length-i > 2 && script.Substring(i, 3).Equals("';'"))
                 {
-                    i += 3;
+                    i += 2;
                 }
                 else if (script[i] == ';')
                 {
