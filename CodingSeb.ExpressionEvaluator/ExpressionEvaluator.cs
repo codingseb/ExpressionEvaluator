@@ -28,7 +28,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
-        private static Regex blockKeywordsBeginingRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
+        private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
+        private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -483,8 +484,8 @@ namespace CodingSeb.ExpressionEvaluator
         public object ScriptEvaluate(string script)
         {
             object lastResult = null;
-            string restOfScript = script;
             int startOfExpression = 0;
+            bool skipNextExpression = false;
 
             void AssignationOrExpressionEval(string expression)
             {
@@ -508,22 +509,98 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            void ScriptExpressionEvaluate(ref int endIndex)
+            void ScriptExpressionEvaluate(ref int index)
             {
-                string expression = script.Substring(startOfExpression, endIndex - startOfExpression).Trim();
+                if (!skipNextExpression)
+                {
+                    string expression = script.Substring(startOfExpression, index - startOfExpression).Trim();
 
-                AssignationOrExpressionEval(expression);
+                    AssignationOrExpressionEval(expression);
+                }
 
-                endIndex++;
-                startOfExpression = endIndex;
+                index++;
+                startOfExpression = index;
+            }
+
+            bool TryParseStringAndParenthis(ref int index)
+            {
+                bool parsed = true;
+                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
+
+                if (internalStringMatch.Success)
+                {
+                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index + internalStringMatch.Length), internalStringMatch);
+                    index += innerString.Length - 1;
+                }
+                else if (script[index] == '(')
+                {
+                    index++;
+                    GetExpressionsBetweenParenthis(script, ref index, false);
+                }
+                else
+                    parsed = false;
+
+                return parsed;
+            }
+
+            string GetScriptBetweenCurveBrackets(string parentScript, ref int index)
+            {
+                List<string> expressionsList = new List<string>();
+
+                string s;
+                string currentScript = string.Empty;
+                int bracketCount = 1;
+                for (; index < parentScript.Length; index++)
+                {
+                    Match internalStringMatch = stringBeginningRegex.Match(parentScript.Substring(index));
+                    Match internalCharMatch = internalCharRegex.Match(parentScript.Substring(index));
+
+                    if (internalStringMatch.Success)
+                    {
+                        string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(parentScript.Substring(index + internalStringMatch.Length), internalStringMatch);
+                        currentScript += innerString;
+                        index += innerString.Length - 1;
+                    }
+                    else if (internalCharMatch.Success)
+                    {
+                        currentScript += internalCharMatch.Value;
+                        index += internalCharMatch.Length - 1;
+                    }
+                    else
+                    {
+                        s = parentScript.Substring(index, 1);
+
+                        if (s.Equals("{")) bracketCount++;
+
+                        if (s.Equals("}"))
+                        {
+                            bracketCount--;
+                            if (bracketCount == 0)
+                            {
+                                if (!currentScript.Trim().Equals(string.Empty))
+                                    expressionsList.Add(currentScript);
+                                break;
+                            }
+                        }
+
+                        currentScript += s;
+                    }
+                }
+
+                if (bracketCount > 0)
+                {
+                    string beVerb = bracketCount == 1 ? "is" : "are";
+                    throw new Exception($"{bracketCount} '"+ "}" + $"' character {beVerb} missing in script at : [{i}]");
+                }
+
+                return currentScript;
             }
 
             int i = 0;
 
             while(i < script.Length)
             {
-                Match blockKeywordsBeginingMatch = blockKeywordsBeginingRegex.Match(script.Substring(i));
-                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(i));
+                Match blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i));
 
                 if(blockKeywordsBeginingMatch.Success)
                 {
@@ -533,17 +610,18 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (!CaseSensitiveEvaluation)
                         keyword = keyword.ToLower();
+
+                    Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
+
+                    if(blockBeginningMatch.Success)
+                    {
+                        i += blockBeginningMatch.Length;
+
+                        string scriptInBlock = GetScriptBetweenCurveBrackets(script, ref i);
+                    }
+
                 }
-                else if (internalStringMatch.Success)
-                {
-                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(restOfScript.Substring(i + internalStringMatch.Length), internalStringMatch);
-                    i += innerString.Length - 1;
-                }
-                else if (script[i] == '(')
-                {
-                    i++;
-                    GetExpressionsBetweenParenthis(script, ref i, false);
-                }
+                else if(TryParseStringAndParenthis(ref i)){ }
                 else if(script.Length-i > 2 && script.Substring(i, 3).Equals("';'"))
                 {
                     i += 2;
