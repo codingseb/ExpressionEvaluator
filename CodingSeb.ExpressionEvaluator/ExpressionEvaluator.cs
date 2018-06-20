@@ -1782,7 +1782,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private class DelegateEncaps
         {
-            private lambdaExpressionDelegate lambda;
+            private readonly lambdaExpressionDelegate lambda;
 
             private MethodInfo methodInfo;
             private readonly object target;

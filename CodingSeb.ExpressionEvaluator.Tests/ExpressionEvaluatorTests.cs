@@ -986,9 +986,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCaseSource("TestCasesForWithCustomVariablesExpressionEvaluation")]
         public object WithCustomVariablesExpressionEvaluation(string expression, Dictionary<string, object> variables, bool caseSensitiveEvaluation)
         {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator(variables);
-
-            evaluator.CaseSensitiveEvaluation = caseSensitiveEvaluation;
+            ExpressionEvaluator evaluator = new ExpressionEvaluator(variables)
+            {
+                CaseSensitiveEvaluation = caseSensitiveEvaluation
+            };
 
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 

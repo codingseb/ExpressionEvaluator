@@ -4,6 +4,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace TryWindow
@@ -14,6 +16,7 @@ namespace TryWindow
     public partial class MainWindow : Window
     {
         private string persistFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "code.cs");
+        private CancellationTokenSource cancellationTokenSource = null;
 
         public MainWindow()
         {
@@ -23,8 +26,11 @@ namespace TryWindow
                 ScriptTextBox.Text = File.ReadAllText(persistFileName);
         }
 
-        private void CalculateButton_Click(object sender, RoutedEventArgs e)
+        private async void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
+            CalculateButton.IsEnabled = false;
+            CancelButton.IsEnabled = true;
+
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
             evaluator.Namespaces.Add("System.Windows");
@@ -36,7 +42,30 @@ namespace TryWindow
 
             try
             {
-                ResultTextBlock.Text = evaluator.ScriptEvaluate(ScriptTextBox.Text)?.ToString() ?? "null or void";
+                string script = ScriptTextBox.Text;
+                Exception exception = null;
+                cancellationTokenSource = new CancellationTokenSource();
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                string result = await Task.Run<string>(() => 
+                {
+                    try
+                    {
+                        using (cancellationTokenSource.Token.Register(Thread.CurrentThread.Abort))
+                        {
+                            return evaluator.ScriptEvaluate(script)?.ToString() ?? "null or void";
+                        }
+                    }
+                    catch(Exception innerException)
+                    {
+                        exception = innerException;
+                        return null;
+                    }
+                }, cancellationTokenSource.Token);
+
+                if (exception == null)
+                    ResultTextBlock.Text = result;
+                else
+                    throw exception;
             }
             catch(Exception exception)
             {
@@ -47,6 +76,9 @@ namespace TryWindow
             ExecutionTimeTextBlock.Text = $"Execution time : {stopWatch.Elapsed}";
 
             evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
+
+            CalculateButton.IsEnabled = true;
+            CancelButton.IsEnabled = false;
         }
 
         private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
@@ -64,6 +96,12 @@ namespace TryWindow
                 File.WriteAllText(persistFileName, ScriptTextBox.Text);
             }
             catch { }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (cancellationTokenSource != null)
+                cancellationTokenSource.Cancel();
         }
     }
 }

@@ -10,6 +10,11 @@
     <DockPanel>
         <StackPanel DockPanel.Dock="Bottom">
             <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
+            <Button x:Name="CancelButton" 
+                    Content="_Cancel" 
+                    IsCancel="True" 
+                    IsEnabled="False"
+                    Click="CancelButton_Click" />
             <TextBlock x:Name="ResultTextBlock" />
             <TextBlock x:Name="ExecutionTimeTextBlock" />
         </StackPanel>
