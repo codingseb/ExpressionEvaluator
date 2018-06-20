@@ -27,7 +27,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
         // For script only
-        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*[=](?![=])");
+        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*=(?![=])");
         private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
         private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
@@ -592,9 +592,11 @@ namespace CodingSeb.ExpressionEvaluator
 
             while(i < script.Length)
             {
-                Match blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i));
+                Match blockKeywordsBeginingMatch;
 
-                if (blockKeywordsBeginingMatch.Success)
+                if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
+                    && (blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
+                    && blockKeywordsBeginingMatch.Success)
                 {
                     i += blockKeywordsBeginingMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Groups["keyword"].Value;
@@ -957,7 +959,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr}]");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr.Replace("\r", "").Replace("\n", "")}]");
                         }
                     }
                 }

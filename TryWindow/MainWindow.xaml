@@ -6,14 +6,17 @@
         xmlns:local="clr-namespace:TryWindow"
         Closing="Window_Closing"
         mc:Ignorable="d"
-        Title="Expression Evaluate" Width="400" SizeToContent="Height">
-    <StackPanel>
+        Title="Expression Evaluate" Width="400" Height="300">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Bottom">
+            <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
+            <TextBlock x:Name="ResultTextBlock" />
+            <TextBlock x:Name="ExecutionTimeTextBlock" />
+        </StackPanel>
+        
         <TextBox x:Name="ScriptTextBox" 
                  AcceptsReturn="True"
-                 Height="150"
                  VerticalScrollBarVisibility="Auto"/>
-        <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
-        <TextBlock x:Name="ResultTextBlock" />
-        <TextBlock x:Name="ExecutionTimeTextBlock" />
-    </StackPanel>
+        
+    </DockPanel>
 </Window>
