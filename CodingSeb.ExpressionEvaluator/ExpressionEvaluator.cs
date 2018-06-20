@@ -494,23 +494,20 @@ namespace CodingSeb.ExpressionEvaluator
 
                 expression = expression.Trim();
 
-                if (!expression.Equals(string.Empty))
+                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+
+                if (variableAssignationMatch.Success)
                 {
-                    Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
+                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
+                    isAssignation = true;
+                }
 
-                    if (variableAssignationMatch.Success)
-                    {
-                        variableToAssign = variableAssignationMatch.Groups["name"].Value;
-                        expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
-                        isAssignation = true;
-                    }
+                result = Evaluate(expression);
 
-                    result = Evaluate(expression);
-
-                    if (isAssignation)
-                    {
-                        Variables[variableToAssign] = result;
-                    }
+                if (isAssignation)
+                {
+                    Variables[variableToAssign] = result;
                 }
 
                 return result;
@@ -644,6 +641,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                             i++;
                         }
+
+                        if (subScript.Trim().Equals(string.Empty))
+                            throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
                     }
 
                     if (keyword.Equals("while"))
@@ -658,7 +658,10 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if(keyword.Equals("for"))
                     {
-                        for (AssignationOrExpressionEval(keywordAttributes[0]); (bool)AssignationOrExpressionEval(keywordAttributes[1]); AssignationOrExpressionEval(keywordAttributes[2]))
+                        void forAction(int index)
+                        { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
+
+                        for (forAction(0); (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
                             lastResult = ScriptEvaluate(subScript);
                     }
 
