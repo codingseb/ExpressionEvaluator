@@ -32,7 +32,7 @@ namespace CodingSeb.ExpressionEvaluator
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
 
         // For script only
-        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*=(?![=>])");
+        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
         private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
         private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
@@ -488,6 +488,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             object AssignationOrExpressionEval(string expression)
             {
+                string baseExpression = expression;
                 bool isAssignation = false;
                 string variableToAssign = string.Empty;
                 object result = null;
@@ -507,6 +508,19 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (isAssignation)
                 {
+                    if(variableAssignationMatch.Groups["assignmentPrefix"].Success)
+                    {
+                        ExpressionOperator op = operatorsDictionary[variableAssignationMatch.Groups["assignmentPrefix"].Value];
+                        try
+                        {
+                            result = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](Variables[variableToAssign], result);
+                        }
+                        catch(Exception exception)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{variableToAssign}] unknown in expression : [{baseExpression}]", exception);
+                        }
+                    }
+
                     Variables[variableToAssign] = result;
                 }
 
