@@ -38,7 +38,7 @@ namespace TryWindow
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
 
             Stopwatch stopWatch = new Stopwatch();
-            stopWatch.Start();
+            
 
             try
             {
@@ -48,6 +48,7 @@ namespace TryWindow
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 string result = await Task.Run<string>(() => 
                 {
+                    stopWatch.Start();
                     try
                     {
                         using (cancellationTokenSource.Token.Register(Thread.CurrentThread.Abort))
@@ -59,6 +60,10 @@ namespace TryWindow
                     {
                         exception = innerException;
                         return null;
+                    }
+                    finally
+                    {
+                        stopWatch.Stop();
                     }
                 }, cancellationTokenSource.Token);
 
@@ -72,7 +77,6 @@ namespace TryWindow
                 ResultTextBlock.Text = exception.Message;
             }
 
-            stopWatch.Stop();
             ExecutionTimeTextBlock.Text = $"Execution time : {stopWatch.Elapsed}";
 
             evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
