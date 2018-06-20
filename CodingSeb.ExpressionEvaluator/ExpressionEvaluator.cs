@@ -13,7 +13,7 @@ namespace CodingSeb.ExpressionEvaluator
     /// </summary>
     public class ExpressionEvaluator
     {
-        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?", RegexOptions.IgnoreCase);
+        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
         private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
@@ -26,15 +26,15 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
-        // For script only
-        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*=(?![=])");
-        private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
-        private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
-
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
+
+        // For script only
+        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*=(?![=>])");
+        private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
+        private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
         private Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
         {
@@ -982,9 +982,11 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if (Variables.TryGetValue(varFuncName, out object cusVarValueToPush))
+                    else if (Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush))
                     {
                         stack.Push(cusVarValueToPush);
+                        if (varFuncMatch.Groups["postfixOperator"].Success)
+                            Variables[varFuncName] = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
                     }
                     else
                     {
@@ -1016,9 +1018,19 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                        object varValue = objType?.GetProperty(varFuncName, flag)?.GetValue(obj);
+                                        PropertyInfo property = objType?.GetProperty(varFuncName, flag);
+
+                                        dynamic varValue = property?.GetValue(obj);
                                         if (varValue == null)
-                                            varValue = objType.GetField(varFuncName, flag).GetValue(obj);
+                                        {
+                                            FieldInfo field = objType.GetField(varFuncName, flag);
+                                            varValue = field.GetValue(obj);
+                                            if(varFuncMatch.Groups["postfixOperator"].Success)
+                                                field.SetValue(obj, varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1);
+                                        }
+                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                            property.SetValue(obj, varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1);
+
 
                                         stack.Push(varValue);
                                     }
