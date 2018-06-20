@@ -336,8 +336,8 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Primary|[x?[y]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
 |Primary|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
 |Primary|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
-|Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Not Supported|
-|Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Not Supported|
+|Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Supported|
+|Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Supported|
 |Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Supported you can also use [new() function](#standard-functions)|
 |Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Supported|
 |Primary|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
