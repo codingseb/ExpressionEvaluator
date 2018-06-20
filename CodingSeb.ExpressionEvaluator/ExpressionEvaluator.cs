@@ -485,12 +485,12 @@ namespace CodingSeb.ExpressionEvaluator
         {
             object lastResult = null;
             int startOfExpression = 0;
-            bool skipNextExpression = false;
 
-            void AssignationOrExpressionEval(string expression)
+            object AssignationOrExpressionEval(string expression)
             {
                 bool isAssignation = false;
                 string variableToAssign = string.Empty;
+                object result = null;
 
                 Match variableAssignationMatch = variableAssignationRegex.Match(expression);
 
@@ -501,25 +501,23 @@ namespace CodingSeb.ExpressionEvaluator
                     isAssignation = true;
                 }
 
-                lastResult = Evaluate(expression);
+                result = Evaluate(expression);
 
                 if (isAssignation)
                 {
-                    Variables[variableToAssign] = lastResult;
+                    Variables[variableToAssign] = result;
                 }
+
+                return result;
             }
 
-            void ScriptExpressionEvaluate(ref int index)
+            object ScriptExpressionEvaluate(ref int index)
             {
-                if (!skipNextExpression)
-                {
-                    string expression = script.Substring(startOfExpression, index - startOfExpression).Trim();
+                string expression = script.Substring(startOfExpression, index - startOfExpression).Trim();
 
-                    AssignationOrExpressionEval(expression);
-                }
+                startOfExpression = index + 1;
 
-                index++;
-                startOfExpression = index;
+                return AssignationOrExpressionEval(expression);
             }
 
             bool TryParseStringAndParenthis(ref int index)
@@ -543,10 +541,8 @@ namespace CodingSeb.ExpressionEvaluator
                 return parsed;
             }
 
-            string GetScriptBetweenCurveBrackets(string parentScript, ref int index)
+            string GetScriptBetweenCurlyBrackets(string parentScript, ref int index)
             {
-                List<string> expressionsList = new List<string>();
-
                 string s;
                 string currentScript = string.Empty;
                 int bracketCount = 1;
@@ -576,11 +572,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             bracketCount--;
                             if (bracketCount == 0)
-                            {
-                                if (!currentScript.Trim().Equals(string.Empty))
-                                    expressionsList.Add(currentScript);
                                 break;
-                            }
                         }
 
                         currentScript += s;
@@ -590,7 +582,7 @@ namespace CodingSeb.ExpressionEvaluator
                 if (bracketCount > 0)
                 {
                     string beVerb = bracketCount == 1 ? "is" : "are";
-                    throw new Exception($"{bracketCount} '"+ "}" + $"' character {beVerb} missing in script at : [{i}]");
+                    throw new Exception($"{bracketCount} '"+ "}" + $"' character {beVerb} missing in script at : [{index}]");
                 }
 
                 return currentScript;
@@ -602,40 +594,79 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 Match blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i));
 
-                if(blockKeywordsBeginingMatch.Success)
+                if (blockKeywordsBeginingMatch.Success)
                 {
                     i += blockKeywordsBeginingMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Groups["keyword"].Value;
                     List<string> keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true);
+
+                    i++;
 
                     if (!CaseSensitiveEvaluation)
                         keyword = keyword.ToLower();
 
                     Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
 
-                    if(blockBeginningMatch.Success)
+                    string subScript = string.Empty;
+
+                    if (blockBeginningMatch.Success)
                     {
                         i += blockBeginningMatch.Length;
 
-                        string scriptInBlock = GetScriptBetweenCurveBrackets(script, ref i);
+                        subScript = GetScriptBetweenCurlyBrackets(script, ref i);
+
+                        i++;
+                    }
+                    else
+                    {
+                        bool continueExpressionParsing = true;
+                        startOfExpression = i;
+
+                        while (i < script.Length && continueExpressionParsing)
+                        {
+                            if (TryParseStringAndParenthis(ref i)) { }
+                            else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
+                            {
+                                i += 2;
+                            }
+                            else if (script[i] == ';')
+                            {
+                                subScript = script.Substring(startOfExpression, i + 1 - startOfExpression);
+                                continueExpressionParsing = false;
+                            }
+
+                            i++;
+                        }
                     }
 
+                    if (keyword.Equals("while"))
+                    {
+                        while ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                            lastResult = ScriptEvaluate(subScript);
+                    }
+                    else if (keyword.Equals("if"))
+                    {
+                        if ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                            lastResult = ScriptEvaluate(subScript);
+                    }
+
+                    startOfExpression = i;
                 }
-                else if(TryParseStringAndParenthis(ref i)){ }
-                else if(script.Length-i > 2 && script.Substring(i, 3).Equals("';'"))
+                else if (TryParseStringAndParenthis(ref i)) { }
+                else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                 {
                     i += 2;
                 }
                 else if (script[i] == ';')
                 {
-                    ScriptExpressionEvaluate(ref i);
+                    lastResult = ScriptExpressionEvaluate(ref i);
                 }
 
                 i++;
             }
 
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty))
-                ScriptExpressionEvaluate(ref i);
+                lastResult = ScriptExpressionEvaluate(ref i);
 
             return lastResult;
         }

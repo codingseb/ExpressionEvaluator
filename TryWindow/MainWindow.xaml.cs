@@ -1,6 +1,7 @@
 ﻿using CodingSeb.ExpressionEvaluator;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Windows;
@@ -30,6 +31,9 @@ namespace TryWindow
 
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
 
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             try
             {
                 ResultTextBlock.Text = evaluator.ScriptEvaluate(ScriptTextBox.Text).ToString();
@@ -38,6 +42,9 @@ namespace TryWindow
             {
                 ResultTextBlock.Text = exception.Message;
             }
+
+            stopWatch.Stop();
+            ExecutionTimeTextBlock.Text = $"Execution time : {stopWatch.Elapsed}";
 
             evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
         }

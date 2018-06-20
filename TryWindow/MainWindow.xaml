@@ -14,5 +14,6 @@
                  VerticalScrollBarVisibility="Auto"/>
         <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
         <TextBlock x:Name="ResultTextBlock" />
+        <TextBlock x:Name="ExecutionTimeTextBlock" />
     </StackPanel>
 </Window>
