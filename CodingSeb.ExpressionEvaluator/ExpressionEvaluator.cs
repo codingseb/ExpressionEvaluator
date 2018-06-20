@@ -13,6 +13,8 @@ namespace CodingSeb.ExpressionEvaluator
     /// </summary>
     public class ExpressionEvaluator
     {
+        #region Regex declarations
+
         private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
         private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
@@ -35,6 +37,44 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
         private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
         private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
+
+        #endregion
+
+        #region Operators enum
+
+        private enum ExpressionOperator
+        {
+            Plus,
+            Minus,
+            UnaryPlus,
+            UnaryMinus,
+            Multiply,
+            Divide,
+            Modulo,
+            Lower,
+            Greater,
+            Equal,
+            LowerOrEqual,
+            GreaterOrEqual,
+            Is,
+            NotEqual,
+            LogicalNegation,
+            ConditionalAnd,
+            ConditionalOr,
+            LogicalAnd,
+            LogicalOr,
+            LogicalXor,
+            ShiftBitsLeft,
+            ShiftBitsRight,
+            NullCoalescing,
+            Cast,
+            Indexing,
+            IndexingWithNullConditional,
+        }
+
+        #endregion
+
+        #region Dictionaries declarations (Primary types, number suffix, escaped chars, operators management, default vars and functions)
 
         private Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
         {
@@ -106,36 +146,6 @@ namespace CodingSeb.ExpressionEvaluator
             { 't', '\t' },
             { 'v', '\v' }
         };
-
-        private enum ExpressionOperator
-        {
-            Plus,
-            Minus,
-            UnaryPlus,
-            UnaryMinus,
-            Multiply,
-            Divide,
-            Modulo,
-            Lower,
-            Greater,
-            Equal,
-            LowerOrEqual,
-            GreaterOrEqual,
-            Is,
-            NotEqual,
-            LogicalNegation,
-            ConditionalAnd,
-            ConditionalOr,
-            LogicalAnd,
-            LogicalOr,
-            LogicalXor,
-            ShiftBitsLeft,
-            ShiftBitsRight,
-            NullCoalescing,
-            Cast,
-            Indexing,
-            IndexingWithNullConditional,
-        }
 
         private Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.Ordinal)
         {
@@ -329,6 +339,10 @@ namespace CodingSeb.ExpressionEvaluator
             { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
         };
 
+        #endregion
+
+        #region Assemblies, Namespaces and types lists
+
         /// <summary>
         /// All assemblies needed to resolves Types
         /// by default all Assemblies loaded in the current AppDomain
@@ -365,6 +379,10 @@ namespace CodingSeb.ExpressionEvaluator
             typeof(Enumerable) // For Linq extension methods
         };
 
+        #endregion
+
+        #region Evaluation options (modes, security)
+
         private bool caseSensitiveEvaluation = true;
 
         /// <summary>
@@ -389,12 +407,6 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        /// <summary>
-        /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
-        /// if false unactive this functionality.
-        /// </summary>
-        public bool FluidPrefixingActive { get; set; } = true;
-
         private StringComparer StringComparerForCasing
         {
             get
@@ -403,7 +415,23 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        public BindingFlags InstanceBindingFlag
+        /// <summary>
+        /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
+        /// if false unactive this functionality.
+        /// </summary>
+        public bool FluidPrefixingActive { get; set; } = true;
+
+        /// <summary>
+        /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
+        /// By default : false for security
+        /// </summary>
+        public bool IsEvaluateFunctionActivated { get; set; } = false;
+
+        #endregion
+
+        #region Reflection flags
+
+        private BindingFlags InstanceBindingFlag
         {
             get
             {
@@ -429,6 +457,10 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        #endregion
+
+        #region Custom and on the fly variables and methods
+
         private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
@@ -441,10 +473,20 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : false for security
+        /// Is Fired when no internal variable is found for a variable name.
+        /// Allow to define a variable and the corresponding value on the fly.
         /// </summary>
-        public bool IsEvaluateFunctionActivated { get; set; } = false;
+        public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
+
+        /// <summary>
+        /// Is Fired when no internal function is found for a variable name.
+        /// Allow to define a function and the corresponding value on the fly.
+        /// </summary>
+        public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// Default Constructor
@@ -463,17 +505,9 @@ namespace CodingSeb.ExpressionEvaluator
             Variables = variables;
         }
 
-        /// <summary>
-        /// Is Fired when no internal variable is found for a variable name.
-        /// Allow to define a variable and the corresponding value on the fly.
-        /// </summary>
-        public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
+        #endregion
 
-        /// <summary>
-        /// Is Fired when no internal function is found for a variable name.
-        /// Allow to define a function and the corresponding value on the fly.
-        /// </summary>
-        public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
+        #region Main evaluate methods (Expressions and scripts ==> public)
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -789,6 +823,10 @@ namespace CodingSeb.ExpressionEvaluator
 
             return ProcessStack(stack);
         }
+
+        #endregion
+
+        #region Sub parts evaluate methods (private)
 
         private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
         {
@@ -1382,6 +1420,10 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
+        #endregion
+
+        #region ProcessStack
+
         private object ProcessStack(Stack<object> stack)
         {
             List<object> list = stack.ToList();
@@ -1432,6 +1474,10 @@ namespace CodingSeb.ExpressionEvaluator
 
             return stack.Pop();
         }
+
+        #endregion
+
+        #region Utils methods for parsing and interpretation
 
         private delegate dynamic lambdaExpressionDelegate(params dynamic[] args);
         private bool GetLambdaExpression(string expr, Stack<object> stack)
@@ -1801,6 +1847,10 @@ namespace CodingSeb.ExpressionEvaluator
             return result;
         }
 
+        #endregion
+
+        #region Utils private sub classes for parsing and interpretation
+
         private class ClassOrTypeName
         {
             public Type Type { get; set; }
@@ -1898,7 +1948,23 @@ namespace CodingSeb.ExpressionEvaluator
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
             }
         }
+
+        #endregion
     }
+
+    #region Internal extentions methods
+
+    internal static class StringCaseManagementForExpressionEvaluatorExtension
+    {
+        public static string ManageCasing(this string text, bool isCaseSensitive)
+        {
+            return isCaseSensitive ? text : text.ToLower();
+        }
+    }
+
+    #endregion
+
+    #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
 
     public class ExpressionEvaluatorSyntaxErrorException : Exception
     {
@@ -1909,14 +1975,6 @@ namespace CodingSeb.ExpressionEvaluator
         { }
         public ExpressionEvaluatorSyntaxErrorException(string message, Exception innerException) : base(message, innerException)
         { }
-    }
-
-    internal static class StringCaseManagementForExpressionEvaluatorExtension
-    {
-        public static string ManageCasing(this string text, bool isCaseSensitive)
-        {
-            return isCaseSensitive ? text : text.ToLower();
-        }
     }
 
     public class VariableEvaluationEventArg : EventArgs
@@ -2030,4 +2088,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public object This { get; private set; } = null;
     }
+
+    #endregion
 }
