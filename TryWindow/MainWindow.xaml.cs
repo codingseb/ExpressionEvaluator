@@ -36,7 +36,7 @@ namespace TryWindow
 
             try
             {
-                ResultTextBlock.Text = evaluator.ScriptEvaluate(ScriptTextBox.Text).ToString();
+                ResultTextBlock.Text = evaluator.ScriptEvaluate(ScriptTextBox.Text)?.ToString() ?? "null or void";
             }
             catch(Exception exception)
             {

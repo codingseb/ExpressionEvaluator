@@ -492,20 +492,25 @@ namespace CodingSeb.ExpressionEvaluator
                 string variableToAssign = string.Empty;
                 object result = null;
 
-                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
+                expression = expression.Trim();
 
-                if (variableAssignationMatch.Success)
+                if (!expression.Equals(string.Empty))
                 {
-                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
-                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
-                    isAssignation = true;
-                }
+                    Match variableAssignationMatch = variableAssignationRegex.Match(expression);
 
-                result = Evaluate(expression);
+                    if (variableAssignationMatch.Success)
+                    {
+                        variableToAssign = variableAssignationMatch.Groups["name"].Value;
+                        expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
+                        isAssignation = true;
+                    }
 
-                if (isAssignation)
-                {
-                    Variables[variableToAssign] = result;
+                    result = Evaluate(expression);
+
+                    if (isAssignation)
+                    {
+                        Variables[variableToAssign] = result;
+                    }
                 }
 
                 return result;
@@ -513,7 +518,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             object ScriptExpressionEvaluate(ref int index)
             {
-                string expression = script.Substring(startOfExpression, index - startOfExpression).Trim();
+                string expression = script.Substring(startOfExpression, index - startOfExpression);
 
                 startOfExpression = index + 1;
 
@@ -600,7 +605,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     i += blockKeywordsBeginingMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Groups["keyword"].Value;
-                    List<string> keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true);
+                    List<string> keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true, ";");
 
                     i++;
 
@@ -649,6 +654,11 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (keyword.Equals("if"))
                     {
                         if ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                            lastResult = ScriptEvaluate(subScript);
+                    }
+                    else if(keyword.Equals("for"))
+                    {
+                        for (AssignationOrExpressionEval(keywordAttributes[0]); (bool)AssignationOrExpressionEval(keywordAttributes[1]); AssignationOrExpressionEval(keywordAttributes[2]))
                             lastResult = ScriptEvaluate(subScript);
                     }
 
@@ -1563,7 +1573,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private List<string> GetExpressionsBetweenParenthis(string expr, ref int i, bool checkComas)
+        private List<string> GetExpressionsBetweenParenthis(string expr, ref int i, bool checkSeparator, string separator = ",")
         {
             List<string> expressionsList = new List<string>();
 
@@ -1603,7 +1613,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                     }
 
-                    if (checkComas && s.Equals(",") && bracketCount == 1)
+                    if (checkSeparator && s.Equals(separator) && bracketCount == 1)
                     {
                         expressionsList.Add(currentExpression);
                         currentExpression = string.Empty;
