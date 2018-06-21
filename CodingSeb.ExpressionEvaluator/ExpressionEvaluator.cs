@@ -495,7 +495,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
         /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
-        public bool IsEvaluateFunctionActivated { get; set; } = false;
+        public bool EvaluateFunctionActive { get; set; } = false;
+
+        /// <summary>
+        /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
+        /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
+        /// </summary>
+        public bool ScriptEvaluateFunctionActive { get; set; } = false;
 
         #endregion
 
@@ -1833,9 +1839,13 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 result = complexFunc(this, args);
             }
-            else if (IsEvaluateFunctionActivated && name.Equals("evaluate"))
+            else if (EvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("Evaluate".ManageCasing(CaseSensitiveEvaluation)))
             {
                 result = Evaluate((string)Evaluate(args[0]));
+            }
+            else if (ScriptEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("ScriptEvaluate".ManageCasing(CaseSensitiveEvaluation)))
+            {
+                result = ScriptEvaluate((string)Evaluate(args[0]));
             }
             else
             {
