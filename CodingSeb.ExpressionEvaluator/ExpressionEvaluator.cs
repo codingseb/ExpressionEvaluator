@@ -372,6 +372,15 @@ namespace CodingSeb.ExpressionEvaluator
         public List<Type> Types { get; set; } = new List<Type>();
 
         /// <summary>
+        /// A list of type to block an keep un usable in Expression Evaluation for security purpose
+        /// By default just contains ExpressionEvaluation
+        /// </summary>
+        public List<Type> TypesToBlock { get; set; } = new List<Type>()
+        {
+            typeof(ExpressionEvaluator)
+        };
+
+        /// <summary>
         /// A list of statics types where to find extensions methods
         /// </summary>
         public List<Type> StaticTypesForExtensionsMethods { get; set; } = new List<Type>()
@@ -423,7 +432,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : false for security
+        /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool IsEvaluateFunctionActivated { get; set; } = false;
 
@@ -949,6 +958,13 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = stack.Pop();
                             Type objType = null;
 
+                            if (TypesToBlock.Contains(obj.GetType()))
+                                throw new Exception($"{obj.GetType().FullName} type is blocked");
+                            else if(obj is Type staticType && TypesToBlock.Contains(staticType))
+                                throw new Exception($"{staticType.FullName} type is blocked");
+                            else if(obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                                throw new Exception($"{classOrType.Type} type is blocked");
+
                             try
                             {
                                 if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
@@ -1034,7 +1050,8 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if (Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush))
+                    else if (Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
+                        && !TypesToBlock.Contains(cusVarValueToPush.GetType()))
                     {
                         stack.Push(cusVarValueToPush);
                         if (varFuncMatch.Groups["postfixOperator"].Success)
@@ -1049,6 +1066,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                             object obj = stack.Pop();
                             Type objType = null;
+
+                            if (TypesToBlock.Contains(obj.GetType()))
+                                throw new Exception($"{obj.GetType().FullName} type is blocked");
+                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
+                                throw new Exception($"{staticType.FullName} type is blocked");
+                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                                throw new Exception($"{classOrType.Type} type is blocked");
 
                             try
                             {
@@ -1770,6 +1794,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
             catch { }
+
+            if (TypesToBlock.Contains(result.GetType()))
+                result = null;
 
             return result;
         }
