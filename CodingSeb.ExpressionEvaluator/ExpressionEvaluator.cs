@@ -390,7 +390,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Evaluation options (modes, security)
+        #region Evaluation case sensitivity and options
 
         private bool caseSensitiveEvaluation = true;
 
@@ -425,10 +425,71 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if true allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
-        /// if false unactive this functionality.
+        /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
         /// </summary>
         public bool FluidPrefixingActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool NewKeywordEvaluationActive { get; set; } = true;
+
+        private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
+
+        /// <summary>
+        /// if <c>true</c> allow to create instance of object with the Default function new(ClassNam,...).
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool NewFunctionEvaluationActive
+        {
+            get
+            {
+                return complexStandardFuncsDictionary.ContainsKey("new");
+            }
+            set
+            {
+                if (value && !complexStandardFuncsDictionary.ContainsKey("new"))
+                    complexStandardFuncsDictionary["new"] = newMethodMem;
+                else if(!value && complexStandardFuncsDictionary.ContainsKey("new"))
+                {
+                    newMethodMem = complexStandardFuncsDictionary["new"];
+                    complexStandardFuncsDictionary.Remove("new");
+                }
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> allow to call static methods on classes.
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool StaticMethodsCallActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow to get static properties on classes
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool StaticProperiesGetActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow to call instance methods on objects.
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool InstanceMethodsCallActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow to get instance properties on objects
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool InstanceProperiesGetActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
@@ -902,6 +963,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateInstanceCreationWithNewKeyword(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
+            if (!NewKeywordEvaluationActive)
+                return false;
+
             Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(restOfExpression);
 
             if (instanceCreationMatch.Success &&
@@ -958,7 +1022,7 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = stack.Pop();
                             Type objType = null;
 
-                            if (TypesToBlock.Contains(obj.GetType()))
+                            if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                             else if(obj is Type staticType && TypesToBlock.Contains(staticType))
                                 throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
@@ -985,6 +1049,11 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         List<object> oArgs = funcArgs.ConvertAll(arg => Evaluate(arg));
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
+
+                                        if (!StaticMethodsCallActive && flag.HasFlag(BindingFlags.Static))
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                        if (!InstanceMethodsCallActive && flag.HasFlag(BindingFlags.Instance))
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
@@ -1055,7 +1124,7 @@ namespace CodingSeb.ExpressionEvaluator
                         stack.Push(varValueToPush);
                     }
                     else if (Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
-                        && !TypesToBlock.Contains(cusVarValueToPush.GetType()))
+                        && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
                         stack.Push(cusVarValueToPush);
                         if (varFuncMatch.Groups["postfixOperator"].Success)
@@ -1071,7 +1140,7 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = stack.Pop();
                             Type objType = null;
 
-                            if (TypesToBlock.Contains(obj.GetType()))
+                            if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                             else if (obj is Type staticType && TypesToBlock.Contains(staticType))
                                 throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
@@ -1098,6 +1167,11 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
+                                        if (!StaticProperiesGetActive && flag.HasFlag(BindingFlags.Static))
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
+                                        if (!InstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
+
                                         PropertyInfo property = objType?.GetProperty(varFuncName, flag);
 
                                         dynamic varValue = property?.GetValue(obj);
@@ -1115,6 +1189,14 @@ namespace CodingSeb.ExpressionEvaluator
                                         stack.Push(varValue);
                                     }
                                 }
+                            }
+                            catch (ExpressionEvaluatorSecurityException)
+                            {
+                                throw;
+                            }
+                            catch (ExpressionEvaluatorSyntaxErrorException)
+                            {
+                                throw;
                             }
                             catch (Exception ex)
                             {
