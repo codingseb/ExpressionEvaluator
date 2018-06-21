@@ -492,6 +492,13 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionInstanceProperiesGetActive { get; set; } = true;
 
         /// <summary>
+        /// if <c>true</c> allow to get object at index or key like IndexedObject[indexOrKey]
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool OptionIndexingActive { get; set; } = true;
+
+        /// <summary>
         /// if <c>true</c> allow string interpretation with ""
         /// if <c>false</c> unactive this functionality.
         /// By default : true
@@ -1386,6 +1393,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateIndexing(string expr, string s, Stack<object> stack, ref int i)
         {
+            if (!OptionIndexingActive)
+                return false;
+
             Match indexingBeginningMatch = indexingBeginningRegex.Match(expr.Substring(i));
 
             if (indexingBeginningMatch.Success)
