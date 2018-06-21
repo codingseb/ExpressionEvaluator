@@ -297,7 +297,7 @@ test
 If needed this fonctionality can be disabled with :
 
 ```
-evaluator.FluidPrefixingActive = false;
+evaluator.OptionFluidPrefixingActive = false;
 ```
 
 ## Primary types

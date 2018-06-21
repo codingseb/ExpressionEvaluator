@@ -429,14 +429,14 @@ namespace CodingSeb.ExpressionEvaluator
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool FluidPrefixingActive { get; set; } = true;
+        public bool OptionFluidPrefixingActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool NewKeywordEvaluationActive { get; set; } = true;
+        public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -445,7 +445,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool NewFunctionEvaluationActive
+        public bool OptionNewFunctionEvaluationActive
         {
             get
             {
@@ -468,40 +468,54 @@ namespace CodingSeb.ExpressionEvaluator
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool StaticMethodsCallActive { get; set; } = true;
+        public bool OptionStaticMethodsCallActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get static properties on classes
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool StaticProperiesGetActive { get; set; } = true;
+        public bool OptionStaticProperiesGetActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to call instance methods on objects.
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool InstanceMethodsCallActive { get; set; } = true;
+        public bool OptionInstanceMethodsCallActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get instance properties on objects
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool InstanceProperiesGetActive { get; set; } = true;
+        public bool OptionInstanceProperiesGetActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow string interpretation with ""
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool OptionStringEvaluationActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow char interpretation with ''
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool OptionCharEvaluationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
         /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
-        public bool EvaluateFunctionActive { get; set; } = false;
+        public bool OptionEvaluateFunctionActive { get; set; } = false;
 
         /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
         /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
-        public bool ScriptEvaluateFunctionActive { get; set; } = false;
+        public bool OptionScriptEvaluateFunctionActive { get; set; } = false;
 
         #endregion
 
@@ -969,7 +983,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateInstanceCreationWithNewKeyword(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
-            if (!NewKeywordEvaluationActive)
+            if (!OptionNewKeywordEvaluationActive)
                 return false;
 
             Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(restOfExpression);
@@ -1056,9 +1070,9 @@ namespace CodingSeb.ExpressionEvaluator
                                         List<object> oArgs = funcArgs.ConvertAll(arg => Evaluate(arg));
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                        if (!StaticMethodsCallActive && flag.HasFlag(BindingFlags.Static))
+                                        if (!OptionStaticMethodsCallActive && flag.HasFlag(BindingFlags.Static))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
-                                        if (!InstanceMethodsCallActive && flag.HasFlag(BindingFlags.Instance))
+                                        if (!OptionInstanceMethodsCallActive && flag.HasFlag(BindingFlags.Instance))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
@@ -1173,9 +1187,9 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                        if (!StaticProperiesGetActive && flag.HasFlag(BindingFlags.Static))
+                                        if (!OptionStaticProperiesGetActive && flag.HasFlag(BindingFlags.Static))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
-                                        if (!InstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
+                                        if (!OptionInstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
 
                                         PropertyInfo property = objType?.GetProperty(varFuncName, flag);
@@ -1259,6 +1273,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateChar(string expr, string s, Stack<object> stack, ref int i)
         {
+            if (!OptionCharEvaluationActive)
+                return false;
+
             if (s.Equals("'"))
             {
                 i++;
@@ -1423,6 +1440,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateString(string expr, string s, string restOfExpression, Stack<object> stack, ref int i)
         {
+            if (!OptionStringEvaluationActive)
+                return false;
+
             Match stringBeginningMatch = stringBeginningRegex.Match(restOfExpression);
 
             if (stringBeginningMatch.Success)
@@ -1634,7 +1654,7 @@ namespace CodingSeb.ExpressionEvaluator
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
 
-            if (FluidPrefixingActive &&
+            if (OptionFluidPrefixingActive &&
                 (func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation))
                     || func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluent".ManageCasing(CaseSensitiveEvaluation))))
             {
@@ -1839,11 +1859,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 result = complexFunc(this, args);
             }
-            else if (EvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("Evaluate".ManageCasing(CaseSensitiveEvaluation)))
+            else if (OptionEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("Evaluate".ManageCasing(CaseSensitiveEvaluation)))
             {
                 result = Evaluate((string)Evaluate(args[0]));
             }
-            else if (ScriptEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("ScriptEvaluate".ManageCasing(CaseSensitiveEvaluation)))
+            else if (OptionScriptEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("ScriptEvaluate".ManageCasing(CaseSensitiveEvaluation)))
             {
                 result = ScriptEvaluate((string)Evaluate(args[0]));
             }
