@@ -1921,7 +1921,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
             catch { }
 
-            if (TypesToBlock.Contains(result.GetType()))
+            if (result != null && TypesToBlock.Contains(result.GetType()))
                 result = null;
 
             return result;
