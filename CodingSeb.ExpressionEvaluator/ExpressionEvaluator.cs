@@ -959,11 +959,11 @@ namespace CodingSeb.ExpressionEvaluator
                             Type objType = null;
 
                             if (TypesToBlock.Contains(obj.GetType()))
-                                throw new Exception($"{obj.GetType().FullName} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                             else if(obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new Exception($"{staticType.FullName} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
                             else if(obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new Exception($"{classOrType.Type} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                             try
                             {
@@ -1013,6 +1013,10 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
                                 }
 
+                            }
+                            catch (ExpressionEvaluatorSecurityException)
+                            {
+                                throw;
                             }
                             catch (ExpressionEvaluatorSyntaxErrorException)
                             {
@@ -1068,11 +1072,11 @@ namespace CodingSeb.ExpressionEvaluator
                             Type objType = null;
 
                             if (TypesToBlock.Contains(obj.GetType()))
-                                throw new Exception($"{obj.GetType().FullName} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                             else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new Exception($"{staticType.FullName} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
                             else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new Exception($"{classOrType.Type} type is blocked");
+                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                             try
                             {
@@ -2001,6 +2005,17 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluatorSyntaxErrorException(string message) : base(message)
         { }
         public ExpressionEvaluatorSyntaxErrorException(string message, Exception innerException) : base(message, innerException)
+        { }
+    }
+
+    public class ExpressionEvaluatorSecurityException : Exception
+    {
+        public ExpressionEvaluatorSecurityException() : base()
+        { }
+
+        public ExpressionEvaluatorSecurityException(string message) : base(message)
+        { }
+        public ExpressionEvaluatorSecurityException(string message, Exception innerException) : base(message, innerException)
         { }
     }
 
