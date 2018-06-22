@@ -1011,6 +1011,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                 Type type = GetTypeByFriendlyName(completeName, true);
 
+                if (type == null)
+                    throw new ExpressionEvaluatorSyntaxErrorException($"type or class {completeName} is unknown");
+
                 List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
                 stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
 
@@ -1922,7 +1925,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
             catch { }
 
-            if (result != null && TypesToBlock.Contains(result.GetType()))
+            if (result != null && TypesToBlock.Contains(result))
                 result = null;
 
             return result;
