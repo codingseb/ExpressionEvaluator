@@ -392,18 +392,19 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Evaluation case sensitivity and options
 
-        private bool caseSensitiveEvaluation = true;
+        private bool optionCaseSensitiveEvaluationActive = true;
 
         /// <summary>
-        /// if true all evaluation are case sensitives, if false evaluations are case insensitive.
+        /// If <c>true</c> all evaluation are case sensitives.
+        /// If <c>false</c> evaluations are case insensitive.
         /// By default = true
         /// </summary>
-        public bool CaseSensitiveEvaluation
+        public bool OptionCaseSensitiveEvaluationActive
         {
-            get { return caseSensitiveEvaluation; }
+            get { return optionCaseSensitiveEvaluationActive; }
             set
             {
-                caseSensitiveEvaluation = value;
+                optionCaseSensitiveEvaluationActive = value;
                 Variables = Variables;
                 primaryTypesDict = new Dictionary<string, Type>(primaryTypesDict, StringComparerForCasing);
                 operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
@@ -411,8 +412,8 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, caseSensitiveEvaluation ? RegexOptions.None : RegexOptions.IgnoreCase);
-                primaryTypesRegex = new Regex(primaryTypesRegexPattern, caseSensitiveEvaluation ? RegexOptions.None : RegexOptions.IgnoreCase);
+                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+                primaryTypesRegex = new Regex(primaryTypesRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
             }
         }
 
@@ -420,7 +421,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             get
             {
-                return CaseSensitiveEvaluation ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                return OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             }
         }
 
@@ -534,7 +535,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Instance;
 
-                if (!CaseSensitiveEvaluation)
+                if (!OptionCaseSensitiveEvaluationActive)
                     flag |= BindingFlags.IgnoreCase;
 
                 return flag;
@@ -547,7 +548,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 BindingFlags flag = BindingFlags.Default | BindingFlags.Public | BindingFlags.Static;
 
-                if (!CaseSensitiveEvaluation)
+                if (!OptionCaseSensitiveEvaluationActive)
                     flag |= BindingFlags.IgnoreCase;
 
                 return flag;
@@ -751,7 +752,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     i++;
 
-                    if (!CaseSensitiveEvaluation)
+                    if (!OptionCaseSensitiveEvaluationActive)
                         keyword = keyword.ToLower();
 
                     Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
@@ -1665,10 +1666,10 @@ namespace CodingSeb.ExpressionEvaluator
             List<object> modifiedArgs = new List<object>(args);
 
             if (OptionFluidPrefixingActive &&
-                (func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation))
-                    || func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluent".ManageCasing(CaseSensitiveEvaluation))))
+                (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
+                    || func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluent".ManageCasing(OptionCaseSensitiveEvaluationActive))))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(CaseSensitiveEvaluation).Substring(func.ManageCasing(CaseSensitiveEvaluation).StartsWith("Fluid".ManageCasing(CaseSensitiveEvaluation)) ? 5 : 6), flag, modifiedArgs);
+                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -1687,11 +1688,11 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (args.Contains(null))
             {
-                methodInfo = type.GetMethod(func.ManageCasing(CaseSensitiveEvaluation), flag);
+                methodInfo = type.GetMethod(func.ManageCasing(OptionCaseSensitiveEvaluationActive), flag);
             }
             else
             {
-                methodInfo = type.GetMethod(func.ManageCasing(CaseSensitiveEvaluation), flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+                methodInfo = type.GetMethod(func.ManageCasing(OptionCaseSensitiveEvaluationActive), flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
             }
 
             if (methodInfo != null)
@@ -1701,7 +1702,7 @@ namespace CodingSeb.ExpressionEvaluator
             else
             {
                 List<MethodInfo> methodInfos = type.GetMethods(flag)
-                .Where(m => m.Name.ManageCasing(CaseSensitiveEvaluation).Equals(func.ManageCasing(CaseSensitiveEvaluation)) && m.GetParameters().Length == modifiedArgs.Count)
+                .Where(m => m.Name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals(func.ManageCasing(OptionCaseSensitiveEvaluationActive)) && m.GetParameters().Length == modifiedArgs.Count)
                 .ToList();
 
                 for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
@@ -1869,11 +1870,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 result = complexFunc(this, args);
             }
-            else if (OptionEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("Evaluate".ManageCasing(CaseSensitiveEvaluation)))
+            else if (OptionEvaluateFunctionActive && name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("Evaluate".ManageCasing(OptionCaseSensitiveEvaluationActive)))
             {
                 result = Evaluate((string)Evaluate(args[0]));
             }
-            else if (OptionScriptEvaluateFunctionActive && name.ManageCasing(CaseSensitiveEvaluation).Equals("ScriptEvaluate".ManageCasing(CaseSensitiveEvaluation)))
+            else if (OptionScriptEvaluateFunctionActive && name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("ScriptEvaluate".ManageCasing(OptionCaseSensitiveEvaluationActive)))
             {
                 result = ScriptEvaluate((string)Evaluate(args[0]));
             }
@@ -1905,7 +1906,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    result = Types.Find(type => type.Name.ManageCasing(CaseSensitiveEvaluation).Equals(typeName.ManageCasing(CaseSensitiveEvaluation)));
+                    result = Types.Find(type => type.Name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals(typeName.ManageCasing(OptionCaseSensitiveEvaluationActive)));
                 }
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
