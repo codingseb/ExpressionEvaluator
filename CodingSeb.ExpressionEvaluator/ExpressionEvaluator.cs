@@ -35,12 +35,13 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
-        private static Regex blockKeywordsBeginningRegex = new Regex(@"^(?<keyword>if|while|for)\s*[(]", RegexOptions.IgnoreCase);
+        private static Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)", RegexOptions.IgnoreCase);
         private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
         #endregion
 
-        #region Operators enum
+        #region enums (Operators, if else blocks states)
 
         private enum ExpressionOperator
         {
@@ -70,6 +71,13 @@ namespace CodingSeb.ExpressionEvaluator
             Cast,
             Indexing,
             IndexingWithNullConditional,
+        }
+
+        private enum IfBlockEvaluatedState
+        {
+            NoBlockEvaluated,
+            If,
+            ElseIf
         }
 
         #endregion
@@ -567,7 +575,7 @@ namespace CodingSeb.ExpressionEvaluator
         public Dictionary<string, object> Variables
         {
             get { return variables; }
-            set { variables = new Dictionary<string, object>(value, StringComparerForCasing); }
+            set { variables = value == null ? new Dictionary<string, object>() : new Dictionary<string, object>(value, StringComparerForCasing); }
         }
 
         /// <summary>
@@ -617,6 +625,8 @@ namespace CodingSeb.ExpressionEvaluator
         {
             object lastResult = null;
             int startOfExpression = 0;
+            IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+            List<List<string>> ifElseStatementsList = new List<List<string>>();
 
             object AssignationOrExpressionEval(string expression)
             {
@@ -736,21 +746,36 @@ namespace CodingSeb.ExpressionEvaluator
                 return currentScript;
             }
 
+            void ExecuteIfList()
+            {
+                if (ifElseStatementsList.Count > 0)
+                {
+                    string ifScript = ifElseStatementsList.Find(statement => (bool)AssignationOrExpressionEval(statement[0]))?[1];
+
+                    if (!string.IsNullOrEmpty(ifScript))
+                        lastResult = ScriptEvaluate(ifScript);
+
+                    ifElseStatementsList.Clear();
+                }
+            }
+
             int i = 0;
 
             while(i < script.Length)
             {
                 Match blockKeywordsBeginingMatch;
+                Match elseBlockKeywordsBeginingMatch = null;
 
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
-                    && (blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
-                    && blockKeywordsBeginingMatch.Success)
+                    && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
+                        || (elseBlockKeywordsBeginingMatch = elseblockKeywordsBeginningRegex.Match(script.Substring(i))).Success))
                 {
-                    i += blockKeywordsBeginingMatch.Length;
-                    string keyword = blockKeywordsBeginingMatch.Groups["keyword"].Value;
-                    List<string> keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true, ";");
+                    i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : elseBlockKeywordsBeginingMatch.Length;
+                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (elseBlockKeywordsBeginingMatch?.Groups["keyword"].Value ?? string.Empty);
+                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
 
-                    i++;
+                    if(blockKeywordsBeginingMatch.Success)
+                        i++;
 
                     if (!OptionCaseSensitiveEvaluationActive)
                         keyword = keyword.ToLower();
@@ -792,39 +817,79 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
                     }
 
-                    if (keyword.Equals("while"))
+                    if(keyword.Equals("elseif"))
                     {
-                        while ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
-                            lastResult = ScriptEvaluate(subScript);
+                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else if] statement.");
+                        }
+                        else
+                        {
+                            ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
+                            ifBlockEvaluatedState = IfBlockEvaluatedState.ElseIf;
+                        }
                     }
-                    else if (keyword.Equals("if"))
+                    else if(keyword.Equals("else"))
                     {
-                        if ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
-                            lastResult = ScriptEvaluate(subScript);
+                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else] statement.");
+                        }
+                        else
+                        {
+                            ifElseStatementsList.Add(new List<string>() { "true" ,subScript });
+                            ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                        }
                     }
-                    else if(keyword.Equals("for"))
+                    else
                     {
-                        void forAction(int index)
-                        { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
+                        ExecuteIfList();
 
-                        for (forAction(0); (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
-                            lastResult = ScriptEvaluate(subScript);
+                        if (keyword.Equals("if"))
+                        {
+                            ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
+                            ifBlockEvaluatedState = IfBlockEvaluatedState.If;
+                        }
+                        else if (keyword.Equals("while"))
+                        {
+                            while ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                                lastResult = ScriptEvaluate(subScript);
+                        }
+                        else if (keyword.Equals("for"))
+                        {
+                            void forAction(int index)
+                            { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
+
+                            for (forAction(0); (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
+                                lastResult = ScriptEvaluate(subScript);
+                        }
                     }
 
                     startOfExpression = i;
                 }
-                else if (TryParseStringAndParenthis(ref i)) { }
-                else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
+                else
                 {
-                    i += 2;
-                }
-                else if (script[i] == ';')
-                {
-                    lastResult = ScriptExpressionEvaluate(ref i);
+                    ExecuteIfList();
+
+                    if (TryParseStringAndParenthis(ref i)){}
+                    else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
+                    {
+                        i += 2;
+                    }
+                    else if (script[i] == ';')
+                    {
+                        lastResult = ScriptExpressionEvaluate(ref i);
+                    }
+
+                    ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+
+                    i++;
                 }
 
-                i++;
+
             }
+
+            ExecuteIfList();
 
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty))
                 lastResult = ScriptExpressionEvaluate(ref i);
