@@ -33,6 +33,14 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
 
+        // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
+        private static readonly string blockComments = @"/\*(.*?)\*/";
+        private static readonly string lineComments = @"//[^\r\n]*";
+        private static readonly string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
+        private static readonly string verbatimStringsIgnore = @"@(""[^""]*"")+";
+        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline);
+        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
+
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
         private static Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
@@ -623,6 +631,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
+            script = RemoveComments(script);
             object lastResult = null;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
@@ -1688,6 +1697,41 @@ namespace CodingSeb.ExpressionEvaluator
                 throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
 
             return stack.Pop();
+        }
+
+        #endregion
+
+        #region Remove comments
+
+        /// <summary>
+        /// remove all line and blocks comments of the specified C# script. (Manage in strings comment syntax ignore)
+        /// based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
+        /// </summary>
+        /// <param name="scriptWithComments">The C# code with comments to remove</param>
+        /// <returns>The same C# code without comments</returns>
+        public string RemoveComments(string scriptWithComments)
+        {
+            return removeCommentsRegex.Replace(scriptWithComments, 
+                match => 
+                {
+                    if(match.Value.StartsWith("/"))
+                    {
+                        Match newLineCharsMatch = newLineCharsRegex.Match(match.Value);
+
+                        if(match.Value.StartsWith("/*") && newLineCharsMatch.Success)
+                        {
+                            return newLineCharsMatch.Value;
+                        }
+                        else
+                        {
+                            return " ";
+                        }
+                    }
+                    else
+                    {
+                        return match.Value;
+                    }
+                });
         }
 
         #endregion
