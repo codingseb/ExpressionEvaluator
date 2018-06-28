@@ -111,23 +111,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         /// <summary>
         ///   Recherche une chaîne localisée semblable à x = [valx];
         ///y = [valy];
-        ///result = &quot;not assigned&quot;;
+        ///result = 0;
         ///
         ///if(y != 0)
         ///{
-        ///	result = &quot;in if&quot;;
+        ///	result = 1;
         ///}
         ///else if(x == 0)
         ///{
-        ///	result = &quot;in first else if&quot;;
+        ///	result = 2;
         ///}
         ///else if(x &lt; 0)
         ///{
-        ///	result = &quot;in second else if&quot;;
+        ///	result = 3;
         ///}
         ///else
         ///{
-        ///	result = &quot;in else&quot;;
+        ///	result = 4;
         ///}
         ///
         ///result;.
@@ -135,6 +135,28 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         internal static string Script0004 {
             get {
                 return ResourceManager.GetString("Script0004", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à x = [valx];
+        ///y = [valy];
+        ///result = 0;
+        ///
+        ///if(y != 0)
+        ///	result = 1;
+        ///else if(x == 0)
+        ///	result = 2;
+        ///else if(x &lt; 0)
+        ///	result = 3;
+        ///else
+        ///	result = 4;
+        ///
+        ///result;.
+        /// </summary>
+        internal static string Script0005 {
+            get {
+                return ResourceManager.GetString("Script0005", resourceCulture);
             }
         }
     }

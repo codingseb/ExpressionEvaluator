@@ -36,7 +36,7 @@ namespace CodingSeb.ExpressionEvaluator
         // For script only
         private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
         private static Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
-        private static Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)", RegexOptions.IgnoreCase);
+        private static Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
         private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
 
         #endregion
