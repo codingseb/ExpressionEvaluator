@@ -1,4 +1,4 @@
-// Script0001
+/* Script0001 */
 x = 0;
 result = "";
 
