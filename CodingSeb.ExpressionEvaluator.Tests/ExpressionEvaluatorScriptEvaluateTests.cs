@@ -25,7 +25,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(Resources.Script0003 , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
                 yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0003, "") , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
 
-                // if else  else
+                // if, else if, else
                 yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
                 yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), "").Replace("else", "else ") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
                 yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
