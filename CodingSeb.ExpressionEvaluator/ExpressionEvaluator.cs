@@ -25,7 +25,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
         private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
         private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$");
+        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
         private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
@@ -705,53 +705,6 @@ namespace CodingSeb.ExpressionEvaluator
                     parsed = false;
 
                 return parsed;
-            }
-
-            string GetScriptBetweenCurlyBrackets(string parentScript, ref int index)
-            {
-                string s;
-                string currentScript = string.Empty;
-                int bracketCount = 1;
-                for (; index < parentScript.Length; index++)
-                {
-                    Match internalStringMatch = stringBeginningRegex.Match(parentScript.Substring(index));
-                    Match internalCharMatch = internalCharRegex.Match(parentScript.Substring(index));
-
-                    if (internalStringMatch.Success)
-                    {
-                        string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(parentScript.Substring(index + internalStringMatch.Length), internalStringMatch);
-                        currentScript += innerString;
-                        index += innerString.Length - 1;
-                    }
-                    else if (internalCharMatch.Success)
-                    {
-                        currentScript += internalCharMatch.Value;
-                        index += internalCharMatch.Length - 1;
-                    }
-                    else
-                    {
-                        s = parentScript.Substring(index, 1);
-
-                        if (s.Equals("{")) bracketCount++;
-
-                        if (s.Equals("}"))
-                        {
-                            bracketCount--;
-                            if (bracketCount == 0)
-                                break;
-                        }
-
-                        currentScript += s;
-                    }
-                }
-
-                if (bracketCount > 0)
-                {
-                    string beVerb = bracketCount == 1 ? "is" : "are";
-                    throw new Exception($"{bracketCount} '"+ "}" + $"' character {beVerb} missing in script at : [{index}]");
-                }
-
-                return currentScript;
             }
 
             void ExecuteIfList()
@@ -1758,7 +1711,12 @@ namespace CodingSeb.ExpressionEvaluator
 
                     ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(vars);
 
-                    return expressionEvaluator.Evaluate(lambdaExpressionMatch.Groups["expression"].Value);
+                    string lambdaBody = lambdaExpressionMatch.Groups["expression"].Value.Trim();
+
+                    if (lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
+                        return expressionEvaluator.ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
+                    else
+                        return expressionEvaluator.Evaluate(lambdaExpressionMatch.Groups["expression"].Value);
                 }));
 
                 return true;
@@ -1902,6 +1860,53 @@ namespace CodingSeb.ExpressionEvaluator
                 objType = obj.GetType();
                 return InstanceBindingFlag;
             }
+        }
+
+        string GetScriptBetweenCurlyBrackets(string parentScript, ref int index)
+        {
+            string s;
+            string currentScript = string.Empty;
+            int bracketCount = 1;
+            for (; index < parentScript.Length; index++)
+            {
+                Match internalStringMatch = stringBeginningRegex.Match(parentScript.Substring(index));
+                Match internalCharMatch = internalCharRegex.Match(parentScript.Substring(index));
+
+                if (internalStringMatch.Success)
+                {
+                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(parentScript.Substring(index + internalStringMatch.Length), internalStringMatch);
+                    currentScript += innerString;
+                    index += innerString.Length - 1;
+                }
+                else if (internalCharMatch.Success)
+                {
+                    currentScript += internalCharMatch.Value;
+                    index += internalCharMatch.Length - 1;
+                }
+                else
+                {
+                    s = parentScript.Substring(index, 1);
+
+                    if (s.Equals("{")) bracketCount++;
+
+                    if (s.Equals("}"))
+                    {
+                        bracketCount--;
+                        if (bracketCount == 0)
+                            break;
+                    }
+
+                    currentScript += s;
+                }
+            }
+
+            if (bracketCount > 0)
+            {
+                string beVerb = bracketCount == 1 ? "is" : "are";
+                throw new Exception($"{bracketCount} '" + "}" + $"' character {beVerb} missing in script at : [{index}]");
+            }
+
+            return currentScript;
         }
 
         private List<string> GetExpressionsBetweenParenthis(string expr, ref int i, bool checkSeparator, string separator = ",")

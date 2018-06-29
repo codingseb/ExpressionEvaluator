@@ -66,6 +66,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(4);
 
                 #endregion
+
+                #region block for lambda body
+
+                yield return new TestCaseData(Resources.Script0006, null, true).SetCategory("Script").SetCategory("lambda").SetCategory("variable assignation").SetCategory("block for lambda body").Returns(3);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0006, ""), null, true).SetCategory("Script").SetCategory("lambda").SetCategory("variable assignation").SetCategory("block for lambda body").Returns(3);
+                
+                #endregion
             }
         }
 

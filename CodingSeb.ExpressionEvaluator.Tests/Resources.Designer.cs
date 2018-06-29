@@ -61,7 +61,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à x = 0;
+        ///   Recherche une chaîne localisée semblable à /* Script0001 */
+        ///x = 0;
         ///result = &quot;&quot;;
         ///
         ///while(x &lt; 5)
@@ -79,7 +80,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à result = &quot;&quot;;
+        ///   Recherche une chaîne localisée semblable à /* Script0002 */
+        ///result = &quot;&quot;;
         ///
         ///for(x = 0; x &lt; 5;x++)
         ///{
@@ -95,7 +97,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à result = &quot;&quot;;
+        ///   Recherche une chaîne localisée semblable à /* Script0003 */
+        ///result = &quot;&quot;;
         ///
         ///for(x = 0; x &lt; 5;x++)
         ///	result += $&quot;{x},&quot;;
@@ -109,7 +112,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à x = [valx];
+        ///   Recherche une chaîne localisée semblable à /* Script0004 */
+        ///x = [valx];
         ///y = [valy];
         ///result = 0;
         ///
@@ -139,7 +143,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à x = [valx];
+        ///   Recherche une chaîne localisée semblable à /* Script0005 */
+        ///x = [valx];
         ///y = [valy];
         ///result = 0;
         ///
@@ -157,6 +162,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         internal static string Script0005 {
             get {
                 return ResourceManager.GetString("Script0005", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0006 */
+        ///List(1,2,3,4)
+        ///    .Find((element) =&gt; 
+        ///    {
+        ///        x = 2 + 2;
+        ///        element == 3;
+        ///    });.
+        /// </summary>
+        internal static string Script0006 {
+            get {
+                return ResourceManager.GetString("Script0006", resourceCulture);
             }
         }
     }

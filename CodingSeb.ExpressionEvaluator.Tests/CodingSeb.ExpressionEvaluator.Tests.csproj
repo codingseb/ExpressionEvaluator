@@ -92,6 +92,9 @@
   <ItemGroup>
     <None Include="Resources\Script0005.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0006.txt" />
+  </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
