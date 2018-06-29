@@ -80,7 +80,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
-            return evaluator.ScriptEvaluate(script);
+            return evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
         }
 
         #endregion
