@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TryWindow"
+        xmlns:ae="http://icsharpcode.net/sharpdevelop/avalonedit"
         Closing="Window_Closing"
         mc:Ignorable="d"
         Title="Expression Evaluate" Width="400" Height="300">
@@ -18,10 +19,14 @@
             <TextBlock x:Name="ResultTextBlock" />
             <TextBlock x:Name="ExecutionTimeTextBlock" />
         </StackPanel>
-        
-        <TextBox x:Name="ScriptTextBox" 
-                 AcceptsReturn="True"
-                 VerticalScrollBarVisibility="Auto"/>
+
+        <Border BorderBrush="Gray" BorderThickness="1">
+            <ae:TextEditor x:Name="ScriptTextBox"
+                           ShowLineNumbers="True"
+                           SyntaxHighlighting="C#"
+                           HorizontalScrollBarVisibility="Auto"
+                           VerticalScrollBarVisibility="Auto"/>
+        </Border>
         
     </DockPanel>
 </Window>
