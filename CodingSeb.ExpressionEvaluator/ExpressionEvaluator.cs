@@ -631,7 +631,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
-            script = RemoveComments(script);
             object lastResult = null;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
@@ -894,8 +893,6 @@ namespace CodingSeb.ExpressionEvaluator
 
                     i++;
                 }
-
-
             }
 
             ExecuteIfList();
