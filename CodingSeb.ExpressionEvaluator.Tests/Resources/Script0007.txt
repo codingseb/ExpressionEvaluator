@@ -1,0 +1,12 @@
+/* Script0007 */
+x = 4;
+y = 0;
+
+if(x == 4)
+	y = List(1,2,3,4)
+		.Find((element) => 
+		{
+			x = 2 + 2;
+			element == 3;
+		}) + 10;
+

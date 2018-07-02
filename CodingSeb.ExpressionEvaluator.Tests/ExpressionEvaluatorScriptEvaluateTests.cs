@@ -17,61 +17,214 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             {
                 #region while
 
-                yield return new TestCaseData(Resources.Script0001 , null, true).SetCategory("Script").SetCategory("while").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0001, "") , null, true).SetCategory("Script").SetCategory("while").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
+                yield return new TestCaseData(Resources.Script0001 , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0001, "") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
 
                 #endregion
 
                 #region for
 
-                yield return new TestCaseData(Resources.Script0002 , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0002, "") , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
-                yield return new TestCaseData(Resources.Script0003 , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0003, "") , null, true).SetCategory("Script").SetCategory("for").SetCategory("variable assignation").SetCategory("++").SetCategory("+=").Returns("0,1,2,3,4");
+                yield return new TestCaseData(Resources.Script0002 , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("for")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0002, "") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("for")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(Resources.Script0003 , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("for")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0003, "") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("for")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
 
                 #endregion
 
                 #region if, else if, else
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), "").Replace("else", "else ") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), "").Replace("else", "else ") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), "").Replace("else", "else ") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(2);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(2);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), "").Replace("else", "else ") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(2);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(3);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(3);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0") , null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(4);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(4);
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0") , null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(4);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(4);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(1);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), "").Replace("else", "else "), null, true).SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(2);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(2);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(2);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(3);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(3);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(4);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true).SetCategory("Script").SetCategory("if").SetCategory("variable assignation").Returns(4);
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(4);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), "").Replace("else", "else "), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(4);
 
                 #endregion
 
                 #region block for lambda body
 
-                yield return new TestCaseData(Resources.Script0006, null, true).SetCategory("Script").SetCategory("lambda").SetCategory("variable assignation").SetCategory("block for lambda body").Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0006, ""), null, true).SetCategory("Script").SetCategory("lambda").SetCategory("variable assignation").SetCategory("block for lambda body").Returns(3);
-                
+                yield return new TestCaseData(Resources.Script0006, null, true)
+                    .SetCategory("Script")
+                    .SetCategory("lambda")
+                    .SetCategory("variable assignation")
+                    .SetCategory("block for lambda body")
+                    .Returns(3);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0006, ""), null, true)
+                    .SetCategory("Script")
+                    .SetCategory("lambda")
+                    .SetCategory("variable assignation")
+                    .SetCategory("block for lambda body")
+                    .Returns(3);
+
+                #endregion
+
+                #region More complex script
+
+                yield return new TestCaseData(Resources.Script0007, null, true)
+                    .SetCategory("Script")
+                    .SetCategory("lambda")
+                    .SetCategory("variable assignation")
+                    .SetCategory("if")
+                    .SetCategory("block for lambda body")
+                    .Returns(13);
+
                 #endregion
             }
         }

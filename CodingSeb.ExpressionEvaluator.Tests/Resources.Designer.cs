@@ -179,5 +179,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0006", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0007 */
+        ///x = 4;
+        ///
+        ///if(x == 4)
+        ///	List(1,2,3,4)
+        ///		.Find((element) =&gt; 
+        ///		{
+        ///			x = 2 + 2;
+        ///			element == 3;
+        ///		});.
+        /// </summary>
+        internal static string Script0007 {
+            get {
+                return ResourceManager.GetString("Script0007", resourceCulture);
+            }
+        }
     }
 }
