@@ -42,10 +42,11 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
         // For script only
-        private static Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
-        private static Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
-        private static Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
-        private static Regex blockBeginningRegex = new Regex(@"^\s*[{]");
+        private static readonly Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
+        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
+        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         #endregion
 
@@ -626,12 +627,21 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
         /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
+        /// support also if, else if, else while and for keywords
         /// </summary>
         /// <param name="script">the script to evaluate</param>
         /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
+            bool isReturn = false;
+
+            return ScriptEvaluate(script, ref isReturn);
+        }
+
+        private object ScriptEvaluate(string script, ref bool valueReturned)
+        {
             object lastResult = null;
+            bool isReturn = valueReturned;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
@@ -644,6 +654,12 @@ namespace CodingSeb.ExpressionEvaluator
                 object result = null;
 
                 expression = expression.Trim();
+
+                expression = returnKeywordRegex.Replace(expression, match =>
+                {
+                    isReturn = true;
+                    return match.Value.Contains("(") ? "(" : string.Empty;
+                });
 
                 Match variableAssignationMatch = variableAssignationRegex.Match(expression);
 
@@ -714,7 +730,7 @@ namespace CodingSeb.ExpressionEvaluator
                     string ifScript = ifElseStatementsList.Find(statement => (bool)AssignationOrExpressionEval(statement[0]))?[1];
 
                     if (!string.IsNullOrEmpty(ifScript))
-                        lastResult = ScriptEvaluate(ifScript);
+                        lastResult = ScriptEvaluate(ifScript, ref isReturn);
 
                     ifElseStatementsList.Clear();
                 }
@@ -722,7 +738,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             int i = 0;
 
-            while(i < script.Length)
+            while(!isReturn && i < script.Length)
             {
                 Match blockKeywordsBeginingMatch;
                 Match elseBlockKeywordsBeginingMatch = null;
@@ -813,16 +829,16 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("while"))
                         {
-                            while ((bool)AssignationOrExpressionEval(keywordAttributes[0]))
-                                lastResult = ScriptEvaluate(subScript);
+                            while (!isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                                lastResult = ScriptEvaluate(subScript, ref isReturn);
                         }
                         else if (keyword.Equals("for"))
                         {
                             void forAction(int index)
                             { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
 
-                            for (forAction(0); (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
-                                lastResult = ScriptEvaluate(subScript);
+                            for (forAction(0); !isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
+                                lastResult = ScriptEvaluate(subScript, ref isReturn);
                         }
                     }
 
@@ -848,10 +864,12 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn)
+                throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
+
             ExecuteIfList();
 
-            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty))
-                lastResult = ScriptExpressionEvaluate(ref i);
+            valueReturned = isReturn;
 
             return lastResult;
         }
@@ -1700,7 +1718,7 @@ namespace CodingSeb.ExpressionEvaluator
                     .Cast<Match>().ToList()
                     .ConvertAll(argMatch => argMatch.Value);
 
-                stack.Push(new lambdaExpressionDelegate(delegate (object[] args)
+                stack.Push(new lambdaExpressionDelegate((object[] args) =>
                 {
                     Dictionary<string, object> vars = new Dictionary<string, object>(Variables);
 
