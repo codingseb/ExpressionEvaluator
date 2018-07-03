@@ -974,6 +974,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData("customObject.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
                 yield return new TestCaseData("customObject?.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
+                yield return new TestCaseData("customObject.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
+                yield return new TestCaseData("customObject?.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
                 yield return new TestCaseData("customObject.Add3To(9)", onInstanceVariables, true).SetCategory("Instance Method").Returns(12);
                 yield return new TestCaseData("customObject?.Add3To(5)", onInstanceVariables, true).SetCategory("Instance Method").Returns(8);
 
@@ -990,6 +992,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("List(simpleArray[1], simpleList?[0], nullVar?[4] ?? \"Bye\", \"How are you ?\").Find(t => t.Length < 4)", onInstanceVariables, true).SetCategory("Complex expression,Lambda function,Instance method,Instance Property,Null Conditional indexing, Null Coalescing Operator").Returns("Bye");
                 yield return new TestCaseData("int.Parse(Regex.Match(\"Test 34 Hello / -World\", @\"\\d+\").Value) + simpleArray.ToList().Find(val => val is int)", onInstanceVariables, true).SetCategory("Complex expression,Static Method,Lambda function").Returns(36);
                 yield return new TestCaseData("otherArray[3].IntProperty", onInstanceVariables, true).SetCategory("Indexing,Instance Property").Returns(18);
+                yield return new TestCaseData("otherArray[3].intField", onInstanceVariables, true).SetCategory("Indexing,Instance Field").Returns(12);
                 yield return new TestCaseData("(() => simpleInt + 1)()", onInstanceVariables, true).SetCategory("Complex expression").Returns(43);
 
                 yield return new TestCaseData("simpleInt++", onInstanceVariables, true).SetCategory("Postfix operator, ++").Returns(42);

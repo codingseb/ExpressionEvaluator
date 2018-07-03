@@ -465,8 +465,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [Test]
         public static void StaticPropertySet()
         {
-
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
             ClassForTest1.StaticIntProperty.ShouldEqual(67);
 

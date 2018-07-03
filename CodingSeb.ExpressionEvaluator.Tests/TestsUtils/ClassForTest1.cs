@@ -2,6 +2,8 @@
 {
     public class ClassForTest1
     {
+        public int intField = 12;
+
         public int IntProperty { get; set; } = 25;
 
         public static int StaticIntProperty { get; set; } = 67;

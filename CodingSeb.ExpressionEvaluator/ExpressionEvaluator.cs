@@ -15,7 +15,7 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
+        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
         private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
@@ -48,7 +48,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-        private static readonly string tryToMatchSetPropertyRegexPattern = @"^(?<toEvaluate>([a-zA-Z_][a-zA-Z0-9_]*\s*(?<isgeneric>[(](?>[^()""]+|(?<parenthis>[(])|(?<-parenthis>[)]))*(?(parenthis) (?!))[)])*\.)+)(?<propertyToSet>[a-zA-Z_] [a-zA-Z0-9_]*)";
+        //private static readonly string tryToMatchSetPropertyRegexPattern = @"^(?<toEvaluate>([a-zA-Z_][a-zA-Z0-9_]*\s*(?<isgeneric>[(](?>[^()""]+|(?<parenthis>[(])|(?<-parenthis>[)]))*(?(parenthis) (?!))[)])*\.)+)(?<propertyToSet>[a-zA-Z_] [a-zA-Z0-9_]*)";
 
         #endregion
 
@@ -1179,6 +1179,11 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
+                    //if (varFuncMatch.Groups["assignationOperator"].Success)
+                    //{
+                    //    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer");
+                    //}
+
                     List<string> funcArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
@@ -1337,25 +1342,48 @@ namespace CodingSeb.ExpressionEvaluator
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
                                         if (!OptionStaticProperiesGetActive && flag.HasFlag(BindingFlags.Static))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
                                         if (!OptionInstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".");
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
 
-                                        PropertyInfo property = objType?.GetProperty(varFuncName, flag);
+                                        dynamic member = objType?.GetProperty(varFuncName, flag);
+                                        dynamic varValue = null;
+                                        bool assign = true;
+                                        
 
-                                        dynamic varValue = property?.GetValue(obj);
-                                        if (varValue == null)
-                                        {
-                                            FieldInfo field = objType.GetField(varFuncName, flag);
-                                            varValue = field.GetValue(obj);
-                                            if(varFuncMatch.Groups["postfixOperator"].Success)
-                                                field.SetValue(obj, varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1);
-                                        }
-                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
-                                            property.SetValue(obj, varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1);
-
+                                        if(member == null)
+                                            member = objType.GetField(varFuncName, flag);
+                                            
+                                        varValue = member.GetValue(obj);
 
                                         stack.Push(varValue);
+
+                                        if (inScript && varFuncMatch.Groups["assignationOperator"].Success)
+                                        {
+                                            if (stack.Count > 1)
+                                                throw new ExpressionEvaluatorSyntaxErrorException();
+
+                                            if(!varFuncMatch.Groups["assignmentPrefix"].Success)
+                                            {
+                                                string rightExpression = expr.Substring(i);
+                                                i = expr.Length;
+
+                                                if (rightExpression.Trim().Equals(string.Empty))
+                                                    throw new ExpressionEvaluatorSyntaxErrorException();
+
+                                                varValue = Evaluate(rightExpression);
+                                            }
+
+                                            stack.Clear();
+                                            stack.Push(varValue);
+                                        }
+                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                            varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
+                                        else
+                                            assign = false;
+
+                                        if(assign)
+                                            member.SetValue(obj, varValue);
                                     }
                                 }
                             }
