@@ -16,6 +16,7 @@ namespace TryWindow
     public partial class MainWindow : Window
     {
         private string persistFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "code.cs");
+
         private CancellationTokenSource cancellationTokenSource = null;
 
         public MainWindow()
@@ -42,7 +43,7 @@ namespace TryWindow
 
             try
             {
-                string script = ScriptTextBox.Text;
+                string script = evaluator.RemoveComments(ScriptTextBox.Text);
                 Exception exception = null;
                 cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
@@ -93,19 +94,29 @@ namespace TryWindow
             }
         }
 
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (cancellationTokenSource != null)
+                cancellationTokenSource.Cancel();
+        }
+
+        private void ScriptTextBox_TextChanged(object sender, EventArgs e)
+        {
+            Save();
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Save();
+        }
+
+        private void Save()
         {
             try
             {
                 File.WriteAllText(persistFileName, ScriptTextBox.Text);
             }
             catch { }
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (cancellationTokenSource != null)
-                cancellationTokenSource.Cancel();
         }
     }
 }

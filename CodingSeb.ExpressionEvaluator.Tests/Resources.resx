@@ -139,4 +139,13 @@
   <data name="Script0007" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\script0007.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="Script0008" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0008.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0009" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0009.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0010" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0010.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
 </root>

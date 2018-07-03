@@ -16,12 +16,17 @@
                     IsCancel="True" 
                     IsEnabled="False"
                     Click="CancelButton_Click" />
-            <TextBlock x:Name="ResultTextBlock" />
-            <TextBlock x:Name="ExecutionTimeTextBlock" />
+            <TextBox x:Name="ResultTextBlock" 
+                     IsReadOnly="True"
+                     BorderThickness="0"/>
+            <TextBox x:Name="ExecutionTimeTextBlock"
+                     BorderThickness="0"
+                     IsReadOnly="True" />
         </StackPanel>
 
         <Border BorderBrush="Gray" BorderThickness="1">
             <ae:TextEditor x:Name="ScriptTextBox"
+                           TextChanged="ScriptTextBox_TextChanged"
                            ShowLineNumbers="True"
                            SyntaxHighlighting="C#"
                            HorizontalScrollBarVisibility="Auto"

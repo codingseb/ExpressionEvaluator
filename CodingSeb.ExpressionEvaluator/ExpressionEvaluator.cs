@@ -407,7 +407,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Evaluation case sensitivity and options
+        #region Options
 
         private bool optionCaseSensitiveEvaluationActive = true;
 
@@ -542,6 +542,14 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionScriptEvaluateFunctionActive { get; set; } = false;
 
+        /// <summary>
+        /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.
+        /// If <c>ReturnNull</c> return null if no return keyword is met.
+        /// If <c>ThrowSyntaxException</c> a exception is throw if no return keyword is met.
+        /// By default : ReturnAutomaticallyLastEvaluatedExpression;
+        /// </summary>
+        public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; } = OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression;
+
         #endregion
 
         #region Reflection flags
@@ -629,19 +637,43 @@ namespace CodingSeb.ExpressionEvaluator
         /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
         /// support also if, else if, else while and for keywords
         /// </summary>
+        /// <typeparam name="T">The type in which to cast the result of the expression</typeparam>
+        /// <param name="script">the script to evaluate</param>
+        /// <returns>The result of the last evaluated expression</returns>
+        public T ScriptEvaluate<T>(string script)
+        {
+            return (T)ScriptEvaluate(script);
+        }
+
+        /// <summary>
+        /// Evaluate a script (multiple expressions separated by semicolon)
+        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
+        /// support also if, else if, else while and for keywords
+        /// </summary>
         /// <param name="script">the script to evaluate</param>
         /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
             bool isReturn = false;
+            bool isBreak = false;
+            bool isContinue = false;
 
-            return ScriptEvaluate(script, ref isReturn);
+            object result = ScriptEvaluate(script, ref isReturn, ref isBreak, ref isContinue);
+
+            if (isBreak)
+                throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
+            else if (isContinue)
+                throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
+            else
+                return result;
         }
 
-        private object ScriptEvaluate(string script, ref bool valueReturned)
+        private object ScriptEvaluate(string script, ref bool valueReturned, ref bool breakCalled, ref bool continueCalled)
         {
             object lastResult = null;
             bool isReturn = valueReturned;
+            bool isBreak = breakCalled;
+            bool isContinue = continueCalled;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
@@ -655,8 +687,25 @@ namespace CodingSeb.ExpressionEvaluator
 
                 expression = expression.Trim();
 
+                string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
+
+                if(expressionToTest.Equals("break"))
+                {
+                    isBreak = true;
+                    return lastResult;
+                }
+
+                if(expressionToTest.Equals("continue"))
+                {
+                    isContinue = true;
+                    return lastResult;
+                }
+
                 expression = returnKeywordRegex.Replace(expression, match =>
                 {
+                    if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
+                        return match.Value;
+
                     isReturn = true;
                     return match.Value.Contains("(") ? "(" : string.Empty;
                 });
@@ -730,7 +779,7 @@ namespace CodingSeb.ExpressionEvaluator
                     string ifScript = ifElseStatementsList.Find(statement => (bool)AssignationOrExpressionEval(statement[0]))?[1];
 
                     if (!string.IsNullOrEmpty(ifScript))
-                        lastResult = ScriptEvaluate(ifScript, ref isReturn);
+                        lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
 
                     ifElseStatementsList.Clear();
                 }
@@ -738,7 +787,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             int i = 0;
 
-            while(!isReturn && i < script.Length)
+            while(!isReturn && !isBreak && !isContinue && i < script.Length)
             {
                 Match blockKeywordsBeginingMatch;
                 Match elseBlockKeywordsBeginingMatch = null;
@@ -830,7 +879,20 @@ namespace CodingSeb.ExpressionEvaluator
                         else if (keyword.Equals("while"))
                         {
                             while (!isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[0]))
-                                lastResult = ScriptEvaluate(subScript, ref isReturn);
+                            {
+                                lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
+
+                                if(isBreak)
+                                {
+                                    isBreak = false;
+                                    break;
+                                }
+                                if(isContinue)
+                                {
+                                    isContinue = false;
+                                    continue;
+                                }
+                            }
                         }
                         else if (keyword.Equals("for"))
                         {
@@ -838,7 +900,20 @@ namespace CodingSeb.ExpressionEvaluator
                             { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
 
                             for (forAction(0); !isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
-                                lastResult = ScriptEvaluate(subScript, ref isReturn);
+                            {
+                                lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
+
+                                if (isBreak)
+                                {
+                                    isBreak = false;
+                                    break;
+                                }
+                                if (isContinue)
+                                {
+                                    isContinue = false;
+                                    continue;
+                                }
+                            }
                         }
                     }
 
@@ -864,14 +939,21 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn)
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue)
                 throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
 
             ExecuteIfList();
 
             valueReturned = isReturn;
+            breakCalled = isBreak;
+            continueCalled = isContinue;
 
-            return lastResult;
+            if (isReturn || OptionOnNoReturnKeywordFoundInScriptAction == OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression)
+                return lastResult;
+            else if (OptionOnNoReturnKeywordFoundInScriptAction == OptionOnNoReturnKeywordFoundInScriptAction.ReturnNull)
+                return null;
+            else
+                throw new ExpressionEvaluatorSyntaxErrorException("No [return] keyword found");
         }
 
         /// <summary>
@@ -2250,6 +2332,17 @@ namespace CodingSeb.ExpressionEvaluator
 
     #endregion
 
+    #region linked enums
+
+    public enum OptionOnNoReturnKeywordFoundInScriptAction
+    {
+        ReturnAutomaticallyLastEvaluatedExpression,
+        ReturnNull,
+        ThrowSyntaxException
+    }
+
+    #endregion
+
     #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
 
     public class ExpressionEvaluatorSyntaxErrorException : Exception
@@ -2277,7 +2370,7 @@ namespace CodingSeb.ExpressionEvaluator
     public class VariableEvaluationEventArg : EventArgs
     {
         /// <summary>
-        /// 
+        /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
         public VariableEvaluationEventArg(string name, object onInstance = null)

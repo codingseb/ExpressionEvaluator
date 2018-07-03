@@ -183,18 +183,85 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         /// <summary>
         ///   Recherche une chaîne localisée semblable à /* Script0007 */
         ///x = 4;
+        ///y = 0;
         ///
         ///if(x == 4)
-        ///	List(1,2,3,4)
+        ///	y = List(1,2,3,4)
         ///		.Find((element) =&gt; 
         ///		{
         ///			x = 2 + 2;
         ///			element == 3;
-        ///		});.
+        ///		}) + 10;
+        ///
+        ///.
         /// </summary>
         internal static string Script0007 {
             get {
                 return ResourceManager.GetString("Script0007", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0008 */
+        ///x = [valx];
+        ///
+        ///if(x == 0)
+        ///	return 2;
+        ///	
+        ///x;.
+        /// </summary>
+        internal static string Script0008 {
+            get {
+                return ResourceManager.GetString("Script0008", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0009 */
+        ///x = &quot;&quot;;
+        ///
+        ///for(i = 0; i &lt; 10; i++)
+        ///{
+        ///	if(i == 3)
+        ///		continue;
+        ///		
+        ///	x += $&quot;{i},&quot;;
+        ///	
+        ///	if(i == 6)
+        ///		break;
+        ///}
+        ///	
+        ///x;.
+        /// </summary>
+        internal static string Script0009 {
+            get {
+                return ResourceManager.GetString("Script0009", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0009 */
+        ///x = &quot;&quot;;
+        ///i = 0;
+        ///
+        ///while(i &lt; 10)
+        ///{
+        ///	if(i == 3)
+        ///		continue;
+        ///		
+        ///	x += $&quot;{i},&quot;;
+        ///	
+        ///	if(i == 6)
+        ///		break;
+        ///	
+        ///	i++
+        ///}
+        ///	
+        ///x;.
+        /// </summary>
+        internal static string Script0010 {
+            get {
+                return ResourceManager.GetString("Script0010", resourceCulture);
             }
         }
     }
