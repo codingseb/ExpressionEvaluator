@@ -48,6 +48,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
+        private static readonly string tryToMatchSetPropertyRegexPattern = @"^(?<toEvaluate>([a-zA-Z_][a-zA-Z0-9_]*\s*(?<isgeneric>[(](?>[^()""]+|(?<parenthis>[(])|(?<-parenthis>[)]))*(?(parenthis) (?!))[)])*\.)+)(?<propertyToSet>[a-zA-Z_] [a-zA-Z0-9_]*)";
+
         #endregion
 
         #region enums (Operators, if else blocks states)
@@ -632,6 +634,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Main evaluate methods (Expressions and scripts ==> public)
 
+        private bool inScript = false;
+
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
         /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
@@ -654,18 +658,26 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The result of the last evaluated expression</returns>
         public object ScriptEvaluate(string script)
         {
-            bool isReturn = false;
-            bool isBreak = false;
-            bool isContinue = false;
+            inScript = true;
+            try
+            {
+                bool isReturn = false;
+                bool isBreak = false;
+                bool isContinue = false;
 
-            object result = ScriptEvaluate(script, ref isReturn, ref isBreak, ref isContinue);
+                object result = ScriptEvaluate(script, ref isReturn, ref isBreak, ref isContinue);
 
-            if (isBreak)
-                throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
-            else if (isContinue)
-                throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
-            else
-                return result;
+                if (isBreak)
+                    throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
+                else if (isContinue)
+                    throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
+                else
+                    return result;
+            }
+            finally
+            {
+                inScript = false;
+            }
         }
 
         private object ScriptEvaluate(string script, ref bool valueReturned, ref bool breakCalled, ref bool continueCalled)
@@ -947,6 +959,8 @@ namespace CodingSeb.ExpressionEvaluator
             valueReturned = isReturn;
             breakCalled = isBreak;
             continueCalled = isContinue;
+
+            inScript = false;
 
             if (isReturn || OptionOnNoReturnKeywordFoundInScriptAction == OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression)
                 return lastResult;
@@ -1813,7 +1827,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     string lambdaBody = lambdaExpressionMatch.Groups["expression"].Value.Trim();
 
-                    if (lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
+                    if (inScript && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
                         return expressionEvaluator.ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
                     else
                         return expressionEvaluator.Evaluate(lambdaExpressionMatch.Groups["expression"].Value);

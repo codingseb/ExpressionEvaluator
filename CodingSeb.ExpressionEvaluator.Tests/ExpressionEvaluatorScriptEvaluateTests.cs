@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Should;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -435,6 +436,45 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         public void ExceptionThrowingScriptEvaluation(ExpressionEvaluator evaluator, string script, Type exceptionType)
         {
             Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(script));
+        }
+
+        #endregion
+
+        #region properties set assignation
+
+        [Test]
+        public static void InstancePropertySet()
+        {
+            ClassForTest1 obj = new ClassForTest1();
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(25);
+
+            evaluator.ScriptEvaluate("obj.IntProperty = 3;");
+
+            obj.IntProperty.ShouldEqual(3);
+        }
+
+        [Test]
+        public static void StaticPropertySet()
+        {
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty = 18;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(18);
+
+            ClassForTest1.StaticIntProperty = 67;
         }
 
         #endregion
