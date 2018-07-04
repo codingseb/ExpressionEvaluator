@@ -539,6 +539,13 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionEvaluateFunctionActive { get; set; } = false;
 
         /// <summary>
+        /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>false</c> unactive this functionality
+        /// By default : true
+        /// </summary>
+        public bool OptionPropertyOrFieldSetActive { get; set; } = true;
+
+        /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
         /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
@@ -1179,11 +1186,6 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    //if (varFuncMatch.Groups["assignationOperator"].Success)
-                    //{
-                    //    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer");
-                    //}
-
                     List<string> funcArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
@@ -1358,38 +1360,45 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         stack.Push(varValue);
 
-                                        if (inScript && varFuncMatch.Groups["assignationOperator"].Success)
+                                        if (OptionPropertyOrFieldSetActive)
                                         {
-                                            if (stack.Count > 1)
-                                                throw new ExpressionEvaluatorSyntaxErrorException();
-
-                                            string rightExpression = expr.Substring(i);
-                                            i = expr.Length;
-
-                                            if (rightExpression.Trim().Equals(string.Empty))
-                                                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                            if (varFuncMatch.Groups["assignmentPrefix"].Success)
+                                            if (varFuncMatch.Groups["assignationOperator"].Success)
                                             {
-                                                ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
+                                                if (stack.Count > 1)
+                                                    throw new ExpressionEvaluatorSyntaxErrorException();
 
-                                                varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                                string rightExpression = expr.Substring(i);
+                                                i = expr.Length;
+
+                                                if (rightExpression.Trim().Equals(string.Empty))
+                                                    throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                                                if (varFuncMatch.Groups["assignmentPrefix"].Success)
+                                                {
+                                                    ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
+
+                                                    varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                                }
+                                                else
+                                                {
+                                                    varValue = Evaluate(rightExpression);
+                                                }
+
+                                                stack.Clear();
+                                                stack.Push(varValue);
                                             }
+                                            else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                                varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
                                             else
-                                            {
-                                                varValue = Evaluate(rightExpression);
-                                            }
+                                                assign = false;
 
-                                            stack.Clear();
-                                            stack.Push(varValue);
+                                            if (assign)
+                                                member.SetValue(obj, varValue);
                                         }
-                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
-                                            varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
-                                        else
-                                            assign = false;
-
-                                        if(assign)
-                                            member.SetValue(obj, varValue);
+                                        else if(varFuncMatch.Groups["assignationOperator"].Success)
+                                            i -= varFuncMatch.Groups["assignationOperator"].Length;
+                                        else if(varFuncMatch.Groups["postfixOperator"].Success)
+                                            i -= varFuncMatch.Groups["postfixOperator"].Length;
                                     }
                                 }
                             }
