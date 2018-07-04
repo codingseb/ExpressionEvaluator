@@ -11,6 +11,22 @@ namespace CodingSeb.ExpressionEvaluator.Tests
     {
         private static Regex removeAllWhiteSpacesRegex = new Regex(@"\s+");
 
+        #region Setup TearDown
+
+        [SetUp]
+        public static void BeforeTests()
+        {
+            ClassForTest1.StaticIntProperty = 67;
+        }
+
+        [TearDown]
+        public static void AfterTests()
+        {
+            ClassForTest1.StaticIntProperty = 67;
+        }
+
+        #endregion
+
         #region Scripts that must succeed
 
         public static IEnumerable<TestCaseData> TestCasesForScriptEvaluateTests
@@ -440,10 +456,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
-        #region properties set assignation
+        #region Properties set assignation
 
         [Test]
-        public static void InstancePropertySet()
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("=")]
+        public static void InstancePropertySetEqual()
         {
             ClassForTest1 obj = new ClassForTest1();
 
@@ -463,7 +482,264 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         [Test]
-        public static void StaticPropertySet()
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("+=")]
+        public static void InstancePropertySetPlusEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1();
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(25);
+
+            evaluator.ScriptEvaluate("obj.IntProperty += 2;");
+
+            obj.IntProperty.ShouldEqual(27);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("-=")]
+        public static void InstancePropertySetMinusEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1();
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(25);
+
+            evaluator.ScriptEvaluate("obj.IntProperty -= 2;");
+
+            obj.IntProperty.ShouldEqual(23);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("*=")]
+        public static void InstancePropertySetMultiplyEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1();
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(25);
+
+            evaluator.ScriptEvaluate("obj.IntProperty *= 2;");
+
+            obj.IntProperty.ShouldEqual(50);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("/=")]
+        public static void InstancePropertySetDividEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 50
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(50);
+
+            evaluator.ScriptEvaluate("obj.IntProperty /= 5;");
+
+            obj.IntProperty.ShouldEqual(10);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("%=")]
+        public static void InstancePropertySetModuloEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1();
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(25);
+
+            evaluator.ScriptEvaluate("obj.IntProperty %= 5;");
+
+            obj.IntProperty.ShouldEqual(0);
+
+            obj.IntProperty = 10;
+
+            evaluator.ScriptEvaluate("obj.IntProperty %= 3;");
+
+            obj.IntProperty.ShouldEqual(1);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("&=")]
+        public static void InstancePropertySetAndEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 15
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(15);
+
+            evaluator.ScriptEvaluate("obj.IntProperty &= 19;");
+
+            obj.IntProperty.ShouldEqual(3);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("|=")]
+        public static void InstancePropertySetOrEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 5
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(5);
+
+            evaluator.ScriptEvaluate("obj.IntProperty |= 9;");
+
+            obj.IntProperty.ShouldEqual(13);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("^=")]
+        public static void InstancePropertySetXorEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 5
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(5);
+
+            evaluator.ScriptEvaluate("obj.IntProperty ^= 9;");
+
+            obj.IntProperty.ShouldEqual(12);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category("<<=")]
+        public static void InstancePropertySetLeftShiftEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 5
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(5);
+
+            evaluator.ScriptEvaluate("obj.IntProperty <<= 2;");
+
+            obj.IntProperty.ShouldEqual(20);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Instance Property set assignation")]
+        [Category(">>=")]
+        public static void InstancePropertySetRightShiftEqual()
+        {
+            ClassForTest1 obj = new ClassForTest1()
+            {
+                IntProperty = 20
+            };
+
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                Variables = new Dictionary<string, object>()
+                {
+                    {"obj", obj }
+                }
+            };
+
+            obj.IntProperty.ShouldEqual(20);
+
+            evaluator.ScriptEvaluate("obj.IntProperty >>= 2;");
+
+            obj.IntProperty.ShouldEqual(5);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("=")]
+        public static void StaticPropertySetEqual()
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
@@ -474,8 +750,158 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty = 18;");
 
             ClassForTest1.StaticIntProperty.ShouldEqual(18);
+        }
 
-            ClassForTest1.StaticIntProperty = 67;
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("+=")]
+        public static void StaticPropertySetPlusEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty += 3;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(70);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("-=")]
+        public static void StaticPropertySetMinusEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty -= 7;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(60);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("*=")]
+        public static void StaticPropertySetMultiplyEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty *= 2;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(134);
+        }
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("/=")]
+        public static void StaticPropertySetDivideEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty /= 2;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(33);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("%=")]
+        public static void StaticPropertySetModuloEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty %= 2;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(1);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("&=")]
+        public static void StaticPropertySetAndEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty &= 70;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(66);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("|=")]
+        public static void StaticPropertySetOrEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty |= 70;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(71);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category("<<=")]
+        public static void StaticPropertySetLeftShiftEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty <<= 2;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(268);
+        }
+
+        [Test]
+        [Category("Script")]
+        [Category("Static Property set assignation")]
+        [Category(">>=")]
+        public static void StaticPropertySetRightShiftEqual()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(67);
+
+            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty >>= 2;");
+
+            ClassForTest1.StaticIntProperty.ShouldEqual(16);
         }
 
         #endregion

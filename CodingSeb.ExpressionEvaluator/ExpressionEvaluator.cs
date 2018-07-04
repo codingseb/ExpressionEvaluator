@@ -1363,14 +1363,20 @@ namespace CodingSeb.ExpressionEvaluator
                                             if (stack.Count > 1)
                                                 throw new ExpressionEvaluatorSyntaxErrorException();
 
-                                            if(!varFuncMatch.Groups["assignmentPrefix"].Success)
+                                            string rightExpression = expr.Substring(i);
+                                            i = expr.Length;
+
+                                            if (rightExpression.Trim().Equals(string.Empty))
+                                                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                                            if (varFuncMatch.Groups["assignmentPrefix"].Success)
                                             {
-                                                string rightExpression = expr.Substring(i);
-                                                i = expr.Length;
+                                                ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
 
-                                                if (rightExpression.Trim().Equals(string.Empty))
-                                                    throw new ExpressionEvaluatorSyntaxErrorException();
-
+                                                varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                            }
+                                            else
+                                            {
                                                 varValue = Evaluate(rightExpression);
                                             }
 
