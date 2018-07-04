@@ -392,12 +392,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// A list of type to block an keep un usable in Expression Evaluation for security purpose
-        /// By default just contains ExpressionEvaluation
         /// </summary>
-        public List<Type> TypesToBlock { get; set; } = new List<Type>()
-        {
-            typeof(ExpressionEvaluator)
-        };
+        public List<Type> TypesToBlock { get; set; } = new List<Type>();
 
         /// <summary>
         /// A list of statics types where to find extensions methods
@@ -534,9 +530,17 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
+        /// By default : true 
+        /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
-        public bool OptionEvaluateFunctionActive { get; set; } = false;
+        public bool OptionEvaluateFunctionActive { get; set; } = true;
+
+        /// <summary>
+        /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>false</c> unactive this functionality
+        /// By default : true
+        /// </summary>
+        public bool OptionVariableAssignationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
@@ -547,9 +551,10 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
+        /// By default : true 
+        /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
-        public bool OptionScriptEvaluateFunctionActive { get; set; } = false;
+        public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
 
         /// <summary>
         /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.
@@ -697,11 +702,9 @@ namespace CodingSeb.ExpressionEvaluator
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
 
-            object AssignationOrExpressionEval(string expression)
+            object ManageJumpStatementsOrExpressionEval(string expression)
             {
                 string baseExpression = expression;
-                bool isAssignation = false;
-                string variableToAssign = string.Empty;
                 object result = null;
 
                 expression = expression.Trim();
@@ -729,34 +732,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return match.Value.Contains("(") ? "(" : string.Empty;
                 });
 
-                Match variableAssignationMatch = variableAssignationRegex.Match(expression);
-
-                if (variableAssignationMatch.Success)
-                {
-                    variableToAssign = variableAssignationMatch.Groups["name"].Value;
-                    expression = expression.Remove(0, variableAssignationMatch.Length).TrimStart();
-                    isAssignation = true;
-                }
-
                 result = Evaluate(expression);
-
-                if (isAssignation)
-                {
-                    if(variableAssignationMatch.Groups["assignmentPrefix"].Success)
-                    {
-                        ExpressionOperator op = operatorsDictionary[variableAssignationMatch.Groups["assignmentPrefix"].Value];
-                        try
-                        {
-                            result = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](Variables[variableToAssign], result);
-                        }
-                        catch(Exception exception)
-                        {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{variableToAssign}] unknown in expression : [{baseExpression}]", exception);
-                        }
-                    }
-
-                    Variables[variableToAssign] = result;
-                }
 
                 return result;
             }
@@ -767,7 +743,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 startOfExpression = index + 1;
 
-                return AssignationOrExpressionEval(expression);
+                return ManageJumpStatementsOrExpressionEval(expression);
             }
 
             bool TryParseStringAndParenthis(ref int index)
@@ -795,7 +771,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (ifElseStatementsList.Count > 0)
                 {
-                    string ifScript = ifElseStatementsList.Find(statement => (bool)AssignationOrExpressionEval(statement[0]))?[1];
+                    string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0]))?[1];
 
                     if (!string.IsNullOrEmpty(ifScript))
                         lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
@@ -897,7 +873,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("while"))
                         {
-                            while (!isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[0]))
+                            while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -916,9 +892,9 @@ namespace CodingSeb.ExpressionEvaluator
                         else if (keyword.Equals("for"))
                         {
                             void forAction(int index)
-                            { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) AssignationOrExpressionEval(keywordAttributes[index]); }
+                            { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) ManageJumpStatementsOrExpressionEval(keywordAttributes[index]); }
 
-                            for (forAction(0); !isReturn && (bool)AssignationOrExpressionEval(keywordAttributes[1]); forAction(2))
+                            for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1]); forAction(2))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -1299,12 +1275,57 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if (Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
+                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
+                            || (!varFuncMatch.Groups["inObject"].Success && varFuncMatch.Groups["assignationOperator"].Success))
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
                         stack.Push(cusVarValueToPush);
-                        if (varFuncMatch.Groups["postfixOperator"].Success)
-                            Variables[varFuncName] = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+
+                        if (OptionVariableAssignationActive)
+                        {
+                            bool assign = true;
+
+                            if (varFuncMatch.Groups["assignationOperator"].Success)
+                            {
+                                if (stack.Count > 1)
+                                    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+
+                                string rightExpression = expr.Substring(i);
+                                i = expr.Length;
+
+                                if (rightExpression.Trim().Equals(string.Empty))
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                                if (varFuncMatch.Groups["assignmentPrefix"].Success)
+                                {
+                                    if (!Variables.ContainsKey(varFuncName))
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"The variable[{varFuncName}] do not exists.");
+
+                                    ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
+
+                                    cusVarValueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
+                                }
+                                else
+                                {
+                                    cusVarValueToPush = Evaluate(rightExpression);
+                                }
+
+                                stack.Clear();
+                                stack.Push(cusVarValueToPush);
+                            }
+                            else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                            else
+                                assign = false;
+
+                            if (assign)
+                                Variables[varFuncName] = cusVarValueToPush;
+                        }
+                        else if (varFuncMatch.Groups["assignationOperator"].Success)
+                            i -= varFuncMatch.Groups["assignationOperator"].Length;
+                        else if (varFuncMatch.Groups["postfixOperator"].Success)
+                            i -= varFuncMatch.Groups["postfixOperator"].Length;
+
                     }
                     else
                     {
@@ -1365,7 +1386,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             if (varFuncMatch.Groups["assignationOperator"].Success)
                                             {
                                                 if (stack.Count > 1)
-                                                    throw new ExpressionEvaluatorSyntaxErrorException();
+                                                    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
 
                                                 string rightExpression = expr.Substring(i);
                                                 i = expr.Length;
