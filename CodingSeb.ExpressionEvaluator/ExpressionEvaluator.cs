@@ -15,40 +15,37 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
-        private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
-        private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
-        private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
+        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
+        private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']", RegexOptions.Compiled);
         private static Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
-        private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-        private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
-        private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
-        private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
-        private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
-        private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
+        private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
+        private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]", RegexOptions.Compiled);
+        private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
+        private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]", RegexOptions.Compiled);
+        private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
+        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*", RegexOptions.Compiled);
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
-        private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
+        private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, RegexOptions.Compiled);
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
-        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
+        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern, RegexOptions.Compiled);
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         private static readonly string blockComments = @"/\*(.*?)\*/";
         private static readonly string lineComments = @"//[^\r\n]*";
         private static readonly string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
         private static readonly string verbatimStringsIgnore = @"@(""[^""]*"")+";
-        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline);
-        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
+        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
 
         // For script only
-        private static readonly Regex variableAssignationRegex = new Regex(@"^(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
-        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
-        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
-        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-
-        //private static readonly string tryToMatchSetPropertyRegexPattern = @"^(?<toEvaluate>([a-zA-Z_][a-zA-Z0-9_]*\s*(?<isgeneric>[(](?>[^()""]+|(?<parenthis>[(])|(?<-parenthis>[)]))*(?(parenthis) (?!))[)])*\.)+)(?<propertyToSet>[a-zA-Z_] [a-zA-Z0-9_]*)";
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase| RegexOptions.Compiled);
+        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]", RegexOptions.Compiled);
+        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
 
         #endregion
 
@@ -427,8 +424,8 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
-                primaryTypesRegex = new Regex(primaryTypesRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
+                primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
             }
         }
 
