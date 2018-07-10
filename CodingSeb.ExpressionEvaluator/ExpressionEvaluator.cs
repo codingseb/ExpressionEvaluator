@@ -1636,11 +1636,9 @@ namespace CodingSeb.ExpressionEvaluator
                     string beVerb = bracketCount == 1 ? "is" : "are";
                     throw new Exception($"{bracketCount} ']' character {beVerb} missing in expression : [{expr}]");
                 }
-                stack.Push(indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing);
-                stack.Push(Evaluate(innerExp));
 
-                dynamic right = stack.Pop();
-                ExpressionOperator op = (ExpressionOperator)stack.Pop();
+                dynamic right = Evaluate(innerExp);
+                ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
                 stack.Push(operatorsEvaluations[0][op](left, right));
