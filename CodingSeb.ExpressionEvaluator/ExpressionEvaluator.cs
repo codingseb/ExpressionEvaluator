@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CodingSeb.ExpressionEvaluator
@@ -92,7 +93,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Dictionaries declarations (Primary types, number suffix, escaped chars, operators management, default vars and functions)
 
-        private Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
+        private static readonly Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
         {
             { "object", typeof(object) },
             { "string", typeof(string) },
@@ -418,7 +419,6 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 optionCaseSensitiveEvaluationActive = value;
                 Variables = Variables;
-                primaryTypesDict = new Dictionary<string, Type>(primaryTypesDict, StringComparerForCasing);
                 operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
                 defaultVariables = new Dictionary<string, object>(defaultVariables, StringComparerForCasing);
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
@@ -2185,7 +2185,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     typeName = primaryTypesRegex.Replace(typeName, delegate (Match match)
                     {
-                        return primaryTypesDict[match.Value].ToString();
+                        return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
                     });
 
                     result = Type.GetType(typeName, false, true);
@@ -2233,34 +2233,74 @@ namespace CodingSeb.ExpressionEvaluator
             return Convert.ChangeType(value, conversionType);
         }
 
+        //private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
+        //{
+        //    Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
+        //    string result = subExpr;
+
+        //    if (codeUntilEndOfStringMatch.Success)
+        //    {
+        //        if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
+        //        {
+        //            result = codeUntilEndOfStringMatch.Value;
+        //        }
+        //        else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
+        //        {
+        //            if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
+        //            {
+        //                result = codeUntilEndOfStringMatch.Value + "{"
+        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch);
+        //            }
+        //            else
+        //            {
+        //                string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
+        //                result = codeUntilEndOfStringMatch.Value + interpolation
+        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch);
+        //            }
+        //        }
+        //    }
+
+        //    return result;
+        //}
+
         private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
         {
             Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
-            string result = subExpr;
+            StringBuilder result = new StringBuilder();
 
             if (codeUntilEndOfStringMatch.Success)
             {
                 if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
                 {
-                    result = codeUntilEndOfStringMatch.Value;
+                    result.Append(codeUntilEndOfStringMatch.Value);
                 }
                 else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
                 {
                     if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
                     {
-                        result = codeUntilEndOfStringMatch.Value + "{"
-                            + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch);
+                        result.Append(codeUntilEndOfStringMatch.Value);
+                        result.Append("{");
+                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch));
                     }
                     else
                     {
                         string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
-                        result = codeUntilEndOfStringMatch.Value + interpolation
-                            + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch);
+                        result.Append(codeUntilEndOfStringMatch.Value);
+                        result.Append(interpolation);
+                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch));
                     }
                 }
+                else
+                {
+                    result.Append(subExpr);
+                }
+            }
+            else
+            {
+                result.Append(subExpr);
             }
 
-            return result;
+            return result.ToString();
         }
 
         private string GetCodeUntilEndOfStringInterpolation(string subExpr)
