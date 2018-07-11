@@ -1603,7 +1603,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (indexingBeginningMatch.Success)
             {
-                string innerExp = "";
+                StringBuilder innerExp = new StringBuilder();
                 i += indexingBeginningMatch.Length;
                 int bracketCount = 1;
                 for (; i < expr.Length; i++)
@@ -1613,7 +1613,7 @@ namespace CodingSeb.ExpressionEvaluator
                     if (internalStringMatch.Success)
                     {
                         string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
-                        innerExp += innerString;
+                        innerExp.Append(innerString);
                         i += innerString.Length - 1;
                     }
                     else
@@ -1627,7 +1627,7 @@ namespace CodingSeb.ExpressionEvaluator
                             bracketCount--;
                             if (bracketCount == 0) break;
                         }
-                        innerExp += s;
+                        innerExp.Append(s);
                     }
                 }
 
@@ -1637,7 +1637,7 @@ namespace CodingSeb.ExpressionEvaluator
                     throw new Exception($"{bracketCount} ']' character {beVerb} missing in expression : [{expr}]");
                 }
 
-                dynamic right = Evaluate(innerExp);
+                dynamic right = Evaluate(innerExp.ToString());
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
@@ -1667,19 +1667,19 @@ namespace CodingSeb.ExpressionEvaluator
 
                 bool endOfString = false;
 
-                string resultString = string.Empty;
+                StringBuilder resultString = new StringBuilder();
 
                 while (!endOfString && i < expr.Length)
                 {
                     Match stringMatch = stringRegexPattern.Match(expr.Substring(i, expr.Length - i));
 
-                    resultString += stringMatch.Value;
+                    resultString.Append(stringMatch.Value);
                     i += stringMatch.Length;
 
                     if (expr.Substring(i)[0] == '"')
                     {
                         endOfString = true;
-                        stack.Push(resultString);
+                        stack.Push(resultString.ToString());
                     }
                     else if (expr.Substring(i)[0] == '{')
                     {
@@ -1687,12 +1687,12 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (expr.Substring(i)[0] == '{')
                         {
-                            resultString += @"{";
+                            resultString.Append("{");
                             i++;
                         }
                         else
                         {
-                            string innerExp = "";
+                            StringBuilder innerExp = new StringBuilder();
                             int bracketCount = 1;
                             for (; i < expr.Length; i++)
                             {
@@ -1701,7 +1701,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 if (internalStringMatch.Success)
                                 {
                                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
-                                    innerExp += innerString;
+                                    innerExp.Append(innerString);
                                     i += innerString.Length - 1;
                                 }
                                 else
@@ -1716,7 +1716,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         i++;
                                         if (bracketCount == 0) break;
                                     }
-                                    innerExp += s;
+                                    innerExp.Append(s);
                                 }
                             }
 
@@ -1725,7 +1725,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 string beVerb = bracketCount == 1 ? "is" : "are";
                                 throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expr}]");
                             }
-                            resultString += Evaluate(innerExp).ToString();
+                            resultString.Append(Evaluate(innerExp.ToString()));
                         }
                     }
                     else if (expr.Substring(i, expr.Length - i)[0] == '}')
@@ -1734,7 +1734,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (expr.Substring(i, expr.Length - i)[0] == '}')
                         {
-                            resultString += @"}";
+                            resultString.Append("}");
                             i++;
                         }
                         else
@@ -1748,7 +1748,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (stringEscapedCharDict.TryGetValue(expr.Substring(i, expr.Length - i)[0], out string escapedString))
                         {
-                            resultString += escapedString;
+                            resultString.Append(escapedString);
                             i++;
                         }
                         else
