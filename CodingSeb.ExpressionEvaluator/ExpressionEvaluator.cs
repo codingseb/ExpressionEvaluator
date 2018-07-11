@@ -16,18 +16,19 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
-        private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
-        private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
-        private static Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
-        private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-        private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
-        private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
-        private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
-        private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
-        private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
+        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
+        private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
+        private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
+        private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
+        private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
+        private static readonly Regex assignationOperatorRegex = new Regex(@"^\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
+        private static readonly Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
+        private static readonly Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
+        private static readonly Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
+        private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
+        private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
+        private static readonly Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -1641,9 +1642,52 @@ namespace CodingSeb.ExpressionEvaluator
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
-                stack.Push(operatorsEvaluations[0][op](left, right));
+                Match assignationOperatorMatch;
+
+                object valueToPush = null;
+
+                if ((assignationOperatorMatch = assignationOperatorRegex.Match(expr.Substring(i + 1))).Success)
+                {
+                    i += assignationOperatorMatch.Length + 1;
+
+                    if (stack.Count > 1)
+                        throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+
+                    string rightExpression = expr.Substring(i);
+                    i = expr.Length;
+
+                    if (op == ExpressionOperator.IndexingWithNullConditional)
+                        throw new ExpressionEvaluatorSyntaxErrorException("Null coalescing is not usable left to an assignation");
+
+                    if (rightExpression.Trim().Equals(string.Empty))
+                        throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                    if (assignationOperatorMatch.Groups["assignmentPrefix"].Success)
+                    {
+                        ExpressionOperator prefixOp = operatorsDictionary[assignationOperatorMatch.Groups["assignmentPrefix"].Value];
+
+                        valueToPush = operatorsEvaluations[0][op](left, right);
+
+                        valueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
+                    }
+                    else
+                    {
+                        valueToPush = Evaluate(rightExpression);
+                    }
+
+                    left[right] = valueToPush;
+
+                    stack.Clear();
+                }
+                else
+                {
+                    valueToPush = operatorsEvaluations[0][op](left, right);
+                }
+
+                stack.Push(valueToPush);
 
                 return true;
+
             }
 
             return false;
