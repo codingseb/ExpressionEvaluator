@@ -9,7 +9,15 @@
         mc:Ignorable="d"
         Title="Expression Evaluate" Width="400" Height="300">
     <DockPanel>
+
         <StackPanel DockPanel.Dock="Bottom">
+            <DockPanel>
+                <Label DockPanel.Dock="Left" 
+                       Content="Iterations"
+                       Padding="2,0"/>
+                <TextBox x:Name="IterationsTextBox"
+                         Text="1" />
+            </DockPanel>
             <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
             <Button x:Name="CancelButton" 
                     Content="_Cancel" 

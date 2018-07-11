@@ -16,37 +16,37 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
-        private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']", RegexOptions.Compiled);
+        private static Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase);
+        private static Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
+        private static Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
+        private static Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
-        private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
-        private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]", RegexOptions.Compiled);
-        private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
-        private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]", RegexOptions.Compiled);
-        private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
-        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
-        private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*", RegexOptions.Compiled);
+        private static Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
+        private static Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
+        private static Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
+        private static Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
+        private static Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
+        private static Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
+        private static Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
-        private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, RegexOptions.Compiled);
+        private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
-        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern, RegexOptions.Compiled);
+        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         private static readonly string blockComments = @"/\*(.*?)\*/";
         private static readonly string lineComments = @"//[^\r\n]*";
         private static readonly string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
         private static readonly string verbatimStringsIgnore = @"@(""[^""]*"")+";
-        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline | RegexOptions.Compiled);
-        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
+        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline);
+        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
         // For script only
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase| RegexOptions.Compiled);
-        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]", RegexOptions.Compiled);
-        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
+        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
+        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         #endregion
 
@@ -424,8 +424,8 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
-                primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase) | RegexOptions.Compiled);
+                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 
@@ -2091,8 +2091,9 @@ namespace CodingSeb.ExpressionEvaluator
             int bracketCount = 1;
             for (; i < expr.Length; i++)
             {
-                Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
-                Match internalCharMatch = internalCharRegex.Match(expr.Substring(i));
+                string subExpr = expr.Substring(i);
+                Match internalStringMatch = stringBeginningRegex.Match(subExpr);
+                Match internalCharMatch = internalCharRegex.Match(subExpr);
 
                 if (internalStringMatch.Success)
                 {
@@ -2233,75 +2234,81 @@ namespace CodingSeb.ExpressionEvaluator
             return Convert.ChangeType(value, conversionType);
         }
 
-        //private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
-        //{
-        //    Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
-        //    string result = subExpr;
-
-        //    if (codeUntilEndOfStringMatch.Success)
-        //    {
-        //        if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
-        //        {
-        //            result = codeUntilEndOfStringMatch.Value;
-        //        }
-        //        else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
-        //        {
-        //            if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
-        //            {
-        //                result = codeUntilEndOfStringMatch.Value + "{"
-        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch);
-        //            }
-        //            else
-        //            {
-        //                string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
-        //                result = codeUntilEndOfStringMatch.Value + interpolation
-        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch);
-        //            }
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
         private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
         {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            GetCodeUntilEndOfString(subExpr, stringBeginningMatch, ref stringBuilder);
+
+            return stringBuilder.ToString();
+        }
+
+        private void GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch, ref StringBuilder stringBuilder)
+        {
             Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
-            StringBuilder result = new StringBuilder();
 
             if (codeUntilEndOfStringMatch.Success)
             {
                 if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
                 {
-                    result.Append(codeUntilEndOfStringMatch.Value);
+                    stringBuilder.Append(codeUntilEndOfStringMatch.Value);
                 }
                 else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
                 {
                     if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
                     {
-                        result.Append(codeUntilEndOfStringMatch.Value);
-                        result.Append("{");
-                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch));
+                        stringBuilder.Append(codeUntilEndOfStringMatch.Value);
+                        stringBuilder.Append("{");
+                        GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch, ref stringBuilder);
                     }
                     else
                     {
                         string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
-                        result.Append(codeUntilEndOfStringMatch.Value);
-                        result.Append(interpolation);
-                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch));
+                        stringBuilder.Append(codeUntilEndOfStringMatch.Value);
+                        stringBuilder.Append(interpolation);
+                        GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch, ref stringBuilder);
                     }
                 }
                 else
                 {
-                    result.Append(subExpr);
+                    stringBuilder.Append(subExpr);
                 }
             }
             else
             {
-                result.Append(subExpr);
+                stringBuilder.Append(subExpr);
             }
-
-            return result.ToString();
         }
+
+        //private string GetCodeUntilEndOfStringInterpolation(string subExpr)
+        //{
+        //    Match endOfStringInterpolationMatch = endOfStringInterpolationRegex.Match(subExpr);
+        //    StringBuilder result = new StringBuilder();
+
+        //    if (endOfStringInterpolationMatch.Success)
+        //    {
+        //        if (endOfStringInterpolationMatch.Value.EndsWith("}"))
+        //        {
+        //            result.Append(endOfStringInterpolationMatch.Value);
+        //        }
+        //        else
+        //        {
+        //            Match stringBeginningForEndBlockMatch = stringBeginningForEndBlockRegex.Match(endOfStringInterpolationMatch.Value);
+
+        //            string subString = GetCodeUntilEndOfString(subExpr.Substring(endOfStringInterpolationMatch.Length), stringBeginningForEndBlockMatch);
+
+        //            result.Append(endOfStringInterpolationMatch.Value);
+        //            result.Append(subString);
+        //            result.Append(GetCodeUntilEndOfStringInterpolation(subExpr.Substring(endOfStringInterpolationMatch.Length + subString.Length)));
+        //        }
+        //    }
+        //    else
+        //    {
+        //        result.Append(subExpr);
+        //    }
+
+        //    return result.ToString();
+        //}
 
         private string GetCodeUntilEndOfStringInterpolation(string subExpr)
         {
@@ -2327,6 +2334,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             return result;
         }
+
 
         #endregion
 
