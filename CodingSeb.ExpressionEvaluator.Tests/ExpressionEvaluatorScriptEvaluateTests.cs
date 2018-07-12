@@ -33,16 +33,186 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             get
             {
+                #region Assignations
+
+                #region Instance Property Assignation
+
+                ClassForTest1 obj0001 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty = 3;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0001 }
+                            }
+                        },
+                        new Action(() => obj0001.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0001.IntProperty.ShouldEqual(3)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("=")
+                    .Returns(3);
+
+                ClassForTest1 obj0002 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty += 2;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0002 }
+                            }
+                        },
+                        new Action(() => obj0002.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0002.IntProperty.ShouldEqual(27)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("+=")
+                    .Returns(27);
+
+                ClassForTest1 obj0003 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty -= 2;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0003 }
+                            }
+                        },
+                        new Action(() => obj0003.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0003.IntProperty.ShouldEqual(23)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("-=")
+                    .Returns(23);
+
+                ClassForTest1 obj0004 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty *= 2;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0004 }
+                            }
+                        },
+                        new Action(() => obj0004.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0004.IntProperty.ShouldEqual(50)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("*=")
+                    .Returns(50);
+
+                ClassForTest1 obj0005 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty /= 5;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0005 }
+                            }
+                        },
+                        new Action(() => obj0005.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0005.IntProperty.ShouldEqual(5)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("/=")
+                    .Returns(5);
+
+                ClassForTest1 obj0006 = new ClassForTest1();
+
+                yield return new TestCaseData("obj.IntProperty %= 5;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0006 }
+                            }
+                        },
+                        new Action(() => obj0006.IntProperty.ShouldEqual(25)),
+                        new Action(() => obj0006.IntProperty.ShouldEqual(0)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("%=")
+                    .Returns(0);
+
+                ClassForTest1 obj0007 = new ClassForTest1()
+                {
+                    IntProperty = 10
+                };
+
+                yield return new TestCaseData("obj.IntProperty %= 3;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0007 }
+                            }
+                        },
+                        new Action(() => obj0007.IntProperty.ShouldEqual(10)),
+                        new Action(() => obj0007.IntProperty.ShouldEqual(1)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("%=")
+                    .Returns(1);
+
+                ClassForTest1 obj0008 = new ClassForTest1()
+                {
+                    IntProperty = 15
+                };
+
+                yield return new TestCaseData("obj.IntProperty &= 19;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0008 }
+                            }
+                        },
+                        new Action(() => obj0008.IntProperty.ShouldEqual(15)),
+                        new Action(() => obj0008.IntProperty.ShouldEqual(3)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("&=")
+                    .Returns(3);
+
+                ClassForTest1 obj0009 = new ClassForTest1()
+                {
+                    IntProperty = 5
+                };
+
+                yield return new TestCaseData("obj.IntProperty |= 9;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0009 }
+                            }
+                        },
+                        new Action(() => obj0009.IntProperty.ShouldEqual(5)),
+                        new Action(() => obj0009.IntProperty.ShouldEqual(13)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("|=")
+                    .Returns(13);
+
+                #endregion
+
+                #endregion
+
                 #region while
 
-                yield return new TestCaseData(Resources.Script0001, null)
+                yield return new TestCaseData(Resources.Script0001, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("while")
                     .SetCategory("variable assignation")
                     .SetCategory("++")
                     .SetCategory("+=")
                     .Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0001, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0001, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("while")
                     .SetCategory("variable assignation")
@@ -54,28 +224,28 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region for
 
-                yield return new TestCaseData(Resources.Script0002, null)
+                yield return new TestCaseData(Resources.Script0002, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("for")
                     .SetCategory("variable assignation")
                     .SetCategory("++")
                     .SetCategory("+=")
                     .Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0002, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0002, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("for")
                     .SetCategory("variable assignation")
                     .SetCategory("++")
                     .SetCategory("+=")
                     .Returns("0,1,2,3,4");
-                yield return new TestCaseData(Resources.Script0003, null)
+                yield return new TestCaseData(Resources.Script0003, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("for")
                     .SetCategory("variable assignation")
                     .SetCategory("++")
                     .SetCategory("+=")
                     .Returns("0,1,2,3,4");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0003, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0003, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("for")
                     .SetCategory("variable assignation")
@@ -87,129 +257,131 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region if, else if, else
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "-1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(4);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0004.Replace("[valx]", "1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(4);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), null)
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
-                    .SetCategory("Script")
-                    .SetCategory("if")
-                    .SetCategory("variable assignation")
-                    .Returns(1);
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), null)
-                    .SetCategory("Script")
-                    .SetCategory("if")
-                    .SetCategory("variable assignation")
-                    .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
-                    .SetCategory("Script")
-                    .SetCategory("if")
-                    .SetCategory("variable assignation")
-                    .Returns(1);
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), null)
-                    .SetCategory("Script")
-                    .SetCategory("if")
-                    .SetCategory("variable assignation")
-                    .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "1"), string.Empty).Replace("else", "else "), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("if")
+                    .SetCategory("variable assignation")
+                    .Returns(1);
+
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "0").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "-1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), null)
+                yield return new TestCaseData(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(4);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0005.Replace("[valx]", "1").Replace("[valy]", "0"), string.Empty).Replace("else", "else "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
@@ -219,13 +391,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region block for lambda body
 
-                yield return new TestCaseData(Resources.Script0006, null)
+                yield return new TestCaseData(Resources.Script0006, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("lambda")
                     .SetCategory("variable assignation")
                     .SetCategory("block for lambda body")
                     .Returns(3);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0006, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0006, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("lambda")
                     .SetCategory("variable assignation")
@@ -236,37 +408,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region return keyword and OptionAutoReturnLastExpressionResultInScriptsActive tests 
 
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "1"), null)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "1"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "1"), string.Empty).Replace("return", "return "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "1"), string.Empty).Replace("return", "return "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(1);
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "2"), null)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "2"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "2"), string.Empty).Replace("return", "return "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "2"), string.Empty).Replace("return", "return "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), null)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -278,7 +450,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionOnNoReturnKeywordFoundInScriptAction = OptionOnNoReturnKeywordFoundInScriptAction.ReturnNull
                 };
 
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "1"), evaluator)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "1"), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -286,7 +458,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(null);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "1"), string.Empty).Replace("return", "return "), evaluator)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "1"), string.Empty).Replace("return", "return "), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -294,7 +466,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(null);
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "2"), evaluator)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "2"), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -302,7 +474,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(null);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "2"), string.Empty).Replace("return", "return "), evaluator)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "2"), string.Empty).Replace("return", "return "), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -310,7 +482,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(null);
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), evaluator)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -318,7 +490,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), evaluator)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -332,7 +504,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionOnNoReturnKeywordFoundInScriptAction = OptionOnNoReturnKeywordFoundInScriptAction.ThrowSyntaxException
                 };
 
-                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), evaluator)
+                yield return new TestCaseData(Resources.Script0008.Replace("[valx]", "0"), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -340,7 +512,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ReturnNull")
                     .Returns(2);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), evaluator)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0008.Replace("[valx]", "0"), string.Empty).Replace("return", "return "), evaluator, null, null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -353,42 +525,42 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region More complex script
 
-                yield return new TestCaseData(Resources.Script0007, null)
+                yield return new TestCaseData(Resources.Script0007, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("lambda")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
                     .SetCategory("block for lambda body")
                     .Returns(13);
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0007, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0007, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("lambda")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
                     .SetCategory("block for lambda body")
                     .Returns(13);
-                yield return new TestCaseData(Resources.Script0009, null)
+                yield return new TestCaseData(Resources.Script0009, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
                     .SetCategory("continue in for")
                     .SetCategory("break in for")
                     .Returns("0,1,2,4,5,6,");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0009, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0009, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
                     .SetCategory("continue in for")
                     .SetCategory("break in for")
                     .Returns("0,1,2,4,5,6,");
-                yield return new TestCaseData(Resources.Script0010, null)
+                yield return new TestCaseData(Resources.Script0010, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
                     .SetCategory("continue in while")
                     .SetCategory("break in while")
                     .Returns("0,1,2,4,5,6,");
-                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0010, string.Empty), null)
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0010, string.Empty), null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable assignation")
                     .SetCategory("if")
@@ -401,13 +573,19 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         [TestCaseSource(nameof(TestCasesForScriptEvaluateTests))]
-        public object TestCasesForScriptEvaluate(string script, ExpressionEvaluator evaluator)
+        public object TestCasesForScriptEvaluate(string script, ExpressionEvaluator evaluator, Action PreExecuteAssertAction, Action PostExecuteAssertAction)
         {
             evaluator = evaluator ?? new ExpressionEvaluator();
 
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
-            return evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
+            PreExecuteAssertAction?.Invoke();
+
+            object result = evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
+
+            PostExecuteAssertAction?.Invoke();
+
+            return result;
         }
 
         #endregion
@@ -456,206 +634,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
-        #region Properties set assignation
+        #region Assignations
 
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("=")]
-        public static void InstancePropertySetEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1();
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(25);
-
-            evaluator.ScriptEvaluate("obj.IntProperty = 3;");
-
-            obj.IntProperty.ShouldEqual(3);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("+=")]
-        public static void InstancePropertySetPlusEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1();
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(25);
-
-            evaluator.ScriptEvaluate("obj.IntProperty += 2;");
-
-            obj.IntProperty.ShouldEqual(27);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("-=")]
-        public static void InstancePropertySetMinusEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1();
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(25);
-
-            evaluator.ScriptEvaluate("obj.IntProperty -= 2;");
-
-            obj.IntProperty.ShouldEqual(23);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("*=")]
-        public static void InstancePropertySetMultiplyEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1();
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(25);
-
-            evaluator.ScriptEvaluate("obj.IntProperty *= 2;");
-
-            obj.IntProperty.ShouldEqual(50);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("/=")]
-        public static void InstancePropertySetDividEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 50
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(50);
-
-            evaluator.ScriptEvaluate("obj.IntProperty /= 5;");
-
-            obj.IntProperty.ShouldEqual(10);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("%=")]
-        public static void InstancePropertySetModuloEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1();
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(25);
-
-            evaluator.ScriptEvaluate("obj.IntProperty %= 5;");
-
-            obj.IntProperty.ShouldEqual(0);
-
-            obj.IntProperty = 10;
-
-            evaluator.ScriptEvaluate("obj.IntProperty %= 3;");
-
-            obj.IntProperty.ShouldEqual(1);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("&=")]
-        public static void InstancePropertySetAndEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 15
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(15);
-
-            evaluator.ScriptEvaluate("obj.IntProperty &= 19;");
-
-            obj.IntProperty.ShouldEqual(3);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("|=")]
-        public static void InstancePropertySetOrEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 5
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(5);
-
-            evaluator.ScriptEvaluate("obj.IntProperty |= 9;");
-
-            obj.IntProperty.ShouldEqual(13);
-        }
+        #region Instance Property Assignation
 
         [Test]
         [Category("Script")]
@@ -734,6 +715,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
             obj.IntProperty.ShouldEqual(5);
         }
+
+        #endregion
+
+        #region Static Property Assignation
 
         [Test]
         [Category("Script")]
@@ -903,6 +888,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
             ClassForTest1.StaticIntProperty.ShouldEqual(16);
         }
+
+        #endregion
+
+
 
         #endregion
 
