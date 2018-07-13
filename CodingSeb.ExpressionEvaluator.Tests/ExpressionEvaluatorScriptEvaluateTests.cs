@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Should;
+using Newtonsoft.Json;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -370,7 +371,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0001.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0001.Variables["x"].ShouldEqual(3)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("=")
                 .Returns(3);
 
@@ -379,7 +380,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0001.Variables.ContainsKey("y").ShouldBeFalse()),
                     new Action(() => evaluator0001.Variables["y"].ShouldEqual(20)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("=")
                 .Returns(20);
 
@@ -397,7 +398,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0002.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0002.Variables["x"].ShouldEqual(9)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("+=")
                 .Returns(9);
 
@@ -406,7 +407,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0002.Variables["text"].ShouldEqual("Test")),
                     new Action(() => evaluator0002.Variables["text"].ShouldEqual("Test Try")))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("+=")
                 .Returns("Test Try");
 
@@ -423,7 +424,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0003.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0003.Variables["x"].ShouldEqual(1)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("-=")
                 .Returns(1);
 
@@ -440,7 +441,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0004.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0004.Variables["x"].ShouldEqual(10)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("*=")
                 .Returns(10);
 
@@ -457,7 +458,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0005.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0005.Variables["x"].ShouldEqual(2)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("/=")
                 .Returns(2);
 
@@ -474,7 +475,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0006.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0006.Variables["x"].ShouldEqual(1)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("%=")
                 .Returns(1);
 
@@ -491,7 +492,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0007.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0007.Variables["x"].ShouldEqual(6)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("^=")
                 .Returns(6);
 
@@ -508,7 +509,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0008.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0008.Variables["x"].ShouldEqual(1)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("&=")
                 .Returns(1);
 
@@ -525,7 +526,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0009.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0009.Variables["x"].ShouldEqual(7)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("|=")
                 .Returns(7);
 
@@ -542,7 +543,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0010.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0010.Variables["x"].ShouldEqual(20)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory("<<=")
                 .Returns(20);
 
@@ -559,7 +560,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     new Action(() => evaluator0011.Variables["x"].ShouldEqual(5)),
                     new Action(() => evaluator0011.Variables["x"].ShouldEqual(1)))
                 .SetCategory("Script")
-                .SetCategory("Variable Assignation assignation")
+                .SetCategory("Variable assignation")
                 .SetCategory(">>=")
                 .Returns(1);
 
@@ -567,8 +568,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Indexing Assignation
 
-
-
+                yield return new TestCaseData(Resources.Script0011, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Indexing assignation")
+                    .SetCategory("=")
+                    .SetCategory("+=")
+                    .SetCategory("-=")
+                    .SetCategory("*=")
+                    .SetCategory("/=")
+                    .SetCategory("/=")
+                    .SetCategory("%=")
+                    .SetCategory("^=")
+                    .SetCategory("&=")
+                    .SetCategory("|=")
+                    .SetCategory("<<=")
+                    .SetCategory("<<=")
+                    .SetCategory("List function")
+                    .Returns("[8,11,3,15,2,1,6,1,7,20,1]");
                 #endregion
 
                 #endregion
@@ -947,6 +963,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             evaluator = evaluator ?? new ExpressionEvaluator();
 
+            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
+
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
             PreExecuteAssertAction?.Invoke();
@@ -955,7 +973,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
             PostExecuteAssertAction?.Invoke();
 
+            evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
+
             return result;
+        }
+
+        private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
+        {
+            if (e.This != null && e.Name.Equals("Json"))
+            {
+                e.Value = JsonConvert.SerializeObject(e.This);
+            }
         }
 
         #endregion

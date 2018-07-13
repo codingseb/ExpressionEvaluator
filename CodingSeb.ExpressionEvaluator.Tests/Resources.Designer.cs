@@ -240,12 +240,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0009 */
+        ///   Recherche une chaîne localisée semblable à /* Script0010 */
         ///x = &quot;&quot;;
-        ///i = 0;
+        ///i = -1;
         ///
         ///while(i &lt; 10)
         ///{
+        ///	i++;
+        ///
         ///	if(i == 3)
         ///		continue;
         ///		
@@ -253,8 +255,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///	
         ///	if(i == 6)
         ///		break;
-        ///	
-        ///	i++
         ///}
         ///	
         ///x;.
@@ -262,6 +262,32 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         internal static string Script0010 {
             get {
                 return ResourceManager.GetString("Script0010", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0010 */
+        ///x = &quot;&quot;;
+        ///i = -1;
+        ///
+        ///while(i &lt; 10)
+        ///{
+        ///	i++;
+        ///
+        ///	if(i == 3)
+        ///		continue;
+        ///		
+        ///	x += $&quot;{i},&quot;;
+        ///	
+        ///	if(i == 6)
+        ///		break;
+        ///}
+        ///	
+        ///x;.
+        /// </summary>
+        internal static string Script0011 {
+            get {
+                return ResourceManager.GetString("Script0011", resourceCulture);
             }
         }
     }
