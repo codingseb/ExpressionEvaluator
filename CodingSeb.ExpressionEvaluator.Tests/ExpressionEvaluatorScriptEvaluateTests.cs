@@ -199,6 +199,376 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("|=")
                     .Returns(13);
 
+                ClassForTest1 obj0010 = new ClassForTest1()
+                {
+                    IntProperty = 5
+                };
+
+                yield return new TestCaseData("obj.IntProperty ^= 9;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0010 }
+                            }
+                        },
+                        new Action(() => obj0010.IntProperty.ShouldEqual(5)),
+                        new Action(() => obj0010.IntProperty.ShouldEqual(12)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("^=")
+                    .Returns(12);
+
+                ClassForTest1 obj0011 = new ClassForTest1()
+                {
+                    IntProperty = 5
+                };
+
+                yield return new TestCaseData("obj.IntProperty <<= 2;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0011 }
+                            }
+                        },
+                        new Action(() => obj0011.IntProperty.ShouldEqual(5)),
+                        new Action(() => obj0011.IntProperty.ShouldEqual(20)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory("<<=")
+                    .Returns(20);
+
+                ClassForTest1 obj0012 = new ClassForTest1()
+                {
+                    IntProperty = 20
+                };
+
+                yield return new TestCaseData("obj.IntProperty >>= 2;",
+                        new ExpressionEvaluator()
+                        {
+                            Variables = new Dictionary<string, object>()
+                            {
+                                { "obj", obj0012 }
+                            }
+                        },
+                        new Action(() => obj0012.IntProperty.ShouldEqual(20)),
+                        new Action(() => obj0012.IntProperty.ShouldEqual(5)))
+                    .SetCategory("Script")
+                    .SetCategory("Instance Property set assignation")
+                    .SetCategory(">>=")
+                    .Returns(5);
+
+                #endregion
+
+                #region Static Property Assignation
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty = 18;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(18)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("=")
+                    .Returns(18);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty += 3;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(70)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("+=")
+                    .Returns(70);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty -= 7;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(60)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("-=")
+                    .Returns(60);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty *= 2;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(134)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("*=")
+                    .Returns(134);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty /= 2;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(33)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("/=")
+                    .Returns(33);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty %= 2;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(1)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("%=")
+                    .Returns(1);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty &= 70;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(66)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("&=")
+                    .Returns(66);
+
+                yield return new TestCaseData("ClassForTest1.StaticIntProperty |= 70;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(71)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("|=")
+                    .Returns(71);
+
+               yield return new TestCaseData("ClassForTest1.StaticIntProperty <<= 2;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(268)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory("<<=")
+                    .Returns(268);
+
+               yield return new TestCaseData("ClassForTest1.StaticIntProperty >>= 2;",
+                        null,
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(67)),
+                        new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(16)))
+                    .SetCategory("Script")
+                    .SetCategory("Static Property set assignation")
+                    .SetCategory(">>=")
+                    .Returns(16);
+
+                #endregion
+
+                #region Variable Assignation
+
+                ExpressionEvaluator evaluator0001 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 }
+                    }
+                };
+
+                yield return new TestCaseData("x = 3;",
+                    evaluator0001,
+                    new Action(() => evaluator0001.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0001.Variables["x"].ShouldEqual(3)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("=")
+                .Returns(3);
+
+                yield return new TestCaseData("y = 20;",
+                    evaluator0001,
+                    new Action(() => evaluator0001.Variables.ContainsKey("y").ShouldBeFalse()),
+                    new Action(() => evaluator0001.Variables["y"].ShouldEqual(20)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("=")
+                .Returns(20);
+
+                ExpressionEvaluator evaluator0002 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                        { "text", "Test" }
+                    }
+                };
+
+                yield return new TestCaseData("x += 4;",
+                   evaluator0002,
+                    new Action(() => evaluator0002.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0002.Variables["x"].ShouldEqual(9)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("+=")
+                .Returns(9);
+
+                yield return new TestCaseData("text += \" Try\";",
+                    evaluator0002,
+                    new Action(() => evaluator0002.Variables["text"].ShouldEqual("Test")),
+                    new Action(() => evaluator0002.Variables["text"].ShouldEqual("Test Try")))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("+=")
+                .Returns("Test Try");
+
+                ExpressionEvaluator evaluator0003 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x -= 4;",
+                   evaluator0003,
+                    new Action(() => evaluator0003.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0003.Variables["x"].ShouldEqual(1)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("-=")
+                .Returns(1);
+
+                ExpressionEvaluator evaluator0004 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x *= 2;",
+                   evaluator0004,
+                    new Action(() => evaluator0004.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0004.Variables["x"].ShouldEqual(10)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("*=")
+                .Returns(10);
+
+                ExpressionEvaluator evaluator0005 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x /= 2;",
+                   evaluator0005,
+                    new Action(() => evaluator0005.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0005.Variables["x"].ShouldEqual(2)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("/=")
+                .Returns(2);
+
+                ExpressionEvaluator evaluator0006 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x %= 2;",
+                   evaluator0006,
+                    new Action(() => evaluator0006.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0006.Variables["x"].ShouldEqual(1)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("%=")
+                .Returns(1);
+
+                ExpressionEvaluator evaluator0007 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x ^= 3;",
+                   evaluator0007,
+                    new Action(() => evaluator0007.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0007.Variables["x"].ShouldEqual(6)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("^=")
+                .Returns(6);
+
+                ExpressionEvaluator evaluator0008 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x &= 3;",
+                   evaluator0008,
+                    new Action(() => evaluator0008.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0008.Variables["x"].ShouldEqual(1)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("&=")
+                .Returns(1);
+
+                ExpressionEvaluator evaluator0009 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x |= 3;",
+                   evaluator0009,
+                    new Action(() => evaluator0009.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0009.Variables["x"].ShouldEqual(7)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("|=")
+                .Returns(7);
+
+                ExpressionEvaluator evaluator0010 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x <<= 2;",
+                   evaluator0010,
+                    new Action(() => evaluator0010.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0010.Variables["x"].ShouldEqual(20)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory("<<=")
+                .Returns(20);
+
+                ExpressionEvaluator evaluator0011 = new ExpressionEvaluator()
+                {
+                    Variables = new Dictionary<string, object>()
+                    {
+                        { "x", 5 },
+                    }
+                };
+
+                yield return new TestCaseData("x >>= 2;",
+                   evaluator0011,
+                    new Action(() => evaluator0011.Variables["x"].ShouldEqual(5)),
+                    new Action(() => evaluator0011.Variables["x"].ShouldEqual(1)))
+                .SetCategory("Script")
+                .SetCategory("Variable Assignation assignation")
+                .SetCategory(">>=")
+                .Returns(1);
+
+                #endregion
+
+                #region Indexing Assignation
+
+
+
                 #endregion
 
                 #endregion
@@ -631,267 +1001,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(script));
         }
-
-        #endregion
-
-        #region Assignations
-
-        #region Instance Property Assignation
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("^=")]
-        public static void InstancePropertySetXorEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 5
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(5);
-
-            evaluator.ScriptEvaluate("obj.IntProperty ^= 9;");
-
-            obj.IntProperty.ShouldEqual(12);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category("<<=")]
-        public static void InstancePropertySetLeftShiftEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 5
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(5);
-
-            evaluator.ScriptEvaluate("obj.IntProperty <<= 2;");
-
-            obj.IntProperty.ShouldEqual(20);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Instance Property set assignation")]
-        [Category(">>=")]
-        public static void InstancePropertySetRightShiftEqual()
-        {
-            ClassForTest1 obj = new ClassForTest1()
-            {
-                IntProperty = 20
-            };
-
-            ExpressionEvaluator evaluator = new ExpressionEvaluator()
-            {
-                Variables = new Dictionary<string, object>()
-                {
-                    {"obj", obj }
-                }
-            };
-
-            obj.IntProperty.ShouldEqual(20);
-
-            evaluator.ScriptEvaluate("obj.IntProperty >>= 2;");
-
-            obj.IntProperty.ShouldEqual(5);
-        }
-
-        #endregion
-
-        #region Static Property Assignation
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("=")]
-        public static void StaticPropertySetEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty = 18;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(18);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("+=")]
-        public static void StaticPropertySetPlusEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty += 3;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(70);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("-=")]
-        public static void StaticPropertySetMinusEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty -= 7;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(60);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("*=")]
-        public static void StaticPropertySetMultiplyEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty *= 2;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(134);
-        }
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("/=")]
-        public static void StaticPropertySetDivideEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty /= 2;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(33);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("%=")]
-        public static void StaticPropertySetModuloEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty %= 2;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(1);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("&=")]
-        public static void StaticPropertySetAndEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty &= 70;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(66);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("|=")]
-        public static void StaticPropertySetOrEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty |= 70;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(71);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category("<<=")]
-        public static void StaticPropertySetLeftShiftEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty <<= 2;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(268);
-        }
-
-        [Test]
-        [Category("Script")]
-        [Category("Static Property set assignation")]
-        [Category(">>=")]
-        public static void StaticPropertySetRightShiftEqual()
-        {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(67);
-
-            evaluator.ScriptEvaluate("ClassForTest1.StaticIntProperty >>= 2;");
-
-            ClassForTest1.StaticIntProperty.ShouldEqual(16);
-        }
-
-        #endregion
-
-
 
         #endregion
 
