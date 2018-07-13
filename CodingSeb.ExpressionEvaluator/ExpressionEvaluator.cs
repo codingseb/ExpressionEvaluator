@@ -2233,75 +2233,75 @@ namespace CodingSeb.ExpressionEvaluator
             return Convert.ChangeType(value, conversionType);
         }
 
-        //private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
-        //{
-        //    Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
-        //    string result = subExpr;
-
-        //    if (codeUntilEndOfStringMatch.Success)
-        //    {
-        //        if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
-        //        {
-        //            result = codeUntilEndOfStringMatch.Value;
-        //        }
-        //        else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
-        //        {
-        //            if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
-        //            {
-        //                result = codeUntilEndOfStringMatch.Value + "{"
-        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch);
-        //            }
-        //            else
-        //            {
-        //                string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
-        //                result = codeUntilEndOfStringMatch.Value + interpolation
-        //                    + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch);
-        //            }
-        //        }
-        //    }
-
-        //    return result;
-        //}
-
         private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
         {
             Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
-            StringBuilder result = new StringBuilder();
+            string result = subExpr;
 
             if (codeUntilEndOfStringMatch.Success)
             {
                 if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
                 {
-                    result.Append(codeUntilEndOfStringMatch.Value);
+                    result = codeUntilEndOfStringMatch.Value;
                 }
                 else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
                 {
                     if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
                     {
-                        result.Append(codeUntilEndOfStringMatch.Value);
-                        result.Append("{");
-                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch));
+                        result = codeUntilEndOfStringMatch.Value + "{"
+                            + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch);
                     }
                     else
                     {
                         string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
-                        result.Append(codeUntilEndOfStringMatch.Value);
-                        result.Append(interpolation);
-                        result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch));
+                        result = codeUntilEndOfStringMatch.Value + interpolation
+                            + GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch);
                     }
                 }
-                else
-                {
-                    result.Append(subExpr);
-                }
-            }
-            else
-            {
-                result.Append(subExpr);
             }
 
-            return result.ToString();
+            return result;
         }
+
+        //private string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch, StringBuilder stringBuilder = null)
+        //{
+        //    Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
+        //    StringBuilder result = stringBuilder ?? new StringBuilder();
+
+        //    if (codeUntilEndOfStringMatch.Success)
+        //    {
+        //        if (codeUntilEndOfStringMatch.Value.EndsWith("\""))
+        //        {
+        //            result.Append(codeUntilEndOfStringMatch.Value);
+        //        }
+        //        else if (codeUntilEndOfStringMatch.Value.EndsWith("{") && codeUntilEndOfStringMatch.Length < subExpr.Length)
+        //        {
+        //            if (subExpr[codeUntilEndOfStringMatch.Length] == '{')
+        //            {
+        //                result.Append(codeUntilEndOfStringMatch.Value);
+        //                result.Append("{");
+        //                result.Append(GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + 1), stringBeginningMatch));
+        //            }
+        //            else
+        //            {
+        //                string interpolation = GetCodeUntilEndOfStringInterpolation(subExpr.Substring(codeUntilEndOfStringMatch.Length));
+        //                result.Append(codeUntilEndOfStringMatch.Value);
+        //                result.Append(interpolation);
+        //                GetCodeUntilEndOfString(subExpr.Substring(codeUntilEndOfStringMatch.Length + interpolation.Length), stringBeginningMatch, result);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.Append(subExpr);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        result.Append(subExpr);
+        //    }
+
+        //    return result.ToString();
+        //}
 
         private string GetCodeUntilEndOfStringInterpolation(string subExpr)
         {
