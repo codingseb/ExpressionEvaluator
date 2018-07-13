@@ -266,28 +266,50 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0010 */
-        ///x = &quot;&quot;;
-        ///i = -1;
+        ///   Recherche une chaîne localisée semblable à /* Script0011 */
+        ///list = List(5,5,5,5,5,5,5,5,5,5,5);
         ///
-        ///while(i &lt; 10)
-        ///{
-        ///	i++;
+        ///list[0] = 8;
+        ///list[1] += 6;
+        ///list[2] -= 2;
+        ///list[3] *= 3;
+        ///list[4] /= 2;
+        ///list[5] %= 2;
+        ///list[6] ^= 3;
+        ///list[7] &amp;= 3;
+        ///list[8] |= 3;
+        ///list[9] &lt;&lt;= 2;
+        ///list[10] &gt;&gt;=2;
         ///
-        ///	if(i == 3)
-        ///		continue;
-        ///		
-        ///	x += $&quot;{i},&quot;;
-        ///	
-        ///	if(i == 6)
-        ///		break;
-        ///}
-        ///	
-        ///x;.
+        ///return list.Json;.
         /// </summary>
         internal static string Script0011 {
             get {
                 return ResourceManager.GetString("Script0011", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0011 */
+        ///list = List(5,5,5,5,5,5,5,5,5,5,5);
+        ///
+        ///list[0] = 8;
+        ///list[1] += 6;
+        ///list[2] -= 2;
+        ///list[3] *= 3;
+        ///list[4] /= 2;
+        ///list[5] %= 2;
+        ///list[6] ^= 3;
+        ///list[7] &amp;= 3;
+        ///list[8] |= 3;
+        ///list[9] &lt;&lt;= 2;
+        ///list[10] &gt;&gt;=2;
+        ///
+        ///return list.Json;.
+        /// </summary>
+        internal static string Script0012 {
+            get {
+                return ResourceManager.GetString("Script0012", resourceCulture);
             }
         }
     }

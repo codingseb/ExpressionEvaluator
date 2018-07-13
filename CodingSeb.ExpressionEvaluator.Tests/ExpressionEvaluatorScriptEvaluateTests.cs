@@ -566,27 +566,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region Indexing Assignation
-
-                yield return new TestCaseData(Resources.Script0011, null, null, null)
-                    .SetCategory("Script")
-                    .SetCategory("Indexing assignation")
-                    .SetCategory("=")
-                    .SetCategory("+=")
-                    .SetCategory("-=")
-                    .SetCategory("*=")
-                    .SetCategory("/=")
-                    .SetCategory("/=")
-                    .SetCategory("%=")
-                    .SetCategory("^=")
-                    .SetCategory("&=")
-                    .SetCategory("|=")
-                    .SetCategory("<<=")
-                    .SetCategory("<<=")
-                    .SetCategory("List function")
-                    .Returns("[8,11,3,15,2,1,6,1,7,20,1]");
-                #endregion
-
                 #endregion
 
                 #region while
@@ -953,6 +932,34 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("continue in while")
                     .SetCategory("break in while")
                     .Returns("0,1,2,4,5,6,");
+
+                yield return new TestCaseData(Resources.Script0011, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Indexing assignation")
+                    .SetCategory("=")
+                    .SetCategory("+=")
+                    .SetCategory("-=")
+                    .SetCategory("*=")
+                    .SetCategory("/=")
+                    .SetCategory("/=")
+                    .SetCategory("%=")
+                    .SetCategory("^=")
+                    .SetCategory("&=")
+                    .SetCategory("|=")
+                    .SetCategory("<<=")
+                    .SetCategory("<<=")
+                    .SetCategory("List function")
+                    .Returns("[8,11,3,15,2,1,6,1,7,20,1]");
+
+                yield return new TestCaseData(Resources.Script0012, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Indexing postfix operators")
+                    .SetCategory("=")
+                    .SetCategory("+=")
+                    .SetCategory("++")
+                    .SetCategory("--")
+                    .SetCategory("List function")
+                    .Returns("[6,4,10,6,10,4]");
 
                 #endregion
             }

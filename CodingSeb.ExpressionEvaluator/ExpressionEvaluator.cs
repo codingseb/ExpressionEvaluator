@@ -22,7 +22,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-        private static readonly Regex assignationOperatorRegex = new Regex(@"^\s*(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])");
+        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_])))");
         private static readonly Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
         private static readonly Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
         private static readonly Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
@@ -1642,42 +1642,50 @@ namespace CodingSeb.ExpressionEvaluator
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
-                Match assignationOperatorMatch;
+                Match assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expr.Substring(i + 1));
 
                 object valueToPush = null;
 
-                if ((assignationOperatorMatch = assignationOperatorRegex.Match(expr.Substring(i + 1))).Success)
+                if (assignationOrPostFixOperatorMatch.Success)
                 {
-                    i += assignationOperatorMatch.Length + 1;
+                    i += assignationOrPostFixOperatorMatch.Length + 1;
+
+                    bool postFixoperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
+                    string exceptionContext = postFixoperator ? "++ or -- operator" : "an assignation";
 
                     if (stack.Count > 1)
-                        throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                    string rightExpression = expr.Substring(i);
-                    i = expr.Length;
+                        throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
 
                     if (op == ExpressionOperator.IndexingWithNullConditional)
-                        throw new ExpressionEvaluatorSyntaxErrorException("Null coalescing is not usable left to an assignation");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Null coalescing is not usable left to {exceptionContext}");
 
-                    if (rightExpression.Trim().Equals(string.Empty))
-                        throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                    if (assignationOperatorMatch.Groups["assignmentPrefix"].Success)
-                    {
-                        ExpressionOperator prefixOp = operatorsDictionary[assignationOperatorMatch.Groups["assignmentPrefix"].Value];
-
-                        valueToPush = operatorsEvaluations[0][op](left, right);
-
-                        valueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
-                    }
+                    if (postFixoperator)
+                        valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
                     else
                     {
-                        valueToPush = Evaluate(rightExpression);
+                        string rightExpression = expr.Substring(i);
+                        i = expr.Length;
+
+                        if (rightExpression.Trim().Equals(string.Empty))
+                            throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                        if (assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Success)
+                        {
+                            ExpressionOperator prefixOp = operatorsDictionary[assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Value];
+
+                            valueToPush = operatorsEvaluations[0][op](left, right);
+
+                            valueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
+                        }
+                        else
+                        {
+                            valueToPush = Evaluate(rightExpression);
+                        }
+
+                        left[right] = valueToPush;
+
+                        stack.Clear();
                     }
-
-                    left[right] = valueToPush;
-
-                    stack.Clear();
                 }
                 else
                 {
@@ -2323,36 +2331,6 @@ namespace CodingSeb.ExpressionEvaluator
                 stringBuilder.Append(subExpr);
             }
         }
-
-        //private string GetCodeUntilEndOfStringInterpolation(string subExpr)
-        //{
-        //    Match endOfStringInterpolationMatch = endOfStringInterpolationRegex.Match(subExpr);
-        //    StringBuilder result = new StringBuilder();
-
-        //    if (endOfStringInterpolationMatch.Success)
-        //    {
-        //        if (endOfStringInterpolationMatch.Value.EndsWith("}"))
-        //        {
-        //            result.Append(endOfStringInterpolationMatch.Value);
-        //        }
-        //        else
-        //        {
-        //            Match stringBeginningForEndBlockMatch = stringBeginningForEndBlockRegex.Match(endOfStringInterpolationMatch.Value);
-
-        //            string subString = GetCodeUntilEndOfString(subExpr.Substring(endOfStringInterpolationMatch.Length), stringBeginningForEndBlockMatch);
-
-        //            result.Append(endOfStringInterpolationMatch.Value);
-        //            result.Append(subString);
-        //            result.Append(GetCodeUntilEndOfStringInterpolation(subExpr.Substring(endOfStringInterpolationMatch.Length + subString.Length)));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        result.Append(subExpr);
-        //    }
-
-        //    return result.ToString();
-        //}
 
         private string GetCodeUntilEndOfStringInterpolation(string subExpr)
         {
