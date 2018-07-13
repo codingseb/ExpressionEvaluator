@@ -546,6 +546,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// By default : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
+        
+        /// <summary>
+        /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>false</c> unactive this functionality
+        /// By default : true
+        /// </summary>
+        public bool OptionIndexingAssignationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
@@ -1642,16 +1649,16 @@ namespace CodingSeb.ExpressionEvaluator
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
-                Match assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expr.Substring(i + 1));
+                Match assignationOrPostFixOperatorMatch = null;
 
                 object valueToPush = null;
 
-                if (assignationOrPostFixOperatorMatch.Success)
+                if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expr.Substring(i + 1))).Success)
                 {
                     i += assignationOrPostFixOperatorMatch.Length + 1;
 
-                    bool postFixoperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
-                    string exceptionContext = postFixoperator ? "++ or -- operator" : "an assignation";
+                    bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
+                    string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
 
                     if (stack.Count > 1)
                         throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
@@ -1659,7 +1666,7 @@ namespace CodingSeb.ExpressionEvaluator
                     if (op == ExpressionOperator.IndexingWithNullConditional)
                         throw new ExpressionEvaluatorSyntaxErrorException($"Null coalescing is not usable left to {exceptionContext}");
 
-                    if (postFixoperator)
+                    if (postFixOperator)
                         valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
                     else
                     {
