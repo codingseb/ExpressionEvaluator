@@ -1,0 +1,16 @@
+/* Script0011 */
+list = List(5,5,5,5,5,5,5,5,5,5,5);
+
+list[0] = 8;
+list[1] += 6;
+list[2] -= 2;
+list[3] *= 3;
+list[4] /= 2;
+list[5] %= 2;
+list[6] ^= 3;
+list[7] &= 3;
+list[8] |= 3;
+list[9] <<= 2;
+list[10] >>=2;
+
+return list.Json;
