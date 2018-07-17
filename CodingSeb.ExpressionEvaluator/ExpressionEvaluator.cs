@@ -45,9 +45,10 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
-        private static readonly Regex elseblockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>else)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^\s*[;]");
 
         #endregion
 
@@ -789,12 +790,12 @@ namespace CodingSeb.ExpressionEvaluator
 
             while(!isReturn && !isBreak && !isContinue && i < script.Length)
             {
-                Match blockKeywordsBeginingMatch;
+                Match blockKeywordsBeginingMatch = null;
                 Match elseBlockKeywordsBeginingMatch = null;
 
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
                     && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
-                        || (elseBlockKeywordsBeginingMatch = elseblockKeywordsBeginningRegex.Match(script.Substring(i))).Success))
+                        || (elseBlockKeywordsBeginingMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : elseBlockKeywordsBeginingMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (elseBlockKeywordsBeginingMatch?.Groups["keyword"].Value ?? string.Empty);
@@ -875,6 +876,49 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
+                        }
+                        else if (keyword.Equals("do"))
+                        {
+                            if((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
+                                && blockKeywordsBeginingMatch.Groups["keyword"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("while"))
+                            {
+                                i += blockKeywordsBeginingMatch.Length;
+                                keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true, ";");
+
+                                i++;
+
+                                Match nextIsEndOfExpressionMatch = null;
+
+                                if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
+                                {
+                                    i += nextIsEndOfExpressionMatch.Length;
+
+                                    do
+                                    {
+                                        lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
+
+                                        if (isBreak)
+                                        {
+                                            isBreak = false;
+                                            break;
+                                        }
+                                        if (isContinue)
+                                        {
+                                            isContinue = false;
+                                            continue;
+                                        }
+                                    }
+                                    while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]));
+                                }
+                                else
+                                {
+                                    throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing. (After the do while condition)");
+                                }
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword afte the [do] keyword and block");
+                            }
                         }
                         else if (keyword.Equals("while"))
                         {

@@ -584,6 +584,53 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("++")
                     .SetCategory("+=")
                     .Returns("0,1,2,3,4");
+                yield return new TestCaseData(Resources.Script0015, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns(string.Empty);
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0015, string.Empty), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns(string.Empty);
+
+                #endregion
+
+                #region do while
+
+                yield return new TestCaseData(Resources.Script0013, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0013, string.Empty), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0,1,2,3,4");
+                yield return new TestCaseData(Resources.Script0014, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0");
+                yield return new TestCaseData(removeAllWhiteSpacesRegex.Replace(Resources.Script0014, string.Empty), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("do while")
+                    .SetCategory("variable assignation")
+                    .SetCategory("++")
+                    .SetCategory("+=")
+                    .Returns("0");
 
                 #endregion
 
