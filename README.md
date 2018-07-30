@@ -2,6 +2,8 @@
 
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
+And now can execute small C# like scripts 
+
 It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
 
 ## Status
@@ -23,10 +25,17 @@ It is largely based on and inspired by the following resources [this post on st
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * [C# primary types](#primary-types)
 * Use strings as in C# (@"", $"", $@"" available)
-* Linq, generics and lambda expressions
+* Lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
 * Create instance with [new(MyClassName, constructorArgs)](#standard-functions) or [new MyClassName(constructorArgs)](#operators)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
+* Manage now assignation operators like =, +=, -=, *= ... (On variables and sub properties)
+* Manage now postfix operators ++ and -- (On variables and sub properties)
+
+## And with [ScriptEvaluate](#scripts)
+* Small C# like script evaluation (Multi expressions separated by ;)
+* Some conditional and loop blocks [keywords](#script-keywords) (if, while, for ...)
+* Multi-line (multi expression) Lambda expressions.
 
 ## Getting started
 
@@ -39,16 +48,18 @@ Install-Package CodingSeb.ExpressionEvaluator
 
 or copy the [CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project :
 
-
 ## Basic C# usage
+
+### Simple expressions
+
 ```c#
 using CodingSeb.ExpressionEvaluator;
 //...
 string expression;
 //...
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
-Console.Write(expression);
-Console.Write(evaluator.Evaluate(expression));
+Console.WriteLine(expression);
+Console.WriteLine(evaluator.Evaluate(expression));
 ```
 Results with some expressions :
 
@@ -141,6 +152,123 @@ Enumerable.Repeat(3,6).Cast().ToList()[4]
 true
 ```
 
+### Small scripts
+
+```c#
+using CodingSeb.ExpressionEvaluator;
+//...
+string script;
+//...
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+Console.WriteLine("--------------------------------------------");
+Console.WriteLine(script);
+Console.WriteLine("---------------- Result --------------------");
+Console.WriteLine(evaluator.Evaluate(script));
+```
+Results with some scripts :
+
+```
+--------------------------------------------
+x = 0;
+result = "";
+
+while(x < 5)
+{
+	result += $"{x},";
+	x++;
+}
+
+result.Remove(result.Length - 1);
+---------------- Result --------------------
+0,1,2,3,4
+
+--------------------------------------------
+result = "";
+
+for(x = 0; x < 5;x++)
+{
+	result += $"{x},";
+}
+
+result.Remove(result.Length - 1);
+---------------- Result --------------------
+0,1,2,3,4
+
+--------------------------------------------
+x = 0;
+y = 1;
+result = 0;
+
+if(y != 0)
+{
+	return 1;
+}
+else if(x == 0)
+{
+	return 2;
+}
+else if(x < 0)
+{
+	return 3;
+}
+else
+{
+	return 4;
+}
+---------------- Result --------------------
+1
+
+--------------------------------------------
+x = 0;
+y = 0;
+result = 0;
+
+if(y != 0)
+{
+	return 1;
+}
+else if(x == 0)
+{
+	return 2;
+}
+else if(x < 0)
+{
+	return 3;
+}
+else
+{
+	return 4;
+}
+---------------- Result --------------------
+2
+
+--------------------------------------------
+x = 5;
+y = 0;
+result = 0;
+
+if(y != 0)
+{
+	return 1;
+}
+else if(x == 0)
+{
+	return 2;
+}
+else if(x < 0)
+{
+	return 3;
+}
+else
+{
+	return 4;
+}
+---------------- Result --------------------
+4
+```
+
+To see more scripts examples see scripts uses for tests in sub directories [CodingSeb.ExpressionEvaluator.Tests/Resources](./CodingSeb.ExpressionEvaluator.Tests/Resources)
+
 ## Standard constants (variables)
 
 The evaluation of variables name is case insensitive so you can write it as you want.
@@ -206,7 +334,6 @@ The following functions are internally defined. (Most of these are [System.Math 
 |**[Exp](https://msdn.microsoft.com/en-us/library/system.math.exp(v=vs.110).aspx)**(double d)|Return a double value that is e raised to the specified d power|`Exp(3d)`|`20.0855369231877d`|
 |**[Floor](https://msdn.microsoft.com/en-us/library/e0b5f0xb(v=vs.110).aspx)**(double d)|Return a double value that is the largest integer less than or equal to the specified d argument|`Floor(4.23d)`|`4d`|
 |**[IEEERemainder](https://msdn.microsoft.com/en-us/library/system.math.ieeeremainder(v=vs.110).aspx)**(double x, double y)|Return a double value that is the remainder resulting from the division of x by y|`IEEERemainder(9, 8)`|`1d`|
-|**if**(bool condition, object yes, object no)|Return the yes object value if condition is true.<br/>Return the no object if condition is false|`if(1>2, "It is true", "It is false")`|`"It is false"`|
 |**in**(object valueToFind, object obj1, object obj2...)|Return a boolean value that indicate if the first argument is found in the other arguments|`in(8, 4, 2, 8)`|`true`|
 |**List**(object obj1, object obj2 ,...)|Return a List (System.Collections.Generic.List<object>) of all given arguments|`List(1, "Hello", true)`|`new List<object>(){1, "Hello", true}`|
 |**[Log](https://msdn.microsoft.com/en-us/library/system.math.log(v=vs.110).aspx)**(double a, double base)|Return a double value that is the logarithm of a in the specified base|`Log(64d, 2d)`|`6d`|
@@ -223,6 +350,9 @@ The following functions are internally defined. (Most of these are [System.Math 
 |**[Tan](https://msdn.microsoft.com/en-us/library/system.math.tan(v=vs.110).aspx)**(double angle)|Return a double value that is the tangent of the specified angle in radian|`Tan(Pi / 4)`|`1d`|
 |**[Tanh](https://msdn.microsoft.com/en-us/library/system.math.tanh(v=vs.110).aspx)**(double angle)|Return a double value that is the hyperbolic tangent of the specified angle in radian|`Tanh(2d)`|`0.964027580075817d`|
 |**[Truncate](https://msdn.microsoft.com/en-us/library/c2eabd70(v=vs.110).aspx)**(double d)|Return a double value that is the integer part of the specified d value|`Truncate(2.45d)`|`2d`|
+
+
+*Remark : The old if function (NCalc style) has been removed. This to avoid conflicts with the new if, else if, else keywords in script mode. To do something similar on a expression level use the conditional operator [( ? : )](#Operators) instead.*
 
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
@@ -277,7 +407,7 @@ Hello Bob
 Since ExpressionEvaluator evaluate one expression at a time. 
 There are cases where we need to use void methods in a fluid syntax manner.
 
-To do so, you only need to prefix the method name with "Fluid" or "Fluent"
+You only need to prefix the method name with "Fluid" or "Fluent"
 
 ```C#
 // Example Add on List
@@ -336,8 +466,8 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Primary|[x?[y]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operators)|Supported|
 |Primary|[f(x)](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/invocation-operator)|Supported|
 |Primary|[a[x]](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/index-operator)|Supported|
-|Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Supported|
-|Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Supported|
+|Primary|[x++](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/increment-operator)|Supported **Warning change the state of the postfixed element**|
+|Primary|[x--](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/decrement-operator)|Supported **Warning change the state of the postfixed element**|
 |Primary|[new](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-operator)|Supported you can also use [new() function](#standard-functions)|
 |Primary|[typeof](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/typeof)|Supported|
 |Primary|[checked](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/checked)|Not Supported|
@@ -380,7 +510,88 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Supported equivalent to the [if() function](#standard-functions)|
 |Lambda|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
 
-Assignment Operators are not supported in ExpressionEvaluator
+### Assignation operators
+
+** Warning all of the following operators change the value of their left element.**
+
+Assignation operators (and also postfix operators (++ and --)) are usable on : 
+
+|Elements|What is changing|Options|
+|---|---|---|
+|Custom variables|The variable in the Variables dictionary is changed and if the variable doesn't exists, it automatically created with the = operator|Can be disabled with ```evaluator.OptionVariableAssignationActive = false;```|
+|Properties or fields on objects|If the property/field is not readonly it is changed|Can be disabled with ```evaluator.OptionPropertyOrFieldSetActive = false;```|
+|Indexed object like arrays, list or dictionaries|The value at the specified index is changed|Can be disabled with ```evaluator.OptionIndexingAssignationActive = false;```|
+
+Here is the list of available assignation operator
+
+|Operator|Support|
+|---|---|
+|[=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/assignment-operator)|Supported (Can be use to declare a new variable that will be injected in the Variables dictionary)|
+|[+=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/addition-assignment-operator)|Supported|
+|[-=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/subtraction-assignment-operator)|Supported|
+|[*=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/multiplication-assignment-operator)|Supported|
+|[/=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/division-assignment-operator)|Supported|
+|[%=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/remainder-assignment-operator)|Supported|
+|[&=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-assignment-operator)|Supported|
+|[|=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-assignment-operator)|Supported|
+|[^=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-assignment-operator)|Supported|
+|[<<=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-assignment-operator)|Supported|
+|[>>=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-assignment-operator)|Supported|
+
+## Scripts
+In addition to simple expression evaluation you can also evaluate small script with the method ```ScriptEvaluate(string script)```.
+Scripts are just a serie of expressions to evaluate separated with a ; character and leaded by severals additionals keywords.
+
+To declare a variable types are not yet supported and are for now dynamically deduced.
+
+```C#
+// Not supported
+int x = 2;
+string text = "hello";
+
+for(int i = 0; i < 10; i++)
+...
+
+// Write this instead :
+x = 2;
+text = "hello";
+
+for(i = 0; i < 10; i++)
+...
+```
+
+### Script keywords
+
+Currently the following script keywords are supported
+
+|Type|Operator|Support|
+|---|---|---|
+|Selection|[if](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/if-else)|Supported|
+|Selection|[else if](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/if-else)|Supported|
+|Selection|[else](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/if-else)|Supported|
+|Selection|[switch case](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/switch)|Not yet supported|
+|Iteration|[do ... while](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/do)|Supported|
+|Iteration|[for](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/for)|Supported|
+|Iteration|[foreach, in](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/foreach-in)|Not yet supported|
+|Iteration|[while](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/while)|Supported|
+|Jump|[break](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/break)|Supported in do, for and while blocks|
+|Jump|[continue](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/continue)|Supported in do, for and while blocks|
+|Jump|[goto](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/goto)|Not supported (But if you looked after it -> Booo !!! Bad code)|
+|Jump|[return](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/return)|Supported|
+
+*Remark : The way ScriptEvaluate works is to evaluate expressions one by one. There is no syntax check before the evaluation. So be aware that syntax or naming bugs only appears at execution and some code can already be evaluated at this time. Futhermore a syntaxic/naming bug in an if-else block for example can simply be ignored until the corresponding condition is met to evaluate the specific line of code.*
+
+## Code comments
+By default comments are not managed in expressions and scripts evaluations.
+But they can be manually removed with the specific method ```string RemoveComments(string scriptWithComments)```
+
+To be sure that your commented script is evaluated correctly you can do : 
+
+```C#
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+evaluator.ScriptEvaluate(evaluator.RemoveComments(scriptWithComments));
+```
+It remove line comments // and blocks comments /* ... */
 
 ## Namespaces and types
 By default the following list of namespaces are available :
@@ -411,3 +622,19 @@ You can also add a specific type :
 ```C#
 evaluator.Types.Add(typeof(MyClass));
 ```
+
+## Similar projects
+### Free
+* [NCalc](https://archive.codeplex.com/?p=ncalc) or [NCalc new home](https://github.com/sheetsync/NCalc) 
+* [Jint](https://github.com/sebastienros/jint) Support scripting but with Javascript
+* [DynamicExpresso](https://github.com/davideicardi/DynamicExpresso/)
+* [Flee](https://github.com/mparlak/Flee)
+* [CS-Script](https://github.com/oleg-shilo/cs-script) Best alternative (I use it some times) -> Real C# scripts better than ExpressionEvaluator (But everything is compiled. Read the doc. Execution is faster but compilation can make it very slow. And if not done the right way, it can lead to memory leaks)
+
+### Commercial
+* [Eval Expression.NET](http://eval-expression.net/)
+
+I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely.
+
+The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT nor in lambda expressions nor in javascript or other languages stuffs.
+So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks and already allow to evaluate some small scripts.
