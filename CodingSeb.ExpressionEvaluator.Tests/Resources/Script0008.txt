@@ -1,0 +1,7 @@
+/* Script0008 */
+x = [valx];
+
+if(x == 0)
+	return 2;
+	
+x;

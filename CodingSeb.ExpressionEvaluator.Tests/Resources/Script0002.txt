@@ -1,0 +1,9 @@
+/* Script0002 */
+result = "";
+
+for(x = 0; x < 5;x++)
+{
+	result += $"{x},";
+}
+
+result.Remove(result.Length - 1);

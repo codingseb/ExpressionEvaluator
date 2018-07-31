@@ -1,0 +1,12 @@
+/* Script0014 */
+x = 0;
+result = "";
+
+do
+{
+	result += $"{x},";
+	x++;
+}
+while(false);
+
+result.Remove(result.Length - 1);

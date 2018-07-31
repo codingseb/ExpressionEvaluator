@@ -1,0 +1,15 @@
+/* Script0005 */
+x = [valx];
+y = [valy];
+result = 0;
+
+if(y != 0)
+	result = 1;
+else if(x == 0)
+	result = 2;
+else if(x < 0)
+	result = 3;
+else
+	result = 4;
+
+result;

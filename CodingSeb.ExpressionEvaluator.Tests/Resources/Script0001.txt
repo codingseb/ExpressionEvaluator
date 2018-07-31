@@ -1,0 +1,11 @@
+/* Script0001 */
+x = 0;
+result = "";
+
+while(x < 5)
+{
+	result += $"{x},";
+	x++;
+}
+
+result.Remove(result.Length - 1);

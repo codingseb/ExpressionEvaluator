@@ -1,0 +1,11 @@
+/* Script0017 */
+
+FirstFunc = x => 
+{
+	y = 3;
+	return x + y; 
+};
+
+SecondFunc = (x, y) => FirstFunc(x) - y;
+
+return SecondFunc(5, 2);
