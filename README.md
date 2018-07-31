@@ -4,7 +4,7 @@ A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
 And from version 1.2.0 can execute small C# like scripts 
 
-It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/), [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx) and [C# Statement Keywords](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/statement-keywords)
+It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://github.com/pitermarx/NCalc-Edge), [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx) and [C# Statement Keywords](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/statement-keywords)
 
 ## Status
 
@@ -375,7 +375,7 @@ The following functions are internally defined. (Most of these are [System.Math 
 |**[Truncate](https://msdn.microsoft.com/en-us/library/c2eabd70(v=vs.110).aspx)**(double d)|Return a double value that is the integer part of the specified d value|`Truncate(2.45d)`|`2d`|
 
 
-*Remark : The old if function (NCalc style) has been removed. This to avoid conflicts with the new if, else if, else keywords in script mode. To do something similar on a expression level use the conditional operator [( ? : )](#Operators) instead.*
+*Remark : The old if function ([NCalc style](https://github.com/pitermarx/NCalc-Edge/wiki/Functions)) has been removed. This to avoid conflicts with the new if, else if, else keywords in script mode. To do something similar on a expression level use the conditional operator [( ? : )](#Operators) instead.*
 
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
@@ -650,18 +650,19 @@ evaluator.Types.Add(typeof(MyClass));
 
 ## Similar projects
 ### Free
-* [NCalc](https://archive.codeplex.com/?p=ncalc) or [NCalc new home](https://github.com/sheetsync/NCalc) 
+* [NCalc](https://github.com/pitermarx/NCalc-Edge)
 * [Jint](https://github.com/sebastienros/jint) Support scripting but with Javascript
 * [DynamicExpresso](https://github.com/davideicardi/DynamicExpresso/)
 * [Flee](https://github.com/mparlak/Flee)
 * [CS-Script](https://github.com/oleg-shilo/cs-script) Best alternative (I use it some times) -> Real C# scripts better than ExpressionEvaluator (But everything is compiled. Read the doc. Execution is faster but compilation can make it very slow. And if not done the right way, it can lead to memory leaks)
+* [Roslyn](https://github.com/dotnet/roslyn) The Microsoft official solution
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
 
-I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely.
+I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read ).
 
-The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT nor in lambda expressions nor in javascript or other languages stuffs.
+The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT/IL nor in lambda expressions nor in javascript or other languages stuffs.
 So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks. 
 It already allow to evaluate some small scripts.
-And if you don't want an another .dll file in your project, you only need to copy one [C# file](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project.
+If you don't want an another .dll file in your project, you only need to copy one [C# file](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project. And it's [MIT licence](./LICENSE.md)
