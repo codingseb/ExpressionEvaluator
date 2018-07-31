@@ -1001,6 +1001,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("simpleInt-- - simpleInt", onInstanceVariables, true).SetCategory("Postfix operator, --").Returns(1);
                 #endregion
 
+                #region Delegates as a variable
+
+                Dictionary<string, object> delegatesInVariable = new Dictionary<string, object>()
+                {
+                    { "Add", new Func<int,int,int>((x, y) => x + y)},
+                    { "Test", new Action<int>(x => x.ShouldEqual(5))},
+                };
+
+                yield return new TestCaseData("Add(3, 4)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(7);
+                yield return new TestCaseData("Test(5)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(null);
+
+                #endregion
             }
         }
 

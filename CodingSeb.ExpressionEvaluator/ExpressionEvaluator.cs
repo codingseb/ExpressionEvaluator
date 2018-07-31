@@ -1307,9 +1307,13 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(funcResult);
                     }
-                    else if(Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
+                    else if (Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
                     {
                         stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
+                    }
+                    else if (Variables.TryGetValue(varFuncName, out o) && o is Delegate delegateVar)
+                    {
+                        stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
                     }
                     else
                     {

@@ -2,9 +2,9 @@
 
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
-And now can execute small C# like scripts 
+And from version 1.2.0 can execute small C# like scripts 
 
-It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/) and [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx)
+It is largely based on and inspired by the following resources [this post on stackoverflow](http://stackoverflow.com/questions/333737/evaluating-string-342-yield-int-18/333749), [NCalc](https://ncalc.codeplex.com/), [C# Operators](https://msdn.microsoft.com/en-us/library/6a71f45d.aspx) and [C# Statement Keywords](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/statement-keywords)
 
 ## Status
 
@@ -32,7 +32,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Manage now assignation operators like =, +=, -=, *= ... (On variables and sub properties)
 * Manage now postfix operators ++ and -- (On variables and sub properties)
 
-## And with [ScriptEvaluate](#scripts)
+## And with [ScriptEvaluate](#scripts) method
 * Small C# like script evaluation (Multi expressions separated by ;)
 * Some conditional and loop blocks [keywords](#script-keywords) (if, while, for ...)
 * Multi-line (multi expression) Lambda expressions.
@@ -279,8 +279,6 @@ To see more scripts examples see scripts uses for tests in sub directories [Codi
 
 ## Standard constants (variables)
 
-The evaluation of variables name is case insensitive so you can write it as you want.
-
 |Constant|Value|Type|
 |---|---|---|
 |null|C# null value|N/A|
@@ -300,8 +298,8 @@ evaluator.Variables = new Dictionary<string, object>()
 {
   { "x", 2,5 },
   { "y", -3.6 },
-  { "myVar", "Hello World" }
-  { "myArray", new object[] { 3.5, "Test", false}
+  { "myVar", "Hello World" },
+  { "myArray", new object[] { 3.5, "Test", false },
 };
 ```
 ```
@@ -322,6 +320,23 @@ myArray[1].Length
 
 myArray[2] || true
 True
+```
+A very useful functionality is that you can store callable delegates in variables : 
+```C#
+ExpressionEvaluator evaluator = new ExpressionEvaluator();
+evaluator.Variables = new Dictionary<string, object>()
+{
+    { "Add", new Func<int,int,int>((x, y) => x + y)},
+    { "SayHelloTo", new Action<string>(name => Console.WriteLine($"Hello {name} !!!"))},
+};
+```
+```
+Add(5, 9)
+14
+
+SayHelloTo("John")
+Hello John !!!
+{null}
 ```
 
 ## Standard functions
@@ -365,8 +380,8 @@ The following functions are internally defined. (Most of these are [System.Math 
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
 2 C# events are provided that are fired when variables or functions are not fund as standard ones in evaluation time.
-Can be use to define or redefine on object instances methods or properties.
 
+*Remark : Can be use to define or redefine on object instances methods or properties*
 ```C#
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
 evaluator.EvaluateVariable += ExpressionEvaluator_EvaluateVariable;
@@ -431,7 +446,6 @@ BYE
 List("hello", "bye").Select(x => x.ToUpper()).ToList().FluentAdd("test")[2]
 test
 ```
-
 If needed this fonctionality can be disabled with :
 
 ```
@@ -439,7 +453,7 @@ evaluator.OptionFluidPrefixingActive = false;
 ```
 
 ## Primary types
-ExpressionEvaluator manage the following list of C# primary types
+ExpressionEvaluator manage the following list of [C# primary types](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/built-in-types-table)
 
 * object
 * string
@@ -586,6 +600,9 @@ Currently the following script keywords are supported
 |Jump|[continue](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/continue)|Supported in do, for and while blocks|
 |Jump|[goto](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/goto)|Not supported (But if you looked after it -> Booo !!! Bad code)|
 |Jump|[return](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/return)|Supported|
+|Jump|[yield](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/yield)|Not supported|
+
+Exception handling keywords are not yet supported
 
 *Remark : The way ScriptEvaluate works is to evaluate expressions one by one. There is no syntax check before the evaluation. So be aware that syntax or naming bugs only appears in execution and some code can already be evaluated at this time. Futhermore a syntaxic/naming bug in an if-else block for example can simply be ignored until the corresponding condition is met to evaluate the specific line of code.*
 
@@ -599,7 +616,7 @@ To be sure that your commented script is evaluated correctly you can do :
 ExpressionEvaluator evaluator = new ExpressionEvaluator();
 evaluator.ScriptEvaluate(evaluator.RemoveComments(scriptWithComments));
 ```
-It remove line comments // and blocks comments /* ... */
+It remove line comments // and blocks comments /* ... */ but keep them in strings
 
 ## Namespaces and types
 By default the following list of namespaces are available :
@@ -623,7 +640,7 @@ evaluator.Namespaces.Add(namespace);
 evaluator.Namespaces.Remove(namespaceToRemove);
 ```
 
-All types define in these namespaces are accessibles.
+All types defined in these namespaces are accessibles.
 
 You can also add a specific type :
 
