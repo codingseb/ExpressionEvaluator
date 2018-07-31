@@ -94,9 +94,6 @@ Array(2, $"Test { 2 + 2 } U", true).Length
 Array(2, $"Test { 2 + 2 } U", true)[1]
 Test 4 U
 
-if(Array(2, $"Test { 2 + 2 } U", true)[2], "yes" , "no")
-yes
-
 Array(2, $"Test { 2 + 2 } U", true)[2] ? "yes" : "no"
 yes
 
