@@ -557,14 +557,6 @@ Here is the list of available assignation operator
 |[<<=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-assignment-operator)|Supported|
 |[>>=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-assignment-operator)|Supported|
 
-## Scripts
-In addition to simple expression evaluation you can also evaluate small script with the method :
-```C#
-//object ScriptEvaluate(string script)
-evaluator.ScriptEvaluate(script);
-```
-Scripts are just a serie of expressions to evaluate separated with a ; character and leaded by severals additionals keywords.
-
 To declare a variable types are not yet supported and are for now dynamically deduced.
 
 ```C#
@@ -582,6 +574,15 @@ text = "hello";
 for(i = 0; i < 10; i++)
 ...
 ```
+
+## Scripts
+In addition to simple expression evaluation you can also evaluate [small scripts](#small-scripts) with the method :
+```C#
+//object ScriptEvaluate(string script)
+evaluator.ScriptEvaluate(script);
+```
+Scripts are just a serie of expressions to evaluate separated with a ; character and leaded by severals additionals keywords.
+
 
 ### Script keywords
 
