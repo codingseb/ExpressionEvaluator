@@ -752,7 +752,7 @@ namespace CodingSeb.ExpressionEvaluator
                 return ManageJumpStatementsOrExpressionEval(expression);
             }
 
-            bool TryParseStringAndParenthis(ref int index)
+            bool TryParseStringAndParenthisAndCurlyBrackets(ref int index)
             {
                 bool parsed = true;
                 Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
@@ -766,6 +766,11 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     index++;
                     GetExpressionsBetweenParenthis(script, ref index, false);
+                }
+                else if(script[index] == '{')
+                {
+                    index++;
+                    GetScriptBetweenCurlyBrackets(script, ref index);
                 }
                 else
                     parsed = false;
@@ -826,7 +831,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         while (i < script.Length && continueExpressionParsing)
                         {
-                            if (TryParseStringAndParenthis(ref i)) { }
+                            if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
                             else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                             {
                                 i += 2;
@@ -967,7 +972,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     ExecuteIfList();
 
-                    if (TryParseStringAndParenthis(ref i)){}
+                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)){}
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
@@ -1302,6 +1307,10 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(funcResult);
                     }
+                    else if(Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
+                    {
+                        stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
+                    }
                     else
                     {
                         FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs);
@@ -1606,11 +1615,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 i++;
 
-                if (stack.Count > 0 && stack.Peek() is lambdaExpressionDelegate)
+                if (stack.Count > 0 && stack.Peek() is InternalDelegate)
                 {
                     List<string> expressionsInParenthis = GetExpressionsBetweenParenthis(expr, ref i, true);
 
-                    lambdaExpressionDelegate lambdaDelegate = stack.Pop() as lambdaExpressionDelegate;
+                    InternalDelegate lambdaDelegate = stack.Pop() as InternalDelegate;
 
                     stack.Push(lambdaDelegate(expressionsInParenthis.ConvertAll(arg => Evaluate(arg)).ToArray()));
                 }
@@ -1964,7 +1973,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils methods for parsing and interpretation
 
-        private delegate dynamic lambdaExpressionDelegate(params dynamic[] args);
+        private delegate dynamic InternalDelegate(params dynamic[] args);
         private bool GetLambdaExpression(string expr, Stack<object> stack)
         {
             Match lambdaExpressionMatch = lambdaExpressionRegex.Match(expr);
@@ -1976,7 +1985,7 @@ namespace CodingSeb.ExpressionEvaluator
                     .Cast<Match>().ToList()
                     .ConvertAll(argMatch => argMatch.Value);
 
-                stack.Push(new lambdaExpressionDelegate((object[] args) =>
+                stack.Push(new InternalDelegate((object[] args) =>
                 {
                     Dictionary<string, object> vars = new Dictionary<string, object>(Variables);
 
@@ -2062,15 +2071,15 @@ namespace CodingSeb.ExpressionEvaluator
                         string paramTypeName = parameterType.Name;
 
                         if (paramTypeName.StartsWith("Predicate")
-                            && modifiedArgs[a] is lambdaExpressionDelegate)
+                            && modifiedArgs[a] is InternalDelegate)
                         {
-                            lambdaExpressionDelegate led = modifiedArgs[a] as lambdaExpressionDelegate;
+                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
                             modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
                         }
                         else if (paramTypeName.StartsWith("Func")
-                            && modifiedArgs[a] is lambdaExpressionDelegate)
+                            && modifiedArgs[a] is InternalDelegate)
                         {
-                            lambdaExpressionDelegate led = modifiedArgs[a] as lambdaExpressionDelegate;
+                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
                             DelegateEncaps de = new DelegateEncaps(led);
                             MethodInfo encapsMethod = de.GetType()
                                 .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
@@ -2078,9 +2087,9 @@ namespace CodingSeb.ExpressionEvaluator
                             modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
                         }
                         else if (paramTypeName.StartsWith("Converter")
-                            && modifiedArgs[a] is lambdaExpressionDelegate)
+                            && modifiedArgs[a] is InternalDelegate)
                         {
-                            lambdaExpressionDelegate led = modifiedArgs[a] as lambdaExpressionDelegate;
+                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
                             modifiedArgs[a] = new Converter<object, object>(o => (led(new object[] { o })));
                         }
                         else
@@ -2420,12 +2429,12 @@ namespace CodingSeb.ExpressionEvaluator
 
         private class DelegateEncaps
         {
-            private readonly lambdaExpressionDelegate lambda;
+            private readonly InternalDelegate lambda;
 
             private MethodInfo methodInfo;
             private readonly object target;
 
-            public DelegateEncaps(lambdaExpressionDelegate lambda)
+            public DelegateEncaps(InternalDelegate lambda)
             {
                 this.lambda = lambda;
             }

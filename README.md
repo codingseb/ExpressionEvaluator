@@ -265,6 +265,14 @@ else
 }
 ---------------- Result --------------------
 4
+
+--------------------------------------------
+Add = (x, y) => x + y;
+
+return Add(3, 4);
+---------------- Result --------------------
+7
+
 ```
 
 To see more scripts examples see scripts uses for tests in sub directories [CodingSeb.ExpressionEvaluator.Tests/Resources](./CodingSeb.ExpressionEvaluator.Tests/Resources)

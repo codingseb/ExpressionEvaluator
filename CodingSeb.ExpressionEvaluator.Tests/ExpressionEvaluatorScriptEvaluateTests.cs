@@ -935,6 +935,29 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Lambda assignation and call
+
+                yield return new TestCaseData(Resources.Script0016, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("lambda")
+                    .SetCategory("lambda call")
+                    .SetCategory("lambda assignation")
+                    .SetCategory("return")
+                    .SetCategory("variable assignation")
+                    .Returns(7);
+
+                yield return new TestCaseData(Resources.Script0017, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("lambda")
+                    .SetCategory("lambda call")
+                    .SetCategory("lambda call imbrication")
+                    .SetCategory("lambda assignation")
+                    .SetCategory("return")
+                    .SetCategory("variable assignation")
+                    .Returns(6);
+
+                #endregion
+
                 #region More complex script
 
                 yield return new TestCaseData(Resources.Script0007, null, null, null)

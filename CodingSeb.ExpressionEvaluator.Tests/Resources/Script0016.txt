@@ -1,0 +1,4 @@
+/* Script0016 */
+Add = (x, y) => x + y;
+
+return Add(3, 4);
