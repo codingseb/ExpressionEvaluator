@@ -174,8 +174,8 @@ result = "";
 
 while(x < 5)
 {
-	result += $"{x},";
-	x++;
+    result += $"{x},";
+    x++;
 }
 
 result.Remove(result.Length - 1);
@@ -187,7 +187,7 @@ result = "";
 
 for(x = 0; x < 5;x++)
 {
-	result += $"{x},";
+    result += $"{x},";
 }
 
 result.Remove(result.Length - 1);
@@ -201,19 +201,19 @@ result = 0;
 
 if(y != 0)
 {
-	return 1;
+    return 1;
 }
 else if(x == 0)
 {
-	return 2;
+    return 2;
 }
 else if(x < 0)
 {
-	return 3;
+    return 3;
 }
 else
 {
-	return 4;
+    return 4;
 }
 ---------------- Result --------------------
 1
@@ -225,19 +225,19 @@ result = 0;
 
 if(y != 0)
 {
-	return 1;
+    return 1;
 }
 else if(x == 0)
 {
-	return 2;
+    return 2;
 }
 else if(x < 0)
 {
-	return 3;
+    return 3;
 }
 else
 {
-	return 4;
+    return 4;
 }
 ---------------- Result --------------------
 2
@@ -249,19 +249,19 @@ result = 0;
 
 if(y != 0)
 {
-	return 1;
+    return 1;
 }
 else if(x == 0)
 {
-	return 2;
+    return 2;
 }
 else if(x < 0)
 {
-	return 3;
+    return 3;
 }
 else
 {
-	return 4;
+    return 4;
 }
 ---------------- Result --------------------
 4
