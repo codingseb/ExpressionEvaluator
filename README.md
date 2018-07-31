@@ -163,7 +163,7 @@ ExpressionEvaluator evaluator = new ExpressionEvaluator();
 Console.WriteLine("--------------------------------------------");
 Console.WriteLine(script);
 Console.WriteLine("---------------- Result --------------------");
-Console.WriteLine(evaluator.Evaluate(script));
+Console.WriteLine(evaluator.ScriptEvaluate(script));
 ```
 Results with some scripts :
 
