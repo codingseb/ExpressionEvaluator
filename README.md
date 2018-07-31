@@ -662,7 +662,7 @@ evaluator.Types.Add(typeof(MyClass));
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
 
-I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read ).
+I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read docs and licences).
 
 The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT/IL nor in lambda expressions nor in javascript or other languages stuffs.
 So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks. 
