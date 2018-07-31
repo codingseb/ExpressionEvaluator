@@ -557,7 +557,7 @@ Here is the list of available assignation operator
 |[<<=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-assignment-operator)|Supported|
 |[>>=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-assignment-operator)|Supported|
 
-To declare a variable types are not yet supported and are for now dynamically deduced.
+To declare a variable, types are not yet supported and are for now dynamically deduced.
 
 ```C#
 // Not supported
