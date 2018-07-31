@@ -9,7 +9,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
     [TestFixture]
     public class ExpressionEvaluatorTests
     {
-        #region TestCases for TypeTesting
+        #region Type testing
+
+        #region Test cases for TypeTesting
 
         #region IntFormats
         [TestCase("45", typeof(int), Category = "IntFormats")]
@@ -82,7 +84,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .ShouldBeType(type);
         }
 
-        #region TestCases for DirectExpressionEvaluation
+        #endregion
+
+        #region Direct Expression Evaluation
+
+        #region Test cases for DirectExpressionEvaluation
 
         #region Null Expression
         [TestCase("null", ExpectedResult = null, Category = "Null Expression")]
@@ -664,12 +670,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("IEEERemainder(6, 3)", ExpectedResult = 0, Category = "Standard Functions,IEEERemainder Function")]
         #endregion
 
-        #region if Function
-        [TestCase("if(true, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        [TestCase("if(false, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        [TestCase("if(3<5, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        [TestCase("if(3>5, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        #endregion
+        //#region if Function
+        //[TestCase("if(true, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
+        //[TestCase("if(false, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
+        //[TestCase("if(3<5, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
+        //[TestCase("if(3>5, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
+        //#endregion
 
         #region in Function
         [TestCase("in(8, 4, 2, 8)", ExpectedResult = true, Category = "Standard Functions,in Function")]
@@ -734,9 +740,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #endregion
 
         #region new Function
-        [TestCase("(new ClassForTest1()).GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Standard Functions,new Function")]
-        [TestCase("(new ClassForTest2(15)).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Standard Functions,new Function")]
-        [TestCase("(new ClassForTest2(15)).Value1", ExpectedResult = 15, Category = "Standard Functions,new Function")]
+        [TestCase("new(ClassForTest1).GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Standard Functions,new Function")]
+        [TestCase("new(ClassForTest2, 15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Standard Functions,new Function")]
+        [TestCase("new(ClassForTest2, 15).Value1", ExpectedResult = 15, Category = "Standard Functions,new Function")]
         #endregion
 
         #region Pow Function
@@ -854,6 +860,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             return evaluator.Evaluate(expression);
         }
 
+        #endregion
+
+        #region With Custom Variables Expression Evaluation
+
+        #region Test cases source for With Custom Variables Expression Evaluation
         public static IEnumerable<TestCaseData> TestCasesForWithCustomVariablesExpressionEvaluation
         {
             get
@@ -907,9 +918,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
                 yield return new TestCaseData("-(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(-15);
 
-                yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
-                yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
-                yield return new TestCaseData("iStHISrEAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true);
+                yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData("iStHISrEAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData("isThisReal.tostring()", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns("True").SetCategory("Options, OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData("abs(-1)", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(1).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
 
                 #endregion
 
@@ -961,6 +974,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData("customObject.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
                 yield return new TestCaseData("customObject?.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
+                yield return new TestCaseData("customObject.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
+                yield return new TestCaseData("customObject?.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
                 yield return new TestCaseData("customObject.Add3To(9)", onInstanceVariables, true).SetCategory("Instance Method").Returns(12);
                 yield return new TestCaseData("customObject?.Add3To(5)", onInstanceVariables, true).SetCategory("Instance Method").Returns(8);
 
@@ -977,25 +992,50 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("List(simpleArray[1], simpleList?[0], nullVar?[4] ?? \"Bye\", \"How are you ?\").Find(t => t.Length < 4)", onInstanceVariables, true).SetCategory("Complex expression,Lambda function,Instance method,Instance Property,Null Conditional indexing, Null Coalescing Operator").Returns("Bye");
                 yield return new TestCaseData("int.Parse(Regex.Match(\"Test 34 Hello / -World\", @\"\\d+\").Value) + simpleArray.ToList().Find(val => val is int)", onInstanceVariables, true).SetCategory("Complex expression,Static Method,Lambda function").Returns(36);
                 yield return new TestCaseData("otherArray[3].IntProperty", onInstanceVariables, true).SetCategory("Indexing,Instance Property").Returns(18);
+                yield return new TestCaseData("otherArray[3].intField", onInstanceVariables, true).SetCategory("Indexing,Instance Field").Returns(12);
                 yield return new TestCaseData("(() => simpleInt + 1)()", onInstanceVariables, true).SetCategory("Complex expression").Returns(43);
+
+                yield return new TestCaseData("simpleInt++", onInstanceVariables, true).SetCategory("Postfix operator, ++").Returns(42);
+                yield return new TestCaseData("simpleInt++ - simpleInt", onInstanceVariables, true).SetCategory("Postfix operator, ++").Returns(-1);
+                yield return new TestCaseData("simpleInt--", onInstanceVariables, true).SetCategory("Postfix operator, --").Returns(42);
+                yield return new TestCaseData("simpleInt-- - simpleInt", onInstanceVariables, true).SetCategory("Postfix operator, --").Returns(1);
+                #endregion
+
+                #region Delegates as a variable
+
+                Dictionary<string, object> delegatesInVariable = new Dictionary<string, object>()
+                {
+                    { "Add", new Func<int,int,int>((x, y) => x + y)},
+                    { "Test", new Action<int>(x => x.ShouldEqual(5))},
+                };
+
+                yield return new TestCaseData("Add(3, 4)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(7);
+                yield return new TestCaseData("Test(5)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(null);
 
                 #endregion
             }
         }
 
-        [TestCaseSource("TestCasesForWithCustomVariablesExpressionEvaluation")]
+        #endregion
+
+        [TestCaseSource(nameof(TestCasesForWithCustomVariablesExpressionEvaluation))]
         public object WithCustomVariablesExpressionEvaluation(string expression, Dictionary<string, object> variables, bool caseSensitiveEvaluation)
         {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator(variables);
-
-            evaluator.CaseSensitiveEvaluation = caseSensitiveEvaluation;
+            ExpressionEvaluator evaluator = new ExpressionEvaluator(variables)
+            {
+                OptionCaseSensitiveEvaluationActive = caseSensitiveEvaluation
+            };
 
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
             return evaluator.Evaluate(expression);
         }
 
-        #region On the fly evaluation
+        #endregion
+
+        #region On the fly evaluation tests
+
+        #region Test cases for On the fly evaluation
         [TestCase("3.Add(2)", ExpectedResult = 5, Category = "On the fly method")]
         [TestCase("3.MultipliedBy2", ExpectedResult = 6, Category = "On the fly property")]
         [TestCase("myVar + 2", ExpectedResult = 10, Category = "On the fly variable")]
@@ -1036,6 +1076,198 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             {
                 e.Value = 8;
             }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Exception Throwing Evaluation
+
+        #region Test cases source for With Custom Variables Expression Evaluation
+
+        public static IEnumerable<TestCaseData> TestCasesForExceptionThrowingEvaluation
+        {
+            get
+            {
+                #region Options
+
+                #region OptionCaseSensitiveEvaluationActive = true
+
+                ExpressionEvaluator evaluator = new ExpressionEvaluator()
+                {
+                    OptionCaseSensitiveEvaluationActive = true
+                };
+
+                evaluator.Variables["isThisReal"] = true;
+
+                yield return new TestCaseData(evaluator, "ISTHISREAL", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData(evaluator, "isthisreal", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData(evaluator, "iStHISrEAL", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData(evaluator, "isThisReal.tostring()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCaseSensitiveEvaluationActive");
+                yield return new TestCaseData(evaluator, "abs(-1)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCaseSensitiveEvaluationActive");
+
+                #endregion
+
+                #region OptionFluidPrefixingActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionFluidPrefixingActive = false
+                };
+
+                yield return new TestCaseData(evaluator, "List(1,2,3).FluidAdd(4).Count", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionFluidPrefixingActive");
+
+                #endregion
+
+                #region OptionCharEvaluationActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionCharEvaluationActive = false
+                };
+
+                yield return new TestCaseData(evaluator, "'e'", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCharEvaluationActive");
+                yield return new TestCaseData(evaluator, "\"hell\" + 'o'", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCharEvaluationActive");
+                yield return new TestCaseData(evaluator, "\"Test\" + '\\n'", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCharEvaluationActive");
+
+                #endregion
+
+                #region OptionStringEvaluationActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionStringEvaluationActive = false
+                };
+
+                yield return new TestCaseData(evaluator, "\"hello\"", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStringEvaluationActive");
+                yield return new TestCaseData(evaluator, "3 + @\"xyz\".Length", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStringEvaluationActive");
+                yield return new TestCaseData(evaluator, "$\"Test { 5+5 } Test\"", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStringEvaluationActive");
+
+                #endregion
+
+                #region OptionNewFunctionEvaluationActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionNewFunctionEvaluationActive = false
+                };
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "new(ClassForTest1).GetType()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewFunctionEvaluationActive");
+                yield return new TestCaseData(evaluator, "new(ClassForTest2, 15).GetType()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewFunctionEvaluationActive");
+                yield return new TestCaseData(evaluator, "new(ClassForTest2, 15).Value1", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewFunctionEvaluationActive");
+
+                #endregion
+
+                #region OptionNewKeywordEvaluationActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionNewKeywordEvaluationActive = false
+                };
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "new ClassForTest1().GetType()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewKeywordEvaluationActive");
+                yield return new TestCaseData(evaluator, "new ClassForTest2(15).GetType()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewKeywordEvaluationActive");
+                yield return new TestCaseData(evaluator, "new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1().Value1", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewKeywordEvaluationActive");
+                yield return new TestCaseData(evaluator, "new Regex(@\"\\w*[n]\\w*\").Match(\"Which word contains the desired letter ?\").Value", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionNewKeywordEvaluationActive");
+
+                #endregion
+
+                #region OptionStaticMethodsCallActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionStaticMethodsCallActive = false
+                };
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "ClassForTest1.StaticStringMethod(\"Bob\")", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStaticMethodsCallActive");
+
+                #endregion
+
+                #region OptionStaticMethodsCallActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionStaticProperiesGetActive = false
+                };
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "ClassForTest1.StaticIntProperty", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStaticProperiesGetActive");
+
+                #endregion
+
+                #region OptionInstanceMethodsCallActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionInstanceMethodsCallActive = false
+                };
+
+                evaluator.Variables["customObject"] = new ClassForTest1();
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "customObject.Add3To(9)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionInstanceMethodsCallActive");
+
+                #endregion
+
+                #region OptionInstanceProperiesGetActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionInstanceProperiesGetActive = false
+                };
+
+                evaluator.Variables["customObject"] = new ClassForTest1();
+
+                evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
+
+                yield return new TestCaseData(evaluator, "customObject.IntProperty", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionInstanceProperiesGetActive");
+
+                #endregion
+
+                #region OptionIndexingActive = false
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionIndexingActive = false
+                };
+
+                evaluator.Variables["dict"] = new Dictionary<string, int>() { { "intValue", 5 } };
+
+                yield return new TestCaseData(evaluator, "List(1,2,3)[1]", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionIndexingActive");
+                yield return new TestCaseData(evaluator, "dict[\"intValue\"]", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionIndexingActive");
+
+                #endregion
+
+                #endregion
+
+                #region TypesToBlock
+
+                evaluator = new ExpressionEvaluator();
+
+                evaluator.TypesToBlock.Add(typeof(Regex));
+
+                yield return new TestCaseData(evaluator, "new ExpressionEvaluation()", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("TypesToBlock");
+                yield return new TestCaseData(evaluator, "new Regex(@\"\\d+\").IsMatch(\"sdajflk32748safd\")", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("TypesToBlock");
+
+                #endregion
+            }
+        }
+
+        #endregion
+
+        [TestCaseSource(nameof(TestCasesForExceptionThrowingEvaluation))]
+        public void ExceptionThrowingEvaluation(ExpressionEvaluator evaluator, string expression, Type exceptionType)
+        {
+            Assert.Catch(exceptionType, () => evaluator.Evaluate(expression));
         }
 
         #endregion

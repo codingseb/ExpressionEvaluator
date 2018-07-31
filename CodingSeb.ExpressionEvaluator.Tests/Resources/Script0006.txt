@@ -1,0 +1,7 @@
+/* Script0006 */
+List(1,2,3,4)
+    .Find((element) => 
+    {
+        x = 2 + 2;
+        element == 3;
+    });

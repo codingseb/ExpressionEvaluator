@@ -1,0 +1,12 @@
+/* Script0015 */
+x = 0;
+result = "";
+
+while(false)
+{
+	result += $"{x},";
+	x++;
+}
+
+
+result;
