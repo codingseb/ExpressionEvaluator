@@ -579,7 +579,7 @@ Currently the following script keywords are supported
 |Jump|[goto](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/goto)|Not supported (But if you looked after it -> Booo !!! Bad code)|
 |Jump|[return](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/return)|Supported|
 
-*Remark : The way ScriptEvaluate works is to evaluate expressions one by one. There is no syntax check before the evaluation. So be aware that syntax or naming bugs only appears at execution and some code can already be evaluated at this time. Futhermore a syntaxic/naming bug in an if-else block for example can simply be ignored until the corresponding condition is met to evaluate the specific line of code.*
+*Remark : The way ScriptEvaluate works is to evaluate expressions one by one. There is no syntax check before the evaluation. So be aware that syntax or naming bugs only appears in execution and some code can already be evaluated at this time. Futhermore a syntaxic/naming bug in an if-else block for example can simply be ignored until the corresponding condition is met to evaluate the specific line of code.*
 
 ## Code comments
 By default comments are not managed in expressions and scripts evaluations.
