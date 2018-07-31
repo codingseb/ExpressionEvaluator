@@ -533,7 +533,7 @@ Here is the list of available assignation operator
 |[/=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/division-assignment-operator)|Supported|
 |[%=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/remainder-assignment-operator)|Supported|
 |[&=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/and-assignment-operator)|Supported|
-|[|=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-assignment-operator)|Supported|
+|[\|=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/or-assignment-operator)|Supported|
 |[^=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/xor-assignment-operator)|Supported|
 |[<<=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/left-shift-assignment-operator)|Supported|
 |[>>=](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/right-shift-assignment-operator)|Supported|
@@ -637,5 +637,6 @@ evaluator.Types.Add(typeof(MyClass));
 I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely.
 
 The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT nor in lambda expressions nor in javascript or other languages stuffs.
-So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks and already allow to evaluate some small scripts.
+So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks. 
+It already allow to evaluate some small scripts.
 And if you don't want an another .dll file in your project, you only need to copy one [C# file](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project.
