@@ -372,7 +372,7 @@ The following functions are internally defined. (Most of these are [System.Math 
 |**[Truncate](https://msdn.microsoft.com/en-us/library/c2eabd70(v=vs.110).aspx)**(double d)|Return a double value that is the integer part of the specified d value|`Truncate(2.45d)`|`2d`|
 
 
-*Remark : The old if function ([NCalc style](https://github.com/pitermarx/NCalc-Edge/wiki/Functions)) has been removed. This to avoid conflicts with the new if, else if, else keywords in script mode. To do something similar on a expression level use the conditional operator [( ? : )](#Operators) instead.*
+*Remark : The old if function ([NCalc style](https://github.com/pitermarx/NCalc-Edge/wiki/Functions)) has been removed. This to avoid conflicts with the new if, else if, else keywords in script mode. To do something similar on a expression level use the conditional operator [( ? : )](#operators) instead.*
 
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
