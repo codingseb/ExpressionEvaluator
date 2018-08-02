@@ -1,0 +1,12 @@
+/* Script0018 */
+
+result = string.Empty;
+elements = List("This", "is", "a", "splitted", "text");
+
+foreach(element in elements)
+{
+	result += element;
+	result += " ";
+}
+
+result.Remove(result.Length - 1);

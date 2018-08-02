@@ -44,7 +44,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
         // For script only
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^\s*(?<variableName>[a-zA-Z_][a-zA-Z0-9_]*)\s+(?<in>in)\s+(?<collection>.*)", RegexOptions.IgnoreCase);
         private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
@@ -946,7 +947,10 @@ namespace CodingSeb.ExpressionEvaluator
                         else if (keyword.Equals("for"))
                         {
                             void forAction(int index)
-                            { if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty)) ManageJumpStatementsOrExpressionEval(keywordAttributes[index]); }
+                            {
+                                if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty))
+                                    ManageJumpStatementsOrExpressionEval(keywordAttributes[index]);
+                            }
 
                             for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1]); forAction(2))
                             {
@@ -961,6 +965,41 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     isContinue = false;
                                     continue;
+                                }
+                            }
+                        }
+                        else if(keyword.Equals("foreach"))
+                        {
+                            Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordAttributes[0]);
+
+                            if(!foreachParenthisEvaluationMatch.Success)
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException("wrong foreach syntax");
+                            }
+                            else if(!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException("no [in] keyword found in foreach");
+                            }
+                            else
+                            {
+                                dynamic collection = Evaluate(foreachParenthisEvaluationMatch.Groups["collection"].Value);
+
+                                foreach(dynamic foreachValue in collection)
+                                {
+                                    Variables[foreachParenthisEvaluationMatch.Groups["variableName"].Value] = foreachValue;
+
+                                    lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
+
+                                    if (isBreak)
+                                    {
+                                        isBreak = false;
+                                        break;
+                                    }
+                                    if (isContinue)
+                                    {
+                                        isContinue = false;
+                                        continue;
+                                    }
                                 }
                             }
                         }

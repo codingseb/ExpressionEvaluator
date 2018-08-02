@@ -379,14 +379,38 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0016 */
-        ///Add = (x, y) =&gt; x + y;
+        ///   Recherche une chaîne localisée semblable à /* Script0017 */
         ///
-        ///return Add(3, 4);.
+        ///FirstFunc = x =&gt; 
+        ///{
+        ///	y = 3;
+        ///	return x + y; 
+        ///};
+        ///
+        ///SecondFunc = (x, y) =&gt; FirstFunc(x) - y;
+        ///
+        ///return SecondFunc(5, 2);.
         /// </summary>
         internal static string Script0017 {
             get {
                 return ResourceManager.GetString("Script0017", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0018 */
+        ///
+        ///result = string.Empty;
+        ///elements = List(&quot;This&quot;, &quot;is&quot;, &quot;a&quot;, &quot;splitted&quot;, &quot;text&quot;);
+        ///
+        ///foreach(element in elements)
+        ///	result += element + &quot; &quot;;
+        ///
+        ///result.Remove(result.Length - 1);.
+        /// </summary>
+        internal static string Script0018 {
+            get {
+                return ResourceManager.GetString("Script0018", resourceCulture);
             }
         }
     }

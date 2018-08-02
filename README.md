@@ -29,12 +29,12 @@ It is largely based on and inspired by the following resources [this post on st
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](#namespaces))
 * Create instance with [new(MyClassName, constructorArgs)](#standard-functions) or [new MyClassName(constructorArgs)](#operators)
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
-* Manage now assignation operators like =, +=, -=, *= ... (On variables and sub properties)
-* Manage now postfix operators ++ and -- (On variables and sub properties)
+* Manage now [assignation operators](#assignation-operators) like =, +=, -=, *= ...
+* Manage now postfix [operators](#operators) ++ and --
 
 ## And with [ScriptEvaluate](#scripts) method
 * Small C# like script evaluation (Multi expressions separated by ;)
-* Some conditional and loop blocks [keywords](#script-keywords) (if, while, for ...)
+* Some conditional and loop blocks [keywords](#script-keywords) (if, while, for, foreach ...)
 * Multi-line (multi expression) Lambda expressions.
 
 ## Getting started
@@ -376,7 +376,7 @@ The following functions are internally defined. (Most of these are [System.Math 
 
 ## On the fly variables and functions evaluation
 In addition to custom variables, you can add variables and/or functions with on the fly evaluation.
-2 C# events are provided that are fired when variables or functions are not fund as standard ones in evaluation time.
+2 C# events are provided that are fired when variables or functions are not found as standard ones in evaluation time.
 
 *Remark : Can be use to define or redefine on object instances methods or properties*
 ```C#
@@ -526,7 +526,7 @@ Here is a list of which operators are supported in ExpressionEvaluator or not
 |Conditional AND|[x && y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-and-operator)|Supported|
 |Conditional OR|[x &#124;&#124; y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-or-operator)|Supported|
 |Null-coalescing|[x ?? y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/null-conditional-operator)|Supported|
-|Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Supported equivalent to the [if() function](#standard-functions)|
+|Conditional|[t ? x : y](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator)|Supported|
 |Lambda|[=>](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-operator)|Supported|
 
 ### Assignation operators
@@ -596,7 +596,7 @@ Currently the following script keywords are supported
 |Selection|[switch case](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/switch)|Not yet supported|
 |Iteration|[do ... while](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/do)|Supported|
 |Iteration|[for](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/for)|Supported|
-|Iteration|[foreach, in](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/foreach-in)|Not yet supported|
+|Iteration|[foreach, in](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/foreach-in)|Supported|
 |Iteration|[while](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/while)|Supported|
 |Jump|[break](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/break)|Supported in do, for and while blocks|
 |Jump|[continue](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/continue)|Supported in do, for and while blocks|

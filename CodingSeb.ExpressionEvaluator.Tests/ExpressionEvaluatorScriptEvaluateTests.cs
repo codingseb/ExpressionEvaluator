@@ -667,6 +667,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region foreach
+
+                yield return new TestCaseData(Resources.Script0018, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("foreach")
+                    .SetCategory("variable assignation")
+                    .SetCategory("+=")
+                    .Returns("This is a splitted text");
+
+                #endregion
+
                 #region if, else if, else
 
                 yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), null, null, null)
