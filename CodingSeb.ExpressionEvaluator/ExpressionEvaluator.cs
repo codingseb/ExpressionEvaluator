@@ -380,6 +380,7 @@ namespace CodingSeb.ExpressionEvaluator
             "System.Text",
             "System.Text.RegularExpressions",
             "System.ComponentModel",
+            "System.Dynamic",
             "System.Collections",
             "System.Collections.Generic",
             "System.Collections.Specialized",
