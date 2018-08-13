@@ -31,6 +31,7 @@ It is largely based on and inspired by the following resources [this post on st
 * [Call void methods with fluid prefix convention to chain operations](#go-fluid-with-a-simple-methods-prefixing-convention)
 * Manage now [assignation operators](#assignation-operators) like =, +=, -=, *= ...
 * Manage now postfix [operators](#operators) ++ and --
+* Manage [ExpandoObject](#expandoobject)
 
 ## And with [ScriptEvaluate](#scripts) method
 * Small C# like script evaluation (Multi expressions separated by ;)
@@ -583,7 +584,6 @@ evaluator.ScriptEvaluate(script);
 ```
 Scripts are just a serie of expressions to evaluate separated with a ; character and leaded by severals additionals keywords.
 
-
 ### Script keywords
 
 Currently the following script keywords are supported
@@ -620,7 +620,12 @@ evaluator.ScriptEvaluate(evaluator.RemoveComments(scriptWithComments));
 ```
 It remove line comments // and blocks comments /* ... */ but keep them in strings
 
-## Namespaces and types
+## Assemblies, Namespaces and types
+
+To resolve types and namespaces ExpressionEvaluator search in in assemblies loaded in the ```evaluator.Assemblies``` list.
+By default this list Contains all loaded assemblies in the current AppDomain when the constructor of ExpressionEvaluator is called.
+You can easily Clear, Add or Remove assemblies on this list.
+
 By default the following list of namespaces are available :
 
 * System
@@ -629,6 +634,7 @@ By default the following list of namespaces are available :
 * System.Text
 * System.Text.RegularExpressions
 * System.ComponentModel
+* System.Dynamic
 * System.Collections
 * System.Collections.Generic
 * System.Collections.Specialized
@@ -648,6 +654,62 @@ You can also add a specific type :
 
 ```C#
 evaluator.Types.Add(typeof(MyClass));
+```
+
+## ExpandoObject
+
+From version 1.2.2 ExpressionEvaluator manage [ExpandObject]("https://msdn.microsoft.com/fr-fr/library/system.dynamic.expandoobject%28v=vs.110%29.aspx?f=255&MSPPError=-2147217396") class.
+ExpandoObject are object that can dynamically create new properties when you assign a value to it.
+It is also a dictionnary of properties. In ExpressionEvaluator you can use it as a object or as a dictionnary.
+
+Here some examples : 
+
+```C#
+myVar = new ExpandoObject();
+
+myVar.X = 23.5;
+myVar.Y = 34.8;
+
+return myVar.X + myVar.Y;
+// 58.3
+```
+
+```C#
+myVar = new ExpandoObject();
+
+myVar["Text"] = "Hello ";
+
+return myVar["Text"] + " Bob" ;
+// "Hello Bob"
+```
+
+```C#
+myVar = new ExpandoObject();
+
+myVar["Text"] = "Hello ";
+
+return myVar.Text + " Bob" ;
+// "Hello Bob"
+```
+```C#
+myVar = new ExpandoObject();
+
+myVar.Text = "Hello ";
+
+return myVar["Text"] + " Bob" ;
+// "Hello Bob"
+```
+```C#
+obj = new ExpandoObject();
+
+obj.Add = (x, y) => 
+{
+	text = "The result is : ";
+	return text + (x+y).ToString();
+};
+
+return obj.Add(3, 4);
+// "The result is : 7"
 ```
 
 ## Similar projects

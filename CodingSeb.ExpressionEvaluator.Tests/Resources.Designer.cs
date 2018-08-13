@@ -404,13 +404,93 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///elements = List(&quot;This&quot;, &quot;is&quot;, &quot;a&quot;, &quot;splitted&quot;, &quot;text&quot;);
         ///
         ///foreach(element in elements)
-        ///	result += element + &quot; &quot;;
+        ///{
+        ///	result += element;
+        ///	result += &quot; &quot;;
+        ///}
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
         internal static string Script0018 {
             get {
                 return ResourceManager.GetString("Script0018", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0019 */
+        ///myVar = new ExpandoObject();
+        ///
+        ///myVar.X = 23.5;
+        ///myVar.Y = 34.8;
+        ///
+        ///return myVar.X + myVar.Y;.
+        /// </summary>
+        internal static string Script0019 {
+            get {
+                return ResourceManager.GetString("Script0019", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0020 */
+        ///myVar = new ExpandoObject();
+        ///
+        ///myVar[&quot;X&quot;] = 23.5;
+        ///myVar[&quot;Y&quot;] = 34.8;
+        ///
+        ///return myVar.X + myVar.Y;.
+        /// </summary>
+        internal static string Script0020 {
+            get {
+                return ResourceManager.GetString("Script0020", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0021 */
+        ///myVar = new ExpandoObject();
+        ///
+        ///myVar[&quot;X&quot;] = 23.5;
+        ///myVar[&quot;Y&quot;] = 34.8;
+        ///
+        ///return myVar[&quot;X&quot;] + myVar[&quot;Y&quot;];.
+        /// </summary>
+        internal static string Script0021 {
+            get {
+                return ResourceManager.GetString("Script0021", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0022 */
+        ///myVar = new ExpandoObject();
+        ///
+        ///myVar.X = 23.5;
+        ///myVar.Y = 34.8;
+        ///
+        ///return myVar[&quot;X&quot;] + myVar[&quot;Y&quot;];.
+        /// </summary>
+        internal static string Script0022 {
+            get {
+                return ResourceManager.GetString("Script0022", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0023 */
+        ///myVar = new ExpandoObject();
+        ///
+        ///myVar.X = 2;
+        ///myVar.X++;
+        ///myVar[&quot;Y&quot;] = 1;
+        ///myVar[&quot;Y&quot;]++;
+        ///
+        ///return myVar[&quot;X&quot;] + myVar.Y;.
+        /// </summary>
+        internal static string Script0023 {
+            get {
+                return ResourceManager.GetString("Script0023", resourceCulture);
             }
         }
     }

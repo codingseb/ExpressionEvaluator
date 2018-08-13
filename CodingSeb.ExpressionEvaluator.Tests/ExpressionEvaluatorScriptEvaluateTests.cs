@@ -969,6 +969,42 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region ExpandoObject
+
+                yield return new TestCaseData(Resources.Script0019, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("return")
+                    .Returns(58.3);
+                yield return new TestCaseData(Resources.Script0020, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Indexing")
+                    .SetCategory("return")
+                    .Returns(58.3);
+                yield return new TestCaseData(Resources.Script0021, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Indexing")
+                    .SetCategory("return")
+                    .Returns(58.3);
+                yield return new TestCaseData(Resources.Script0022, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Indexing")
+                    .SetCategory("return")
+                    .Returns(58.3);
+                yield return new TestCaseData(Resources.Script0023, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Indexing")
+                    .SetCategory("Postfix operator")
+                    .SetCategory("++")
+                    .SetCategory("return")
+                    .Returns(5);
+
+                #endregion
+
                 #region More complex script
 
                 yield return new TestCaseData(Resources.Script0007, null, null, null)

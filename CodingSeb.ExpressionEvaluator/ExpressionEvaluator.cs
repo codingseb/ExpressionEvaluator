@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -208,8 +209,8 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left[right] },
-                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left?[right] },
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right] },
+                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -472,7 +473,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (value && !complexStandardFuncsDictionary.ContainsKey("new"))
                     complexStandardFuncsDictionary["new"] = newMethodMem;
-                else if(!value && complexStandardFuncsDictionary.ContainsKey("new"))
+                else if (!value && complexStandardFuncsDictionary.ContainsKey("new"))
                 {
                     newMethodMem = complexStandardFuncsDictionary["new"];
                     complexStandardFuncsDictionary.Remove("new");
@@ -549,7 +550,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// By default : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
-        
+
         /// <summary>
         /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
         /// If <c>false</c> unactive this functionality
@@ -719,13 +720,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                 string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
 
-                if(expressionToTest.Equals("break"))
+                if (expressionToTest.Equals("break"))
                 {
                     isBreak = true;
                     return lastResult;
                 }
 
-                if(expressionToTest.Equals("continue"))
+                if (expressionToTest.Equals("continue"))
                 {
                     isContinue = true;
                     return lastResult;
@@ -769,7 +770,7 @@ namespace CodingSeb.ExpressionEvaluator
                     index++;
                     GetExpressionsBetweenParenthis(script, ref index, false);
                 }
-                else if(script[index] == '{')
+                else if (script[index] == '{')
                 {
                     index++;
                     GetScriptBetweenCurlyBrackets(script, ref index);
@@ -795,20 +796,20 @@ namespace CodingSeb.ExpressionEvaluator
 
             int i = 0;
 
-            while(!isReturn && !isBreak && !isContinue && i < script.Length)
+            while (!isReturn && !isBreak && !isContinue && i < script.Length)
             {
                 Match blockKeywordsBeginingMatch = null;
                 Match elseBlockKeywordsBeginingMatch = null;
 
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
-                    && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
+                    && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
                         || (elseBlockKeywordsBeginingMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : elseBlockKeywordsBeginingMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (elseBlockKeywordsBeginingMatch?.Groups["keyword"].Value ?? string.Empty);
                     List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
 
-                    if(blockKeywordsBeginingMatch.Success)
+                    if (blockKeywordsBeginingMatch.Success)
                         i++;
 
                     if (!OptionCaseSensitiveEvaluationActive)
@@ -851,9 +852,9 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
                     }
 
-                    if(keyword.Equals("elseif"))
+                    if (keyword.Equals("elseif"))
                     {
-                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
                             throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else if] statement.");
                         }
@@ -863,15 +864,15 @@ namespace CodingSeb.ExpressionEvaluator
                             ifBlockEvaluatedState = IfBlockEvaluatedState.ElseIf;
                         }
                     }
-                    else if(keyword.Equals("else"))
+                    else if (keyword.Equals("else"))
                     {
-                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
                             throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else] statement.");
                         }
                         else
                         {
-                            ifElseStatementsList.Add(new List<string>() { "true" ,subScript });
+                            ifElseStatementsList.Add(new List<string>() { "true", subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                         }
                     }
@@ -886,7 +887,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("do"))
                         {
-                            if((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
+                            if ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("while"))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
@@ -933,12 +934,12 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
-                                if(isBreak)
+                                if (isBreak)
                                 {
                                     isBreak = false;
                                     break;
                                 }
-                                if(isContinue)
+                                if (isContinue)
                                 {
                                     isContinue = false;
                                     continue;
@@ -969,15 +970,15 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                             }
                         }
-                        else if(keyword.Equals("foreach"))
+                        else if (keyword.Equals("foreach"))
                         {
                             Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordAttributes[0]);
 
-                            if(!foreachParenthisEvaluationMatch.Success)
+                            if (!foreachParenthisEvaluationMatch.Success)
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("wrong foreach syntax");
                             }
-                            else if(!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
+                            else if (!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("no [in] keyword found in foreach");
                             }
@@ -985,7 +986,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 dynamic collection = Evaluate(foreachParenthisEvaluationMatch.Groups["collection"].Value);
 
-                                foreach(dynamic foreachValue in collection)
+                                foreach (dynamic foreachValue in collection)
                                 {
                                     Variables[foreachParenthisEvaluationMatch.Groups["variableName"].Value] = foreachValue;
 
@@ -1012,7 +1013,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     ExecuteIfList();
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)){}
+                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
@@ -1270,9 +1271,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if(obj is Type staticType && TypesToBlock.Contains(staticType))
+                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
                                 throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if(obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
                                 throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                             try
@@ -1304,26 +1305,37 @@ namespace CodingSeb.ExpressionEvaluator
                                         // Standard Instance or public method find
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
 
-                                        // if not found try to Find extension methods.
-                                        if (methodInfo == null && obj != null)
+                                        // if not found check if obj is an expandoObject or similar
+                                        if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
                                         {
-                                            oArgs.Insert(0, obj);
-                                            objType = obj.GetType();
-                                            obj = null;
-                                            for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
-                                            {
-                                                Type type = StaticTypesForExtensionsMethods[e];
-                                                methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
-                                            }
-                                        }
-
-                                        if (methodInfo != null)
-                                        {
-                                            stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                            if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
+                                                stack.Push(internalDelegate(oArgs.ToArray()));
+                                            else
+                                                stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else
                                         {
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                            // if not found try to Find extension methods.
+                                            if (methodInfo == null && obj != null)
+                                            {
+                                                oArgs.Insert(0, obj);
+                                                objType = obj.GetType();
+                                                obj = null;
+                                                for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
+                                                {
+                                                    Type type = StaticTypesForExtensionsMethods[e];
+                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
+                                                }
+                                            }
+
+                                            if (methodInfo != null)
+                                            {
+                                                stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                            }
+                                            else
+                                            {
+                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                            }
                                         }
                                     }
                                 }
@@ -1377,7 +1389,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
+                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush)
                             || (!varFuncMatch.Groups["inObject"].Success && varFuncMatch.Groups["assignationOperator"].Success))
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
@@ -1471,17 +1483,31 @@ namespace CodingSeb.ExpressionEvaluator
                                         if (!OptionInstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
 
-                                        dynamic member = objType?.GetProperty(varFuncName, flag);
+
+                                        bool isDynamic = flag.HasFlag(BindingFlags.Instance) && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
+                                        IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
+
+                                        dynamic member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
                                         dynamic varValue = null;
                                         bool assign = true;
-                                        
 
-                                        if(member == null)
+                                        if (member == null && !isDynamic)
                                             member = objType.GetField(varFuncName, flag);
-                                            
-                                        varValue = member.GetValue(obj);
 
-                                        stack.Push(varValue);
+                                        bool pushVarValue = true;
+
+                                        if (isDynamic)
+                                        {
+                                            if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
+                                                varValue = dictionaryObject[varFuncName];
+                                            else
+                                                pushVarValue = false;
+                                        }
+                                        else
+                                            varValue = member.GetValue(obj);
+
+                                        if(pushVarValue)
+                                            stack.Push(varValue);
 
                                         if (OptionPropertyOrFieldSetActive)
                                         {
@@ -1516,11 +1542,16 @@ namespace CodingSeb.ExpressionEvaluator
                                                 assign = false;
 
                                             if (assign)
-                                                member.SetValue(obj, varValue);
+                                            {
+                                                if (isDynamic)
+                                                    dictionaryObject[varFuncName] = varValue;
+                                                else
+                                                    member.SetValue(obj, varValue);
+                                            }
                                         }
-                                        else if(varFuncMatch.Groups["assignationOperator"].Success)
+                                        else if (varFuncMatch.Groups["assignationOperator"].Success)
                                             i -= varFuncMatch.Groups["assignationOperator"].Length;
-                                        else if(varFuncMatch.Groups["postfixOperator"].Success)
+                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
                                             i -= varFuncMatch.Groups["postfixOperator"].Length;
                                     }
                                 }
@@ -1764,7 +1795,12 @@ namespace CodingSeb.ExpressionEvaluator
                         throw new ExpressionEvaluatorSyntaxErrorException($"Null coalescing is not usable left to {exceptionContext}");
 
                     if (postFixOperator)
-                        valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                    {
+                        if (left is IDictionary<string, object> dictionaryLeft)
+                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
+                        else
+                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                    }
                     else
                     {
                         string rightExpression = expr.Substring(i);
@@ -1786,7 +1822,10 @@ namespace CodingSeb.ExpressionEvaluator
                             valueToPush = Evaluate(rightExpression);
                         }
 
-                        left[right] = valueToPush;
+                        if (left is IDictionary<string, object> dictionaryLeft)
+                            dictionaryLeft[right] = valueToPush;
+                        else
+                            left[right] = valueToPush;
 
                         stack.Clear();
                     }
@@ -1990,14 +2029,14 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The same C# code without comments</returns>
         public string RemoveComments(string scriptWithComments)
         {
-            return removeCommentsRegex.Replace(scriptWithComments, 
-                match => 
+            return removeCommentsRegex.Replace(scriptWithComments,
+                match =>
                 {
-                    if(match.Value.StartsWith("/"))
+                    if (match.Value.StartsWith("/"))
                     {
                         Match newLineCharsMatch = newLineCharsRegex.Match(match.Value);
 
-                        if(match.Value.StartsWith("/*") && newLineCharsMatch.Success)
+                        if (match.Value.StartsWith("/*") && newLineCharsMatch.Success)
                         {
                             return newLineCharsMatch.Value;
                         }
