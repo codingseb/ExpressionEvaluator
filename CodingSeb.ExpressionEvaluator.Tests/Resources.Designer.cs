@@ -493,5 +493,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0023", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0024 */
+        ///obj = new ExpandoObject();
+        ///
+        ///obj.Add = (x, y) =&gt; 
+        ///{
+        ///	text = &quot;The result is : &quot;;
+        ///	return text + (x+y).ToString();
+        ///};
+        ///
+        ///return obj.Add(3, 4);.
+        /// </summary>
+        internal static string Script0024 {
+            get {
+                return ResourceManager.GetString("Script0024", resourceCulture);
+            }
+        }
     }
 }

@@ -1002,6 +1002,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("++")
                     .SetCategory("return")
                     .Returns(5);
+                yield return new TestCaseData(Resources.Script0024, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("lambda")
+                    .SetCategory("lambda call")
+                    .SetCategory("lambda assignation")
+                    .SetCategory("return")
+                    .Returns("The result is : 7");
 
                 #endregion
 
