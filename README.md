@@ -704,8 +704,8 @@ obj = new ExpandoObject();
 
 obj.Add = (x, y) => 
 {
-	text = "The result is : ";
-	return text + (x+y).ToString();
+    text = "The result is : ";
+    return text + (x+y).ToString();
 };
 
 return obj.Add(3, 4);
