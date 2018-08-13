@@ -1,3 +1,9 @@
+// -------------------------------------------------------------
+// Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
+// Author : Coding Seb
+// Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
+// -------------------------------------------------------------
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
