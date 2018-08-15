@@ -2740,6 +2740,17 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Get the value of the function's arg at the specified index
+        /// </summary>
+        /// <typeparam name="T">The type of the result to get. (Do a cast)</typeparam>
+        /// <param name="index">The index of the function's arg to evaluate</param>
+        /// <returns>The evaluated arg casted in the specified type</returns>
+        public object EvaluateArg<T>(int index)
+        {
+            return (T)evaluateFunc(Args[index]);
+        }
+
+        /// <summary>
         /// The name of the variable to Evaluate
         /// </summary>
         public string Name { get; private set; }
