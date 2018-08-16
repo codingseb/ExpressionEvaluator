@@ -54,9 +54,9 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
         // For script only
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if|catch)\s*[(]", RegexOptions.IgnoreCase);
         private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^\s*(?<variableName>[a-zA-Z_][a-zA-Z0-9_]*)\s+(?<in>in)\s+(?<collection>.*)", RegexOptions.IgnoreCase);
-        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do|try|finally)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^\s*[;]");
@@ -100,6 +100,13 @@ namespace CodingSeb.ExpressionEvaluator
             NoBlockEvaluated,
             If,
             ElseIf
+        }
+
+        private enum TryBlockEvaluatedState
+        {
+            NoBlockEvaluated,
+            Try,
+            Catch
         }
 
         #endregion
@@ -718,6 +725,7 @@ namespace CodingSeb.ExpressionEvaluator
             bool isContinue = continueCalled;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+            TryBlockEvaluatedState tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
 
             object ManageJumpStatementsOrExpressionEval(string expression)
@@ -808,14 +816,14 @@ namespace CodingSeb.ExpressionEvaluator
             while (!isReturn && !isBreak && !isContinue && i < script.Length)
             {
                 Match blockKeywordsBeginingMatch = null;
-                Match elseBlockKeywordsBeginingMatch = null;
+                Match blockKeywordsWithoutParenthesesBeginningMatch = null;
 
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
                     && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
-                        || (elseBlockKeywordsBeginingMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
+                        || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
                 {
-                    i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : elseBlockKeywordsBeginingMatch.Length;
-                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (elseBlockKeywordsBeginingMatch?.Groups["keyword"].Value ?? string.Empty);
+                    i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
+                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
                     List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
 
                     if (blockKeywordsBeginingMatch.Success)
