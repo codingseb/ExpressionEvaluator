@@ -1,8 +1,11 @@
-// -------------------------------------------------------------
-// Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-// Author : Coding Seb
-// Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
-// -------------------------------------------------------------
+/******************************************************************************************************
+    Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
+    Version : 1.2.1.3 
+    (if last digit not zero version is an intermediate version and can be unstable)
+
+    Author : Coding Seb
+    Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
+*******************************************************************************************************/
 
 using System;
 using System.Collections.Generic;
@@ -1319,6 +1322,11 @@ namespace CodingSeb.ExpressionEvaluator
                                             else
                                                 stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
+                                        else if(objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo && 
+                                            (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
+                                        {
+                                            stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                        }
                                         else
                                         {
                                             // if not found try to Find extension methods.
@@ -1337,6 +1345,11 @@ namespace CodingSeb.ExpressionEvaluator
                                             if (methodInfo != null)
                                             {
                                                 stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                            }
+                                            else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo &&
+                                            (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
+                                            {
+                                                stack.Push((staticPropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
                                             }
                                             else
                                             {
