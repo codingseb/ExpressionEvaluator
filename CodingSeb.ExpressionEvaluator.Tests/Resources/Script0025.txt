@@ -1,0 +1,3 @@
+/* Script0025 */
+
+throw new Exception("Exception for test");

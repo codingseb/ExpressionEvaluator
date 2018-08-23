@@ -749,6 +749,11 @@ namespace CodingSeb.ExpressionEvaluator
                     return lastResult;
                 }
 
+                if(expressionToTest.StartsWith("throw "))
+                {
+                    throw Evaluate(expressionToTest.Remove(0, 6)) as Exception;
+                }
+
                 expression = returnKeywordRegex.Replace(expression, match =>
                 {
                     if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))

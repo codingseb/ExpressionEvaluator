@@ -1135,14 +1135,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionOnNoReturnKeywordFoundInScriptAction = OptionOnNoReturnKeywordFoundInScriptAction.ThrowSyntaxException
                 };
 
-                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "1"), typeof(ExpressionEvaluatorSyntaxErrorException))
+                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "1"), typeof(ExpressionEvaluatorSyntaxErrorException), null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ThrowSyntaxException");
-                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "2"), typeof(ExpressionEvaluatorSyntaxErrorException))
+                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "2"), typeof(ExpressionEvaluatorSyntaxErrorException), null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -1151,15 +1151,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ThrowSyntaxException");
 
                 #endregion
+
+                #endregion
+
+                #region Throw Exception and try finally
+
+                yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0025, typeof(Exception), "Exception for test")
+                    .SetCategory("Script")
+                    .SetCategory("Throw")
+                    .SetCategory("Exception");
 
                 #endregion
             }
         }
 
         [TestCaseSource(nameof(TestCasesForExceptionThrowingScriptEvaluation))]
-        public void ExceptionThrowingScriptEvaluation(ExpressionEvaluator evaluator, string script, Type exceptionType)
+        public void ExceptionThrowingScriptEvaluation(ExpressionEvaluator evaluator, string script, Type exceptionType, string exceptionMessage)
         {
-            Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(script));
+            Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(evaluator.RemoveComments(script)));
+
+            if (exceptionMessage != null)
+            {
+                try
+                {
+                    evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
+                }
+                catch(Exception exception)
+                {
+                    exception.Message.ShouldEqual(exceptionMessage);
+                }
+            }
+                
         }
 
         #endregion
