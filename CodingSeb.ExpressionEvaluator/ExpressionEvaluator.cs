@@ -26,7 +26,7 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ_][a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÏÓÔÕÖÚÇÑ0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
