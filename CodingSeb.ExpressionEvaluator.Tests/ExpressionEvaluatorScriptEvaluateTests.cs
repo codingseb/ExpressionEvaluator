@@ -1013,6 +1013,22 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Diactitics
+
+                yield return new TestCaseData(Resources.Script0026, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Diactitics")
+                    .SetCategory("=")
+                    .Returns("A value in diactitic varçÿ && very complex var");
+
+                yield return new TestCaseData(Resources.Script0027, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Diactitics")
+                    .SetCategory("=")
+                    .Returns("ç");
+
+                #endregion
+
                 #region More complex script
 
                 yield return new TestCaseData(Resources.Script0007, null, null, null)
