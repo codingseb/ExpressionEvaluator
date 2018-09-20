@@ -831,7 +831,7 @@ namespace CodingSeb.ExpressionEvaluator
                         || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
-                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
+                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
                     List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
 
                     if (blockKeywordsBeginingMatch.Success)
@@ -909,6 +909,10 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
+                        }
+                        else if(keyword.Equals("try"))
+                        {
+
                         }
                         else if (keyword.Equals("do"))
                         {
