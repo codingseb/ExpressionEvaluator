@@ -730,6 +730,7 @@ namespace CodingSeb.ExpressionEvaluator
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
             TryBlockEvaluatedState tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
+            List<List<string>> tryStatementsList = new List<List<string>>();
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
@@ -819,6 +820,20 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            void ExecuteTryList()
+            {
+                if(tryStatementsList.Count > 0)
+                {
+
+                }
+            }
+
+            void ExecuteBlocksStacks()
+            {
+                ExecuteTryList();
+                ExecuteIfList();
+            }
+
             int i = 0;
 
             while (!isReturn && !isBreak && !isContinue && i < script.Length)
@@ -903,16 +918,19 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        ExecuteIfList();
+                        ExecuteBlocksStacks();
 
                         if (keyword.Equals("if"))
                         {
                             ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
                         else if(keyword.Equals("try"))
                         {
-
+                            tryStatementsList.Add(new List<string>() { subScript });
+                            ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.Try;
                         }
                         else if (keyword.Equals("do"))
                         {
@@ -1040,7 +1058,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    ExecuteIfList();
+                    ExecuteBlocksStacks();
 
                     if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
@@ -1061,7 +1079,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue)
                 throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
 
-            ExecuteIfList();
+            ExecuteBlocksStacks();
 
             valueReturned = isReturn;
             breakCalled = isBreak;
