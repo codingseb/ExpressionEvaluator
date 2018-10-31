@@ -1,6 +1,16 @@
+/******************************************************************************************************
+    Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
+    Version : 1.2.1.5 
+    (if last digit not zero version is an intermediate version and can be unstable)
+
+    Author : Coding Seb
+    Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
+*******************************************************************************************************/
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -16,23 +26,26 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[a-zA-Z_][a-zA-Z0-9_]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
+        private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
+
+        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>["+ diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
-        private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[a-zA-Z_][a-zA-Z0-9_\.\[\]<>]*[?]?)\s*\)");
+        private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9\.\[\]<>]*[?]?)\s*\)");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![a-zA-Z0-9_])))");
+        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
         private static readonly Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
         private static readonly Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
         private static readonly Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
         private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([a-zA-Z_][a-zA-Z0-9_]*\s*([,]\s*[a-zA-Z_][a-zA-Z0-9_]*\s*)*)?[)])|[a-zA-Z_][a-zA-Z0-9_]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
-        private static readonly Regex lambdaArgRegex = new Regex(@"[a-zA-Z_][a-zA-Z0-9_]*");
+        private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*([,]\s*[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*)*)?[)])|[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
+        private static readonly Regex lambdaArgRegex = new Regex(@"[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*");
 
-        private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[a-zA-Z_][a-zA-Z0-9_.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
+        private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
-        private static readonly string primaryTypesRegexPattern = @"(?<=^|[^a-zA-Z_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
+        private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
@@ -44,9 +57,9 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
         // For script only
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if)\s*[(]", RegexOptions.IgnoreCase);
-        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^\s*(?<variableName>[a-zA-Z_][a-zA-Z0-9_]*)\s+(?<in>in)\s+(?<collection>.*)", RegexOptions.IgnoreCase);
-        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do)(?![a-zA-Z0-9_])", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if|catch)\s*[(]", RegexOptions.IgnoreCase);
+        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^\s*(?<variableName>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s+(?<in>in)\s+(?<collection>.*)", RegexOptions.IgnoreCase);
+        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + @"0-9])", RegexOptions.IgnoreCase);
         private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
         private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^\s*[;]");
@@ -90,6 +103,13 @@ namespace CodingSeb.ExpressionEvaluator
             NoBlockEvaluated,
             If,
             ElseIf
+        }
+
+        private enum TryBlockEvaluatedState
+        {
+            NoBlockEvaluated,
+            Try,
+            Catch
         }
 
         #endregion
@@ -208,8 +228,8 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left[right] },
-                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left?[right] },
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right] },
+                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -380,6 +400,7 @@ namespace CodingSeb.ExpressionEvaluator
             "System.Text",
             "System.Text.RegularExpressions",
             "System.ComponentModel",
+            "System.Dynamic",
             "System.Collections",
             "System.Collections.Generic",
             "System.Collections.Specialized",
@@ -471,7 +492,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (value && !complexStandardFuncsDictionary.ContainsKey("new"))
                     complexStandardFuncsDictionary["new"] = newMethodMem;
-                else if(!value && complexStandardFuncsDictionary.ContainsKey("new"))
+                else if (!value && complexStandardFuncsDictionary.ContainsKey("new"))
                 {
                     newMethodMem = complexStandardFuncsDictionary["new"];
                     complexStandardFuncsDictionary.Remove("new");
@@ -548,7 +569,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// By default : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
-        
+
         /// <summary>
         /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
         /// If <c>false</c> unactive this functionality
@@ -707,7 +728,9 @@ namespace CodingSeb.ExpressionEvaluator
             bool isContinue = continueCalled;
             int startOfExpression = 0;
             IfBlockEvaluatedState ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+            TryBlockEvaluatedState tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
+            List<List<string>> tryStatementsList = new List<List<string>>();
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
@@ -718,16 +741,21 @@ namespace CodingSeb.ExpressionEvaluator
 
                 string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
 
-                if(expressionToTest.Equals("break"))
+                if (expressionToTest.Equals("break"))
                 {
                     isBreak = true;
                     return lastResult;
                 }
 
-                if(expressionToTest.Equals("continue"))
+                if (expressionToTest.Equals("continue"))
                 {
                     isContinue = true;
                     return lastResult;
+                }
+
+                if(expressionToTest.StartsWith("throw "))
+                {
+                    throw Evaluate(expressionToTest.Remove(0, 6)) as Exception;
                 }
 
                 expression = returnKeywordRegex.Replace(expression, match =>
@@ -768,7 +796,7 @@ namespace CodingSeb.ExpressionEvaluator
                     index++;
                     GetExpressionsBetweenParenthis(script, ref index, false);
                 }
-                else if(script[index] == '{')
+                else if (script[index] == '{')
                 {
                     index++;
                     GetScriptBetweenCurlyBrackets(script, ref index);
@@ -792,22 +820,86 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            void ExecuteTryList()
+            {
+                if(tryStatementsList.Count > 0)
+                {
+                    if(tryStatementsList.Count == 1)
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
+                    }
+
+                    try
+                    {
+                        lastResult = ScriptEvaluate(tryStatementsList[0][0], ref isReturn, ref isBreak, ref isContinue);
+                    }
+                    catch(Exception exception)
+                    {
+                        bool atLeasOneCatch = false;
+
+                        foreach (List<string> catchStatement in tryStatementsList.Skip(1).TakeWhile(e => e[0].Equals("catch")))
+                        {
+                            if (catchStatement[1] != null)
+                            {
+                                string[] exceptionVariable = catchStatement[1].ToString().Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                string exceptionName = exceptionVariable[0];
+
+                                if (exceptionVariable.Length >= 2)
+                                {
+                                    if (!((ClassOrTypeName)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
+                                        continue;
+
+                                    exceptionName = exceptionVariable[1];
+                                }
+
+                                Variables[exceptionName] = exception;
+                            }
+
+                            lastResult = ScriptEvaluate(catchStatement[2], ref isReturn, ref isBreak, ref isContinue);
+                            atLeasOneCatch = true;
+                            break;
+                        }
+
+                        if(!atLeasOneCatch)
+                        {
+                            throw exception;
+                        }
+                    }
+                    finally
+                    {
+                        if(tryStatementsList.Last()[0].Equals("finally"))
+                        {
+                            lastResult = ScriptEvaluate(tryStatementsList.Last()[1], ref isReturn, ref isBreak, ref isContinue);
+                        }
+                    }
+
+                    tryStatementsList.Clear();
+                }
+            }
+
+            void ExecuteBlocksStacks()
+            {
+                ExecuteTryList();
+                ExecuteIfList();
+            }
+
             int i = 0;
 
-            while(!isReturn && !isBreak && !isContinue && i < script.Length)
+            while (!isReturn && !isBreak && !isContinue && i < script.Length)
             {
                 Match blockKeywordsBeginingMatch = null;
-                Match elseBlockKeywordsBeginingMatch = null;
+                Match blockKeywordsWithoutParenthesesBeginningMatch = null;
 
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
-                    && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
-                        || (elseBlockKeywordsBeginingMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
+                    && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
+                        || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
                 {
-                    i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : elseBlockKeywordsBeginingMatch.Length;
-                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "") : (elseBlockKeywordsBeginingMatch?.Groups["keyword"].Value ?? string.Empty);
+                    i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
+                    string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
                     List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
 
-                    if(blockKeywordsBeginingMatch.Success)
+                    if (blockKeywordsBeginingMatch.Success)
                         i++;
 
                     if (!OptionCaseSensitiveEvaluationActive)
@@ -850,9 +942,9 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
                     }
 
-                    if(keyword.Equals("elseif"))
+                    if (keyword.Equals("elseif"))
                     {
-                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
                             throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else if] statement.");
                         }
@@ -862,30 +954,61 @@ namespace CodingSeb.ExpressionEvaluator
                             ifBlockEvaluatedState = IfBlockEvaluatedState.ElseIf;
                         }
                     }
-                    else if(keyword.Equals("else"))
+                    else if (keyword.Equals("else"))
                     {
-                        if(ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
+                        if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
                             throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [if] for [else] statement.");
                         }
                         else
                         {
-                            ifElseStatementsList.Add(new List<string>() { "true" ,subScript });
+                            ifElseStatementsList.Add(new List<string>() { "true", subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                        }
+                    }
+                    else if (keyword.Equals("catch"))
+                    {
+                        if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [try] for [catch] statement.");
+                        }
+                        else
+                        {
+                            tryStatementsList.Add(new List<string>() { "catch", keywordAttributes.Count > 0 ? keywordAttributes[0] : null, subScript });
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.Catch;
+                        }
+                    }
+                    else if (keyword.Equals("finally"))
+                    {
+                        if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [try] for [finally] statement.");
+                        }
+                        else
+                        {
+                            tryStatementsList.Add(new List<string>() { "finally", subScript });
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
                     }
                     else
                     {
-                        ExecuteIfList();
+                        ExecuteBlocksStacks();
 
                         if (keyword.Equals("if"))
                         {
                             ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
+                        }
+                        else if(keyword.Equals("try"))
+                        {
+                            tryStatementsList.Add(new List<string>() { subScript });
+                            ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.Try;
                         }
                         else if (keyword.Equals("do"))
                         {
-                            if((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success 
+                            if ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("while"))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
@@ -932,12 +1055,12 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
-                                if(isBreak)
+                                if (isBreak)
                                 {
                                     isBreak = false;
                                     break;
                                 }
-                                if(isContinue)
+                                if (isContinue)
                                 {
                                     isContinue = false;
                                     continue;
@@ -968,15 +1091,15 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                             }
                         }
-                        else if(keyword.Equals("foreach"))
+                        else if (keyword.Equals("foreach"))
                         {
                             Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordAttributes[0]);
 
-                            if(!foreachParenthisEvaluationMatch.Success)
+                            if (!foreachParenthisEvaluationMatch.Success)
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("wrong foreach syntax");
                             }
-                            else if(!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
+                            else if (!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("no [in] keyword found in foreach");
                             }
@@ -984,7 +1107,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 dynamic collection = Evaluate(foreachParenthisEvaluationMatch.Groups["collection"].Value);
 
-                                foreach(dynamic foreachValue in collection)
+                                foreach (dynamic foreachValue in collection)
                                 {
                                     Variables[foreachParenthisEvaluationMatch.Groups["variableName"].Value] = foreachValue;
 
@@ -1009,9 +1132,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    ExecuteIfList();
+                    ExecuteBlocksStacks();
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)){}
+                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
@@ -1022,6 +1145,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
 
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                    tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
                     i++;
                 }
@@ -1030,7 +1154,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue)
                 throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
 
-            ExecuteIfList();
+            ExecuteBlocksStacks();
 
             valueReturned = isReturn;
             breakCalled = isBreak;
@@ -1269,9 +1393,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if(obj is Type staticType && TypesToBlock.Contains(staticType))
+                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
                                 throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if(obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
                                 throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                             try
@@ -1303,26 +1427,47 @@ namespace CodingSeb.ExpressionEvaluator
                                         // Standard Instance or public method find
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
 
-                                        // if not found try to Find extension methods.
-                                        if (methodInfo == null && obj != null)
+                                        // if not found check if obj is an expandoObject or similar
+                                        if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
                                         {
-                                            oArgs.Insert(0, obj);
-                                            objType = obj.GetType();
-                                            obj = null;
-                                            for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
-                                            {
-                                                Type type = StaticTypesForExtensionsMethods[e];
-                                                methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
-                                            }
+                                            if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
+                                                stack.Push(internalDelegate(oArgs.ToArray()));
+                                            else
+                                                stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
-
-                                        if (methodInfo != null)
+                                        else if(objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo && 
+                                            (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
                                         {
-                                            stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                            stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else
                                         {
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                            // if not found try to Find extension methods.
+                                            if (methodInfo == null && obj != null)
+                                            {
+                                                oArgs.Insert(0, obj);
+                                                objType = obj.GetType();
+                                                obj = null;
+                                                for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
+                                                {
+                                                    Type type = StaticTypesForExtensionsMethods[e];
+                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
+                                                }
+                                            }
+
+                                            if (methodInfo != null)
+                                            {
+                                                stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                            }
+                                            else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo &&
+                                            (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
+                                            {
+                                                stack.Push((staticPropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                            }
+                                            else
+                                            {
+                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                            }
                                         }
                                     }
                                 }
@@ -1376,7 +1521,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) 
+                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush)
                             || (!varFuncMatch.Groups["inObject"].Success && varFuncMatch.Groups["assignationOperator"].Success))
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
@@ -1470,17 +1615,31 @@ namespace CodingSeb.ExpressionEvaluator
                                         if (!OptionInstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
 
-                                        dynamic member = objType?.GetProperty(varFuncName, flag);
+
+                                        bool isDynamic = flag.HasFlag(BindingFlags.Instance) && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
+                                        IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
+
+                                        dynamic member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
                                         dynamic varValue = null;
                                         bool assign = true;
-                                        
 
-                                        if(member == null)
+                                        if (member == null && !isDynamic)
                                             member = objType.GetField(varFuncName, flag);
-                                            
-                                        varValue = member.GetValue(obj);
 
-                                        stack.Push(varValue);
+                                        bool pushVarValue = true;
+
+                                        if (isDynamic)
+                                        {
+                                            if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
+                                                varValue = dictionaryObject[varFuncName];
+                                            else
+                                                pushVarValue = false;
+                                        }
+                                        else
+                                            varValue = member.GetValue(obj);
+
+                                        if(pushVarValue)
+                                            stack.Push(varValue);
 
                                         if (OptionPropertyOrFieldSetActive)
                                         {
@@ -1515,11 +1674,16 @@ namespace CodingSeb.ExpressionEvaluator
                                                 assign = false;
 
                                             if (assign)
-                                                member.SetValue(obj, varValue);
+                                            {
+                                                if (isDynamic)
+                                                    dictionaryObject[varFuncName] = varValue;
+                                                else
+                                                    member.SetValue(obj, varValue);
+                                            }
                                         }
-                                        else if(varFuncMatch.Groups["assignationOperator"].Success)
+                                        else if (varFuncMatch.Groups["assignationOperator"].Success)
                                             i -= varFuncMatch.Groups["assignationOperator"].Length;
-                                        else if(varFuncMatch.Groups["postfixOperator"].Success)
+                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
                                             i -= varFuncMatch.Groups["postfixOperator"].Length;
                                     }
                                 }
@@ -1763,7 +1927,12 @@ namespace CodingSeb.ExpressionEvaluator
                         throw new ExpressionEvaluatorSyntaxErrorException($"Null coalescing is not usable left to {exceptionContext}");
 
                     if (postFixOperator)
-                        valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                    {
+                        if (left is IDictionary<string, object> dictionaryLeft)
+                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
+                        else
+                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                    }
                     else
                     {
                         string rightExpression = expr.Substring(i);
@@ -1785,7 +1954,10 @@ namespace CodingSeb.ExpressionEvaluator
                             valueToPush = Evaluate(rightExpression);
                         }
 
-                        left[right] = valueToPush;
+                        if (left is IDictionary<string, object> dictionaryLeft)
+                            dictionaryLeft[right] = valueToPush;
+                        else
+                            left[right] = valueToPush;
 
                         stack.Clear();
                     }
@@ -1989,14 +2161,14 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The same C# code without comments</returns>
         public string RemoveComments(string scriptWithComments)
         {
-            return removeCommentsRegex.Replace(scriptWithComments, 
-                match => 
+            return removeCommentsRegex.Replace(scriptWithComments,
+                match =>
                 {
-                    if(match.Value.StartsWith("/"))
+                    if (match.Value.StartsWith("/"))
                     {
                         Match newLineCharsMatch = newLineCharsRegex.Match(match.Value);
 
-                        if(match.Value.StartsWith("/*") && newLineCharsMatch.Success)
+                        if (match.Value.StartsWith("/*") && newLineCharsMatch.Success)
                         {
                             return newLineCharsMatch.Value;
                         }
@@ -2691,6 +2863,17 @@ namespace CodingSeb.ExpressionEvaluator
         public object EvaluateArg(int index)
         {
             return evaluateFunc(Args[index]);
+        }
+
+        /// <summary>
+        /// Get the value of the function's arg at the specified index
+        /// </summary>
+        /// <typeparam name="T">The type of the result to get. (Do a cast)</typeparam>
+        /// <param name="index">The index of the function's arg to evaluate</param>
+        /// <returns>The evaluated arg casted in the specified type</returns>
+        public T EvaluateArg<T>(int index)
+        {
+            return (T)evaluateFunc(Args[index]);
         }
 
         /// <summary>

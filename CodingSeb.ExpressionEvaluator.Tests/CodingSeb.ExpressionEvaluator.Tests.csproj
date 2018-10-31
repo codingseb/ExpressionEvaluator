@@ -55,6 +55,7 @@
     <Compile Include="TestsUtils\ClassForTest1.cs" />
     <Compile Include="TestsUtils\ClassForTest2.cs" />
     <Compile Include="TestsUtils\ClassInOtherNameSpace1.cs" />
+    <Compile Include="TestsUtils\DiactiticsClass.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -124,6 +125,48 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Script0018.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0019.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0020.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0021.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0022.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0023.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0024.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0025.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0026.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0027.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0028.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0029.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0030.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0031.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0032.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

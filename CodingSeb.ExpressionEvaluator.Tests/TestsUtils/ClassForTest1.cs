@@ -1,4 +1,6 @@
-﻿namespace CodingSeb.ExpressionEvaluator.Tests
+﻿using System;
+
+namespace CodingSeb.ExpressionEvaluator.Tests
 {
     public class ClassForTest1
     {
@@ -17,5 +19,8 @@
         {
             return $"Hello {Name}";
         }
+
+        public Func<int, int, int> AddAsDelegate { get; set; } = (nb1, nb2) => nb1 + nb2;
+        public static Func<int, int, int> AddAsStaticDelegate { get; set; } = (nb1, nb2) => nb1 + nb2;
     }
 }

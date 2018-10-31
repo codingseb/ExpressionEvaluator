@@ -1,0 +1,7 @@
+/* Script0022 */
+myVar = new ExpandoObject();
+
+myVar.X = 23.5;
+myVar.Y = 34.8;
+
+return myVar["X"] + myVar["Y"];

@@ -172,4 +172,46 @@
   <data name="Script0018" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\script0018.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="Script0019" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0019.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0020" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0020.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0021" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0021.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0022" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0022.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0023" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0023.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0024" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0024.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0025" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0025.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="Script0026" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0026.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0027" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0027.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0028" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0028.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0029" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0029.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0030" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0030.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0031" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0031.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0032" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0032.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

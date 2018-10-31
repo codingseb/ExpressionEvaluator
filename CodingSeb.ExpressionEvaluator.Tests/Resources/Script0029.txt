@@ -1,0 +1,19 @@
+﻿/* Script0029 */
+
+x = 5;
+y = 0;
+
+c = false;
+f = false;
+
+try
+{
+	x / y;
+}
+finally
+{
+	ClassForTest1.StaticIntProperty = 20;
+	f = true;
+}
+
+return $"catch : {c}, finally : {f}";

@@ -1013,6 +1013,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("Test(5)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(null);
 
                 #endregion
+
+                #region Delegates as Property of object
+                
+                yield return new TestCaseData("customObject.AddAsDelegate(6, 10)", onInstanceVariables, true).SetCategory("Delegate as a instance Property").Returns(16);
+                yield return new TestCaseData("ClassForTest1.AddAsStaticDelegate(6, 10)", onInstanceVariables, true).SetCategory("Delegate as a static Property").Returns(16);
+
+                #endregion
             }
         }
 

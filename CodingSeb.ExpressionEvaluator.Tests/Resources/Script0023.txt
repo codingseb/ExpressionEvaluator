@@ -1,0 +1,9 @@
+/* Script0023 */
+myVar = new ExpandoObject();
+
+myVar.X = 2;
+myVar.X++;
+myVar["Y"] = 1;
+myVar["Y"]++;
+
+return myVar["X"] + myVar.Y;

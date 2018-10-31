@@ -1,0 +1,22 @@
+﻿/* Script0028 */
+
+x = 5;
+y = 0;
+
+c = false;
+f = false;
+
+try
+{
+	x / y;
+}
+catch(exception)
+{
+	c = true;
+}
+finally
+{
+	f = true;
+}
+
+return $"catch : {c}, finally : {f}";

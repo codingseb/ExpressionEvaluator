@@ -1,0 +1,26 @@
+﻿/* Script0031 */
+
+x = 5;
+y = 0;
+
+c = 0;
+f = false;
+
+try
+{
+	x / y;
+}
+catch(DivideByZeroException exception)
+{
+	c = 1;
+}
+catch(Exception exception)
+{
+	c = 2;
+}
+finally
+{
+	f = true;
+}
+
+return $"catch : {c}, finally : {f}";
