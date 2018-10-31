@@ -812,6 +812,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region try, catch, finally
+
+                yield return new TestCaseData(Resources.Script0028, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Try")
+                    .SetCategory("Catch")
+                    .SetCategory("Finally")
+                    .SetCategory("Exception")
+                    .Returns("catch : True, finally : True");
+                #endregion
+
                 #region block for lambda body
 
                 yield return new TestCaseData(Resources.Script0006, null, null, null)
@@ -1170,7 +1181,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region Throw Exception and try finally
+                #region Throw Exception
 
                 yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0025, typeof(Exception), "Exception for test")
                     .SetCategory("Script")

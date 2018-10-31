@@ -539,14 +539,45 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0026 */
+        ///   Recherche une chaîne localisée semblable à /* Script0027 */
         ///
         ///test = new áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß();
-        ///.
+        ///
+        ///return test.Přōþěŕŧÿ;.
         /// </summary>
         internal static string Script0027 {
             get {
                 return ResourceManager.GetString("Script0027", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0028 */
+        ///
+        ///x = 5;
+        ///y = 0;
+        ///
+        ///bool c = false;
+        ///bool f = false;
+        ///
+        ///try
+        ///{
+        ///	x / y;
+        ///}
+        ///catch(exception)
+        ///{
+        ///	c = true;
+        ///}
+        ///finally
+        ///{
+        ///	f = true;
+        ///}
+        ///
+        ///return $&quot;catch : {c}, finally : {f}&quot;;.
+        /// </summary>
+        internal static string Script0028 {
+            get {
+                return ResourceManager.GetString("Script0028", resourceCulture);
             }
         }
     }

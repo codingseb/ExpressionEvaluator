@@ -824,7 +824,38 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if(tryStatementsList.Count > 0)
                 {
+                    if(tryStatementsList.Count == 1)
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
+                    }
 
+                    try
+                    {
+                        lastResult = ScriptEvaluate(tryStatementsList[0][0], ref isReturn, ref isBreak, ref isContinue);
+                    }
+                    catch(Exception exception)
+                    {
+                        if(tryStatementsList[1][0].ToString().Equals("catch"))
+                        {
+                            if(tryStatementsList[1][1] != null)
+                            {
+                                string[] exceptionVariable = tryStatementsList[1][1].ToString().Trim().Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+
+                                Variables[exceptionVariable[0]] = exception;
+                            }
+
+                            lastResult = ScriptEvaluate(tryStatementsList[1][2], ref isReturn, ref isBreak, ref isContinue);
+                        }
+                    }
+                    finally
+                    {
+                        if(tryStatementsList.Last()[0].Equals("finally"))
+                        {
+                            lastResult = ScriptEvaluate(tryStatementsList.Last()[1], ref isReturn, ref isBreak, ref isContinue);
+                        }
+                    }
+
+                    tryStatementsList.Clear();
                 }
             }
 
@@ -914,6 +945,30 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             ifElseStatementsList.Add(new List<string>() { "true", subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                        }
+                    }
+                    else if (keyword.Equals("catch"))
+                    {
+                        if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [try] for [catch] statement.");
+                        }
+                        else
+                        {
+                            tryStatementsList.Add(new List<string>() { "catch", keywordAttributes.Count > 0 ? keywordAttributes[0] : null, subScript });
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.Catch;
+                        }
+                    }
+                    else if (keyword.Equals("finally"))
+                    {
+                        if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException("No corresponding [try] for [finally] statement.");
+                        }
+                        else
+                        {
+                            tryStatementsList.Add(new List<string>() { "finally", subScript });
+                            tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
                     }
                     else
@@ -1071,6 +1126,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
 
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
+                    tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
                     i++;
                 }
