@@ -602,7 +602,7 @@ Currently the following script keywords are supported
 |Jump|[continue](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/continue)|Supported in do, for and while blocks|
 |Jump|[goto](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/goto)|Not supported (But if you looked after it -> Booo !!! Bad code)|
 |Jump|[return](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/return)|Supported|
-|Jump/Exception|[throw](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/throw)|Not supported|
+|Jump/Exception|[throw](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/throw)|Supported|
 |Exception Handling|[try-catch](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-catch)|Supported|
 |Exception Handling|[try-finally](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-finally)|Supported|
 |Exception Handling|[try-catch-finally](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-catch-finally)|Supported|
