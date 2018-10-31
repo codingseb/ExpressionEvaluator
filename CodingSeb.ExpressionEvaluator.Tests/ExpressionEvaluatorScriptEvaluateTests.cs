@@ -821,6 +821,30 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Finally")
                     .SetCategory("Exception")
                     .Returns("catch : True, finally : True");
+
+                yield return new TestCaseData(Resources.Script0030, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Try")
+                    .SetCategory("Catch")
+                    .SetCategory("Exception")
+                    .Returns("catch : True, finally : False");
+
+                yield return new TestCaseData(Resources.Script0031, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Try")
+                    .SetCategory("Catch")
+                    .SetCategory("Finally")
+                    .SetCategory("Exception")
+                    .Returns("catch : 1, finally : True");
+
+                yield return new TestCaseData(Resources.Script0032, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Try")
+                    .SetCategory("Catch")
+                    .SetCategory("Finally")
+                    .SetCategory("Exception")
+                    .Returns("catch : 2, finally : True");
+
                 #endregion
 
                 #region block for lambda body
@@ -1162,14 +1186,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionOnNoReturnKeywordFoundInScriptAction = OptionOnNoReturnKeywordFoundInScriptAction.ThrowSyntaxException
                 };
 
-                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "1"), typeof(ExpressionEvaluatorSyntaxErrorException), null)
+                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "1"), typeof(ExpressionEvaluatorSyntaxErrorException), null,null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
                     .SetCategory("variable assignation")
                     .SetCategory("Options")
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ThrowSyntaxException");
-                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "2"), typeof(ExpressionEvaluatorSyntaxErrorException), null)
+                yield return new TestCaseData(evaluator, Resources.Script0008.Replace("[valx]", "2"), typeof(ExpressionEvaluatorSyntaxErrorException), null,null)
                     .SetCategory("Script")
                     .SetCategory("return")
                     .SetCategory("if")
@@ -1183,9 +1207,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Throw Exception
 
-                yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0025, typeof(Exception), "Exception for test")
+                yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0025, typeof(Exception), "Exception for test",null)
                     .SetCategory("Script")
                     .SetCategory("Throw")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0029, typeof(DivideByZeroException), null, new Action(() => ClassForTest1.StaticIntProperty.ShouldEqual(20)))
+                    .SetCategory("Script")
+                    .SetCategory("Try")
+                    .SetCategory("Finally")
                     .SetCategory("Exception");
 
                 #endregion
@@ -1193,8 +1223,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         [TestCaseSource(nameof(TestCasesForExceptionThrowingScriptEvaluation))]
-        public void ExceptionThrowingScriptEvaluation(ExpressionEvaluator evaluator, string script, Type exceptionType, string exceptionMessage)
+        public void ExceptionThrowingScriptEvaluation(ExpressionEvaluator evaluator, string script, Type exceptionType, string exceptionMessage, Action ToTestAfter)
         {
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
             Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(evaluator.RemoveComments(script)));
 
             if (exceptionMessage != null)
@@ -1208,7 +1240,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     exception.Message.ShouldEqual(exceptionMessage);
                 }
             }
-                
+
+            ToTestAfter?.Invoke();
         }
 
         #endregion

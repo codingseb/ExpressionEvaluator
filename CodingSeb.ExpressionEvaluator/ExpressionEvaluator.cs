@@ -835,16 +835,35 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     catch(Exception exception)
                     {
-                        if(tryStatementsList[1][0].ToString().Equals("catch"))
-                        {
-                            if(tryStatementsList[1][1] != null)
-                            {
-                                string[] exceptionVariable = tryStatementsList[1][1].ToString().Trim().Split(new char[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+                        bool atLeasOneCatch = false;
 
-                                Variables[exceptionVariable[0]] = exception;
+                        foreach (List<string> catchStatement in tryStatementsList.Skip(1).TakeWhile(e => e[0].Equals("catch")))
+                        {
+                            if (catchStatement[1] != null)
+                            {
+                                string[] exceptionVariable = catchStatement[1].ToString().Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                string exceptionName = exceptionVariable[0];
+
+                                if (exceptionVariable.Length >= 2)
+                                {
+                                    if (!((ClassOrTypeName)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
+                                        continue;
+
+                                    exceptionName = exceptionVariable[1];
+                                }
+
+                                Variables[exceptionName] = exception;
                             }
 
-                            lastResult = ScriptEvaluate(tryStatementsList[1][2], ref isReturn, ref isBreak, ref isContinue);
+                            lastResult = ScriptEvaluate(catchStatement[2], ref isReturn, ref isBreak, ref isContinue);
+                            atLeasOneCatch = true;
+                            break;
+                        }
+
+                        if(!atLeasOneCatch)
+                        {
+                            throw exception;
                         }
                     }
                     finally

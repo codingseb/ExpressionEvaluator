@@ -156,6 +156,18 @@
   <ItemGroup>
     <None Include="Resources\Script0028.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0029.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0030.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0031.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Script0032.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

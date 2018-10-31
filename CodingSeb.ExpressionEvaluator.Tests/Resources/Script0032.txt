@@ -1,0 +1,23 @@
+﻿/* Script0032 */
+
+c = 0;
+f = false;
+
+try
+{
+	throw new Exception("My exception");
+}
+catch(DivideByZeroException exception)
+{
+	c = 1;
+}
+catch(Exception exception)
+{
+	c = 2;
+}
+finally
+{
+	f = true;
+}
+
+return $"catch : {c}, finally : {f}";

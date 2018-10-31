@@ -557,8 +557,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///x = 5;
         ///y = 0;
         ///
-        ///bool c = false;
-        ///bool f = false;
+        ///c = false;
+        ///f = false;
         ///
         ///try
         ///{
@@ -578,6 +578,124 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         internal static string Script0028 {
             get {
                 return ResourceManager.GetString("Script0028", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0029 */
+        ///
+        ///x = 5;
+        ///y = 0;
+        ///
+        ///c = false;
+        ///f = false;
+        ///
+        ///try
+        ///{
+        ///	x / y;
+        ///}
+        ///finally
+        ///{
+        ///	ClassForTest1.StaticIntProperty = 20;
+        ///	f = true;
+        ///}
+        ///
+        ///return $&quot;catch : {c}, finally : {f}&quot;;.
+        /// </summary>
+        internal static string Script0029 {
+            get {
+                return ResourceManager.GetString("Script0029", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0030 */
+        ///
+        ///x = 5;
+        ///y = 0;
+        ///
+        ///c = false;
+        ///f = false;
+        ///
+        ///try
+        ///{
+        ///	x / y;
+        ///}
+        ///catch(exception)
+        ///{
+        ///	c = true;
+        ///}
+        ///
+        ///return $&quot;catch : {c}, finally : {f}&quot;;.
+        /// </summary>
+        internal static string Script0030 {
+            get {
+                return ResourceManager.GetString("Script0030", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0031 */
+        ///
+        ///x = 5;
+        ///y = 0;
+        ///
+        ///c = 0;
+        ///f = false;
+        ///
+        ///try
+        ///{
+        ///	x / y;
+        ///}
+        ///catch(DivideByZeroExceptionexception exception)
+        ///{
+        ///	c = 1;
+        ///}
+        ///catch(Exception exception)
+        ///{
+        ///	c = 2;
+        ///}
+        ///finally
+        ///{
+        ///	f = true;
+        ///}
+        ///
+        ///return $&quot;catch : {c}, finally : {f}&quot;;.
+        /// </summary>
+        internal static string Script0031 {
+            get {
+                return ResourceManager.GetString("Script0031", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0032 */
+        ///
+        ///c = 0;
+        ///f = false;
+        ///
+        ///try
+        ///{
+        ///	throw new Exception(&quot;My exception&quot;);
+        ///}
+        ///catch(DivideByZeroExceptionexception exception)
+        ///{
+        ///	c = 1;
+        ///}
+        ///catch(Exception exception)
+        ///{
+        ///	c = 2;
+        ///}
+        ///finally
+        ///{
+        ///	f = true;
+        ///}
+        ///
+        ///return $&quot;catch : {c}, finally : {f}&quot;;.
+        /// </summary>
+        internal static string Script0032 {
+            get {
+                return ResourceManager.GetString("Script0032", resourceCulture);
             }
         }
     }
