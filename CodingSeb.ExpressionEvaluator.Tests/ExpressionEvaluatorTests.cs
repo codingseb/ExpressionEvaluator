@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
-using Should;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Shouldly;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -81,7 +81,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
             evaluator.Evaluate(expression)
-                .ShouldBeType(type);
+                .ShouldBeOfType(type);
         }
 
         #endregion
@@ -1006,7 +1006,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 Dictionary<string, object> delegatesInVariable = new Dictionary<string, object>()
                 {
                     { "Add", new Func<int,int,int>((x, y) => x + y)},
-                    { "Test", new Action<int>(x => x.ShouldEqual(5))},
+                    { "Test", new Action<int>(x => x.ShouldBe(5))},
                 };
 
                 yield return new TestCaseData("Add(3, 4)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(7);
