@@ -131,6 +131,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"Text()\".Replace(\"(\", \"x\")", TestOf = typeof(string), ExpectedResult = "Textx)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
         [TestCase("\"Text()\".Replace(\"x\", \",\")", TestOf = typeof(string), ExpectedResult = "Te,t()", Category = "StringWithParenthisOrComaInFunctionsArgs")]
         [TestCase("\"Text()\".Replace(\"(\", \",\")", TestOf = typeof(string), ExpectedResult = "Text,)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
+
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Length", ExpectedResult = 3, Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[0]", ExpectedResult = "Hello", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[1]", ExpectedResult = "Test", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[2]", ExpectedResult = "What", Category = "StringSplit,ArrayOfType")]
         #endregion
 
         #region char
