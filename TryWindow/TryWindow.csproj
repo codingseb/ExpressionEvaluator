@@ -5,9 +5,9 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>TryWindow</AssemblyTitle>
-    <Company>EMP/PTM</Company>
+    <Company>Coding Seb</Company>
     <Product>TryWindow</Product>
-    <Copyright>Copyright © EMP/PTM 2018</Copyright>
+    <Copyright>Copyright © Coding Seb 2018</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <ExtrasEnableWpfProjectSetup>true</ExtrasEnableWpfProjectSetup>
   </PropertyGroup>
