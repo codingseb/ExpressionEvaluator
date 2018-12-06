@@ -148,6 +148,18 @@ Enumerable.Repeat(3,6).Cast().ToList()[4]
 
 "Hello"[2] == 'l'
 true
+
+"Hello,Test,What".Split(ArrayOfType(typeof(char), ',')).Length
+3
+
+"Hello,Test,What".Split(ArrayOfType(typeof(char), ','))[0]
+Hello
+
+"Hello,Test,What".Split(ArrayOfType(typeof(char), ','))[1]
+Test
+
+"Hello,Test,What".Split(ArrayOfType(typeof(char), ','))[2]
+What
 ```
 
 ### Small scripts
@@ -345,6 +357,7 @@ The following functions are internally defined. (Most of these are [System.Math 
 |**[Abs](https://msdn.microsoft.com/en-us/library/f2yzeea2(v=vs.110).aspx)**(double number)|Return a double that is the absolute value of number|`Abs(-3.2d)`|`3.2d`|
 |**[Acos](https://msdn.microsoft.com/en-us/library/system.math.acos(v=vs.110).aspx)**(double d)|Return a double value that is the angle in radian whose d is the cosine<br/>d must be betwteen -1 and 1|`Acos(-0.5d)`|`2.0943951023032d`|
 |**Array**(object obj1, object obj2 ,...)|Return a array (System.Object[]) of all given arguments|`Array(1, "Hello", true)`|`new object[]{1, "Hello", true}`|
+|**ArrayOfType**(Type typeOfTheArray, object obj1, object oj2, ...)|Return a array of the specified type|`ArrayOfType(typeof(char), ',',';')`|`new char[]{',', ';'}`
 |**[Asin](https://msdn.microsoft.com/en-us/library/system.math.asin(v=vs.110).aspx)**(double d)|Return a double value that is the angle in radian whose d is the sine<br/>d must be betwteen -1 and 1|`Asin(-0.2d)`|`0.304692654015398d`|
 |**[Atan](https://msdn.microsoft.com/en-us/library/system.math.atan(v=vs.110).aspx)**(double d)|Return a double value that is the angle in radian whose d is the tangent|`Atan(2.1)`|`1.1263771168938d`|
 |**[Atan2](https://msdn.microsoft.com/en-us/library/system.math.atan2(v=vs.110).aspx)**(double x, double y)|Return a double value that is the angle in radian whose the tangente is the quotient of x and y<br/>|`Atan2(2.1d, 3.4d)`|`0.553294325322293d`|
@@ -602,7 +615,7 @@ Currently the following script keywords are supported
 |Jump|[continue](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/continue)|Supported in do, for and while blocks|
 |Jump|[goto](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/goto)|Not supported (But if you looked after it -> Booo !!! Bad code)|
 |Jump|[return](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/return)|Supported|
-|Jump/Exception|[throw](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/throw)|Not supported|
+|Jump/Exception|[throw](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/throw)|Supported|
 |Exception Handling|[try-catch](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-catch)|Supported|
 |Exception Handling|[try-finally](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-finally)|Supported|
 |Exception Handling|[try-catch-finally](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-catch-finally)|Supported|
