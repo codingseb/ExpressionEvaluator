@@ -15,6 +15,7 @@
     <PackageProjectUrl>https://github.com/codingseb/ExpressionEvaluator</PackageProjectUrl>
     <PackageTags>evaluation math expression-evaluator expression parser eval evaluate fluid C# calculation execute script</PackageTags>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
