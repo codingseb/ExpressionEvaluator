@@ -4,6 +4,7 @@
         <id>CodingSeb.ExpressionEvaluator</id>
         <version>$version$</version>
         <title>CodingSeb.ExpressionEvaluator</title>
+        <iconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</iconUrl>
         <authors>Coding Seb</authors>
         <owners>Coding Seb</owners>
         <licenseUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md</licenseUrl>

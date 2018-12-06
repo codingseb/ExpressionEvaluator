@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.2.1.5 
+    Version : 1.3.0.0 
     (if last digit not zero version is an intermediate version and can be unstable)
 
     Author : Coding Seb
