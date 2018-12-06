@@ -333,6 +333,15 @@ namespace CodingSeb.ExpressionEvaluator
         private Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.Ordinal)
         {
             { "Array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
+            { "ArrayOfType", (self, args) =>
+                {
+                    Array sourceArray = args.Skip(1).Select(arg => self.Evaluate(arg)).ToArray();
+                    Array typedArray = Array.CreateInstance((Type)self.Evaluate(args[0]), sourceArray.Length);
+                    Array.Copy(sourceArray, typedArray, sourceArray.Length);
+
+                    return typedArray;
+                }
+            },
             { "Avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
             { "default", (self, args) =>
                 {

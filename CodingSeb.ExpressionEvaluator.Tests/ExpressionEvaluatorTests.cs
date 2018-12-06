@@ -1,8 +1,8 @@
 ﻿using NUnit.Framework;
-using Should;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Shouldly;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -81,7 +81,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
             evaluator.Evaluate(expression)
-                .ShouldBeType(type);
+                .ShouldBeOfType(type);
         }
 
         #endregion
@@ -131,6 +131,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"Text()\".Replace(\"(\", \"x\")", TestOf = typeof(string), ExpectedResult = "Textx)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
         [TestCase("\"Text()\".Replace(\"x\", \",\")", TestOf = typeof(string), ExpectedResult = "Te,t()", Category = "StringWithParenthisOrComaInFunctionsArgs")]
         [TestCase("\"Text()\".Replace(\"(\", \",\")", TestOf = typeof(string), ExpectedResult = "Text,)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
+
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Length", ExpectedResult = 3, Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[0]", ExpectedResult = "Hello", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[1]", ExpectedResult = "Test", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[2]", ExpectedResult = "What", Category = "StringSplit,ArrayOfType")]
         #endregion
 
         #region char
@@ -1006,7 +1011,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 Dictionary<string, object> delegatesInVariable = new Dictionary<string, object>()
                 {
                     { "Add", new Func<int,int,int>((x, y) => x + y)},
-                    { "Test", new Action<int>(x => x.ShouldEqual(5))},
+                    { "Test", new Action<int>(x => x.ShouldBe(5))},
                 };
 
                 yield return new TestCaseData("Add(3, 4)", delegatesInVariable, true).SetCategory("Delegate as a variable").Returns(7);

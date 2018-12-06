@@ -22,7 +22,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///   Retourne l'instance ResourceManager mise en cache utilisée par cette classe.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CodingSeb.ExpressionEvaluator.Tests.Resources", typeof(Resources).Assembly);
@@ -51,7 +51,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///   les recherches de ressources à l'aide de cette classe de ressource fortement typée.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -73,7 +73,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0001 {
+        public static string Script0001 {
             get {
                 return ResourceManager.GetString("Script0001", resourceCulture);
             }
@@ -90,7 +90,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0002 {
+        public static string Script0002 {
             get {
                 return ResourceManager.GetString("Script0002", resourceCulture);
             }
@@ -105,7 +105,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0003 {
+        public static string Script0003 {
             get {
                 return ResourceManager.GetString("Script0003", resourceCulture);
             }
@@ -136,7 +136,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result;.
         /// </summary>
-        internal static string Script0004 {
+        public static string Script0004 {
             get {
                 return ResourceManager.GetString("Script0004", resourceCulture);
             }
@@ -159,7 +159,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result;.
         /// </summary>
-        internal static string Script0005 {
+        public static string Script0005 {
             get {
                 return ResourceManager.GetString("Script0005", resourceCulture);
             }
@@ -174,7 +174,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///        element == 3;
         ///    });.
         /// </summary>
-        internal static string Script0006 {
+        public static string Script0006 {
             get {
                 return ResourceManager.GetString("Script0006", resourceCulture);
             }
@@ -195,7 +195,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///.
         /// </summary>
-        internal static string Script0007 {
+        public static string Script0007 {
             get {
                 return ResourceManager.GetString("Script0007", resourceCulture);
             }
@@ -210,7 +210,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///	
         ///x;.
         /// </summary>
-        internal static string Script0008 {
+        public static string Script0008 {
             get {
                 return ResourceManager.GetString("Script0008", resourceCulture);
             }
@@ -233,7 +233,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///	
         ///x;.
         /// </summary>
-        internal static string Script0009 {
+        public static string Script0009 {
             get {
                 return ResourceManager.GetString("Script0009", resourceCulture);
             }
@@ -259,7 +259,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///	
         ///x;.
         /// </summary>
-        internal static string Script0010 {
+        public static string Script0010 {
             get {
                 return ResourceManager.GetString("Script0010", resourceCulture);
             }
@@ -283,7 +283,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return list.Json;.
         /// </summary>
-        internal static string Script0011 {
+        public static string Script0011 {
             get {
                 return ResourceManager.GetString("Script0011", resourceCulture);
             }
@@ -300,7 +300,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return list.Json;.
         /// </summary>
-        internal static string Script0012 {
+        public static string Script0012 {
             get {
                 return ResourceManager.GetString("Script0012", resourceCulture);
             }
@@ -320,7 +320,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0013 {
+        public static string Script0013 {
             get {
                 return ResourceManager.GetString("Script0013", resourceCulture);
             }
@@ -340,7 +340,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0014 {
+        public static string Script0014 {
             get {
                 return ResourceManager.GetString("Script0014", resourceCulture);
             }
@@ -360,7 +360,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result;.
         /// </summary>
-        internal static string Script0015 {
+        public static string Script0015 {
             get {
                 return ResourceManager.GetString("Script0015", resourceCulture);
             }
@@ -372,7 +372,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return Add(3, 4);.
         /// </summary>
-        internal static string Script0016 {
+        public static string Script0016 {
             get {
                 return ResourceManager.GetString("Script0016", resourceCulture);
             }
@@ -391,7 +391,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return SecondFunc(5, 2);.
         /// </summary>
-        internal static string Script0017 {
+        public static string Script0017 {
             get {
                 return ResourceManager.GetString("Script0017", resourceCulture);
             }
@@ -411,7 +411,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///result.Remove(result.Length - 1);.
         /// </summary>
-        internal static string Script0018 {
+        public static string Script0018 {
             get {
                 return ResourceManager.GetString("Script0018", resourceCulture);
             }
@@ -426,7 +426,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return myVar.X + myVar.Y;.
         /// </summary>
-        internal static string Script0019 {
+        public static string Script0019 {
             get {
                 return ResourceManager.GetString("Script0019", resourceCulture);
             }
@@ -441,7 +441,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return myVar.X + myVar.Y;.
         /// </summary>
-        internal static string Script0020 {
+        public static string Script0020 {
             get {
                 return ResourceManager.GetString("Script0020", resourceCulture);
             }
@@ -456,7 +456,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return myVar[&quot;X&quot;] + myVar[&quot;Y&quot;];.
         /// </summary>
-        internal static string Script0021 {
+        public static string Script0021 {
             get {
                 return ResourceManager.GetString("Script0021", resourceCulture);
             }
@@ -471,7 +471,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return myVar[&quot;X&quot;] + myVar[&quot;Y&quot;];.
         /// </summary>
-        internal static string Script0022 {
+        public static string Script0022 {
             get {
                 return ResourceManager.GetString("Script0022", resourceCulture);
             }
@@ -488,7 +488,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return myVar[&quot;X&quot;] + myVar.Y;.
         /// </summary>
-        internal static string Script0023 {
+        public static string Script0023 {
             get {
                 return ResourceManager.GetString("Script0023", resourceCulture);
             }
@@ -506,7 +506,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return obj.Add(3, 4);.
         /// </summary>
-        internal static string Script0024 {
+        public static string Script0024 {
             get {
                 return ResourceManager.GetString("Script0024", resourceCulture);
             }
@@ -517,7 +517,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///throw new Exception(&quot;Exception for test&quot;);.
         /// </summary>
-        internal static string Script0025 {
+        public static string Script0025 {
             get {
                 return ResourceManager.GetString("Script0025", resourceCulture);
             }
@@ -532,7 +532,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;{varçÿ} &amp;&amp; {áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß}&quot;;.
         /// </summary>
-        internal static string Script0026 {
+        public static string Script0026 {
             get {
                 return ResourceManager.GetString("Script0026", resourceCulture);
             }
@@ -545,7 +545,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return test.Přōþěŕŧÿ;.
         /// </summary>
-        internal static string Script0027 {
+        public static string Script0027 {
             get {
                 return ResourceManager.GetString("Script0027", resourceCulture);
             }
@@ -575,7 +575,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;catch : {c}, finally : {f}&quot;;.
         /// </summary>
-        internal static string Script0028 {
+        public static string Script0028 {
             get {
                 return ResourceManager.GetString("Script0028", resourceCulture);
             }
@@ -602,7 +602,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;catch : {c}, finally : {f}&quot;;.
         /// </summary>
-        internal static string Script0029 {
+        public static string Script0029 {
             get {
                 return ResourceManager.GetString("Script0029", resourceCulture);
             }
@@ -628,7 +628,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;catch : {c}, finally : {f}&quot;;.
         /// </summary>
-        internal static string Script0030 {
+        public static string Script0030 {
             get {
                 return ResourceManager.GetString("Script0030", resourceCulture);
             }
@@ -647,7 +647,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///{
         ///	x / y;
         ///}
-        ///catch(DivideByZeroExceptionexception exception)
+        ///catch(DivideByZeroException exception)
         ///{
         ///	c = 1;
         ///}
@@ -662,7 +662,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;catch : {c}, finally : {f}&quot;;.
         /// </summary>
-        internal static string Script0031 {
+        public static string Script0031 {
             get {
                 return ResourceManager.GetString("Script0031", resourceCulture);
             }
@@ -678,7 +678,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///{
         ///	throw new Exception(&quot;My exception&quot;);
         ///}
-        ///catch(DivideByZeroExceptionexception exception)
+        ///catch(DivideByZeroException exception)
         ///{
         ///	c = 1;
         ///}
@@ -693,7 +693,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///
         ///return $&quot;catch : {c}, finally : {f}&quot;;.
         /// </summary>
-        internal static string Script0032 {
+        public static string Script0032 {
             get {
                 return ResourceManager.GetString("Script0032", resourceCulture);
             }
