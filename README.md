@@ -1,4 +1,4 @@
-# ExpressionEvaluator
+# ![alt text](https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true "Expression Evaluator Icon") ExpressionEvaluator
 
 A Simple Math and Pseudo C# Expression Evaluator in One C# File.
 
@@ -34,7 +34,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Manage [ExpandoObject](#expandoobject)
 
 ## And with [ScriptEvaluate](#scripts) method
-* Small C# like script evaluation (Multi expressions separated by ;)
+* Small C# like script evaluation (Multi expressions separated by ; )
 * Some conditional and loop blocks [keywords](#script-keywords) (if, while, for, foreach ...)
 * Multi-line (multi expression) Lambda expressions.
 
