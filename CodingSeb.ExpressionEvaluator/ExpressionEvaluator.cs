@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.0.0 
+    Version : 1.3.0.1 
     (if last digit not zero version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1920,7 +1920,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 Match assignationOrPostFixOperatorMatch = null;
 
-                object valueToPush = null;
+                dynamic valueToPush = null;
 
                 if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expr.Substring(i + 1))).Success)
                 {

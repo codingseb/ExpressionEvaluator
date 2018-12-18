@@ -566,6 +566,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Array content assignation
+
+                yield return new TestCaseData(Resources.Script0033, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[0,5,0]");
+
+                #endregion
+
                 #endregion
 
                 #region while
