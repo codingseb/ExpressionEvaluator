@@ -568,8 +568,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Array content assignation
 
-                yield return new TestCaseData(Resources.Script0033, null, null, null)
+                yield return new TestCaseData(Resources.Script0034, null, null, null)
                     .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
                     .SetCategory("Array Assignation")
                     .SetCategory("=")
                     .Returns("[0,5,0]");

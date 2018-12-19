@@ -1,0 +1,5 @@
+﻿/* Script0034 */
+
+array = new int[3];
+array[1] = 5;
+array.Json;

@@ -1,7 +1,7 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
     Version : 1.3.0.1 
-    (if last digit not zero version is an intermediate version and can be unstable)
+    (if last digit is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
     Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
@@ -43,7 +43,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*([,]\s*[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*)*)?[)])|[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
         private static readonly Regex lambdaArgRegex = new Regex(@"[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*");
 
-        private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?";
+        private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
@@ -803,7 +803,7 @@ namespace CodingSeb.ExpressionEvaluator
                 else if (script[index] == '(')
                 {
                     index++;
-                    GetExpressionsBetweenParenthis(script, ref index, false);
+                    GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
                 }
                 else if (script[index] == '{')
                 {
@@ -906,7 +906,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
-                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthis(script, ref i, true, ";") : null;
+                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";") : null;
 
                     if (blockKeywordsBeginingMatch.Success)
                         i++;
@@ -1021,7 +1021,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("while"))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
-                                keywordAttributes = GetExpressionsBetweenParenthis(script, ref i, true, ";");
+                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";");
 
                                 i++;
 
@@ -1245,7 +1245,7 @@ namespace CodingSeb.ExpressionEvaluator
                             else if (s2.Equals("("))
                             {
                                 j++;
-                                GetExpressionsBetweenParenthis(restOfExpression, ref j, false);
+                                GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
                             }
                             else if (s2.Equals(":"))
                             {
@@ -1348,21 +1348,39 @@ namespace CodingSeb.ExpressionEvaluator
                 || stack.Peek() is ExpressionOperator))
             {
                 string completeName = instanceCreationMatch.Groups["name"].Value;
+                Type type = GetTypeByFriendlyName(completeName, true);
 
                 i += instanceCreationMatch.Length;
 
-                if (!instanceCreationMatch.Groups["isfunction"].Success)
-                    throw new ExpressionEvaluatorSyntaxErrorException($"No '(' found after {instanceCreationMatch.Value}");
+                if (instanceCreationMatch.Groups["isfunction"].Success)
+                { 
+                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
 
-                List<string> constructorArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
+                    if (type == null)
+                        throw new ExpressionEvaluatorSyntaxErrorException($"type or class {completeName} is unknown");
 
-                Type type = GetTypeByFriendlyName(completeName, true);
+                    List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
+                    stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
+                }
+                else if(instanceCreationMatch.Groups["isArray"].Success)
+                {
+                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "[", "]");
 
-                if (type == null)
-                    throw new ExpressionEvaluatorSyntaxErrorException($"type or class {completeName} is unknown");
+                    if(arrayArgs.Count > 0)
+                    {
+                        stack.Push(Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray()));
+                    }
+                    else
+                    {
+                        //int[,] test = new int[4, 2];
 
-                List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
-                stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
+                        //Array.CreateInstance()
+
+                        //test[0, 1] = 3;
+                    }
+                }
+                else
+                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [], or { "{}" } (Check : {instanceCreationMatch.Value})");
 
                 return true;
             }
@@ -1388,7 +1406,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    List<string> funcArgs = GetExpressionsBetweenParenthis(expr, ref i, true);
+                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
                         if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
@@ -1833,7 +1851,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (stack.Count > 0 && stack.Peek() is InternalDelegate)
                 {
-                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthis(expr, ref i, true);
+                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
 
                     InternalDelegate lambdaDelegate = stack.Pop() as InternalDelegate;
 
@@ -1843,7 +1861,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(stack);
 
-                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthis(expr, ref i, false);
+                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, false);
 
                     stack.Push(Evaluate(expressionsInParenthis[0]));
                 }
@@ -2418,7 +2436,7 @@ namespace CodingSeb.ExpressionEvaluator
             return currentScript;
         }
 
-        private List<string> GetExpressionsBetweenParenthis(string expr, ref int i, bool checkSeparator, string separator = ",")
+        private List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expr, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
         {
             List<string> expressionsList = new List<string>();
 
@@ -2446,9 +2464,9 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     s = expr.Substring(i, 1);
 
-                    if (s.Equals("(")) bracketCount++;
+                    if (s.Equals(startChar)) bracketCount++;
 
-                    if (s.Equals(")"))
+                    if (s.Equals(endChar))
                     {
                         bracketCount--;
                         if (bracketCount == 0)
@@ -2472,7 +2490,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (bracketCount > 0)
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} ')' character {beVerb} missing in expression : [{expr}]");
+                throw new Exception($"{bracketCount} '{endChar}' character {beVerb} missing in expression : [{expr}]");
             }
 
             return expressionsList;
