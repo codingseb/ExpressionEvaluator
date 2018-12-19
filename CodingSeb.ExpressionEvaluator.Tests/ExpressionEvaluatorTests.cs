@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Shouldly;
+using Newtonsoft.Json;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -133,9 +134,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"Text()\".Replace(\"(\", \",\")", TestOf = typeof(string), ExpectedResult = "Text,)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
 
         [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Length", ExpectedResult = 3, Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[0]", ExpectedResult = "Hello", Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[1]", ExpectedResult = "Test", Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[2]", ExpectedResult = "What", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Json", ExpectedResult = "[\"Hello\",\"Test\",\"What\"]", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(new char[]{','}).Length", ExpectedResult = 3, Category = "StringSplit,Array instanciation")]
+        [TestCase("\"Hello,Test,What\".Split(new char[]{','}).Json", ExpectedResult = "[\"Hello\",\"Test\",\"What\"]", Category = "StringSplit,Array instanciation")]
         #endregion
 
         #region char
@@ -860,9 +861,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
+            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
+
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
-            return evaluator.Evaluate(expression);
+            object result = evaluator.Evaluate(expression);
+
+            evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
+
+            return result;
         }
 
         #endregion
@@ -1087,6 +1094,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             else if (e.Name.Equals("myVar"))
             {
                 e.Value = 8;
+            }
+            else if (e.This != null && e.Name.Equals("Json"))
+            {
+                e.Value = JsonConvert.SerializeObject(e.This);
             }
         }
 
