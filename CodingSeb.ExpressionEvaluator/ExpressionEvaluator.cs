@@ -42,6 +42,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
         private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*([,]\s*[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*)*)?[)])|[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
         private static readonly Regex lambdaArgRegex = new Regex(@"[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*");
+        private static readonly Regex initInNewBeginningRegex = new Regex(@"^\s*{");
+        private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^\s*\[");
 
         private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?";
         private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
@@ -1365,22 +1367,33 @@ namespace CodingSeb.ExpressionEvaluator
                 else if(instanceCreationMatch.Groups["isArray"].Success)
                 {
                     List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "[", "]");
+                    i++;
+                    Array array = null;
 
                     if(arrayArgs.Count > 0)
                     {
-                        stack.Push(Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray()));
+                        array = Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray());
                     }
-                    else
+
+                    Match initInNewBeginningMatch = initInNewBeginningRegex.Match(expr.Substring(i));
+
+                    if (initInNewBeginningMatch.Success)
                     {
-                        //int[,] test = new int[4, 2];
+                        i += initInNewBeginningMatch.Length;
 
-                        //Array.CreateInstance()
+                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                        i++;
 
-                        //test[0, 1] = 3;
+                        if (array == null)
+                            array = Array.CreateInstance(type, arrayElements.Count);
+
+                        Array.Copy(arrayElements.ConvertAll(subExpression => Evaluate(subExpression)).ToArray(), array, arrayElements.Count);
                     }
+
+                    stack.Push(array);
                 }
                 else
-                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [], or { "{}" } (Check : {instanceCreationMatch.Value})");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by () or [](Check : {instanceCreationMatch.Value})");
 
                 return true;
             }
