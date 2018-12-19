@@ -724,5 +724,29 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0034", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0035 */
+        ///
+        ///array = new int[] {1, 2, 3};
+        ///array.Json;.
+        /// </summary>
+        public static string Script0035 {
+            get {
+                return ResourceManager.GetString("Script0035", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0036 */
+        ///
+        ///array = new int[3] {1, 2, 3};
+        ///array.Json;.
+        /// </summary>
+        public static string Script0036 {
+            get {
+                return ResourceManager.GetString("Script0036", resourceCulture);
+            }
+        }
     }
 }

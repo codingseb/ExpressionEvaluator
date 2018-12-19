@@ -220,4 +220,10 @@
   <data name="Script0034" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\script0034.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="Script0035" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0035.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0036" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0036.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

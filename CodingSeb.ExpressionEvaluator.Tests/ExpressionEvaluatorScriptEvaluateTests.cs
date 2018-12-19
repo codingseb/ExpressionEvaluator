@@ -568,6 +568,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Array content assignation
 
+                yield return new TestCaseData(Resources.Script0033, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[0,5,0]");
+
                 yield return new TestCaseData(Resources.Script0034, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("Array instanciation")
@@ -575,6 +581,22 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Array Assignation")
                     .SetCategory("=")
                     .Returns("[0,5,0]");
+
+                yield return new TestCaseData(Resources.Script0035, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[1,2,3]");
+
+                yield return new TestCaseData(Resources.Script0036, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[1,2,3]");
 
                 #endregion
 
