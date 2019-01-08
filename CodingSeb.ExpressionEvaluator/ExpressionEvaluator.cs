@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.0.1 
+    Version : 1.3.0.2 
     (if last digit is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -36,9 +36,12 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9\.\[\]<>]*[?]?)\s*\)");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
         private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
-        private static readonly Regex endOfStringWithDollar = new Regex("^[^\"{]*[\"{]");
-        private static readonly Regex endOfStringWithoutDollar = new Regex("^[^\"]*[\"]");
-        private static readonly Regex endOfStringInterpolationRegex = new Regex("^[^}\"]*[}\"]");
+
+        private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]");
+        private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]");
+        private static readonly Regex endOfStringWithDollarWithAt = new Regex("^[^\"{]*[\"{]");
+        private static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]");
+        private static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]");
         private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
         private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*([,]\s*[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*)*)?[)])|[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
         private static readonly Regex lambdaArgRegex = new Regex(@"[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*");
@@ -813,7 +816,14 @@ namespace CodingSeb.ExpressionEvaluator
                     GetScriptBetweenCurlyBrackets(script, ref index);
                 }
                 else
+                {
+                    Match charMatch = internalCharRegex.Match(script.Substring(index));
+
+                    if (charMatch.Success)
+                        index += charMatch.Length;
+
                     parsed = false;
+                }
 
                 return parsed;
             }
@@ -2063,27 +2073,35 @@ namespace CodingSeb.ExpressionEvaluator
                             int bracketCount = 1;
                             for (; i < expr.Length; i++)
                             {
-                                Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
-
-                                if (internalStringMatch.Success)
+                                if (i + 3 <= expr.Length && expr.Substring(i, 3).Equals("'\"'"))
                                 {
-                                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
-                                    innerExp.Append(innerString);
-                                    i += innerString.Length - 1;
+                                    innerExp.Append("'\"'");
+                                    i += 2;
                                 }
                                 else
                                 {
-                                    s = expr.Substring(i, 1);
+                                    Match internalStringMatch = stringBeginningRegex.Match(expr.Substring(i));
 
-                                    if (s.Equals("{")) bracketCount++;
-
-                                    if (s.Equals("}"))
+                                    if (internalStringMatch.Success)
                                     {
-                                        bracketCount--;
-                                        i++;
-                                        if (bracketCount == 0) break;
+                                        string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
+                                        innerExp.Append(innerString);
+                                        i += innerString.Length - 1;
                                     }
-                                    innerExp.Append(s);
+                                    else
+                                    {
+                                        s = expr.Substring(i, 1);
+
+                                        if (s.Equals("{")) bracketCount++;
+
+                                        if (s.Equals("}"))
+                                        {
+                                            bracketCount--;
+                                            i++;
+                                            if (bracketCount == 0) break;
+                                        }
+                                        innerExp.Append(s);
+                                    }
                                 }
                             }
 
@@ -2612,7 +2630,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private void GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch, ref StringBuilder stringBuilder)
         {
-            Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? endOfStringWithDollar.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr);
+            Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? 
+                (stringBeginningMatch.Value.Contains("@") ? endOfStringWithDollarWithAt.Match(subExpr) : endOfStringWithDollar.Match(subExpr)) :
+                (stringBeginningMatch.Value.Contains("@") ? endOfStringWithoutDollarWithAt.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr));
 
             if (codeUntilEndOfStringMatch.Success)
             {

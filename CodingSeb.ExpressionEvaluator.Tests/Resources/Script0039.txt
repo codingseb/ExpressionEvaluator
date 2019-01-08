@@ -1,0 +1,3 @@
+﻿/* Script0039 */
+
+xmlTagRegexPattern = $"(?<begining>[<]tag\\s+id\\s*[=]\\s*{'"'}A.Id.For.The_Tag[^{'"'}]*{'"'}\\s*version\\s*[=]\\s*{'"'})(?<version>[^{'"'}]*)";
