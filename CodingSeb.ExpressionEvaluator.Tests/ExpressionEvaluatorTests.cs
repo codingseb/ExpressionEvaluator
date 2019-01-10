@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Shouldly;
+using Newtonsoft.Json;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -103,12 +104,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"Hello World\"", TestOf = typeof(string), ExpectedResult = "Hello World", Category = "SimpleString")]
         [TestCase("\"Hello\" + \"World\"", TestOf = typeof(string), ExpectedResult = "HelloWorld", Category = "SimpleString")]
 
+        [TestCase("\"\\\"\"", TestOf = typeof(string), ExpectedResult = "\"", Category = "StringEscape")]
+        [TestCase("\"\\n\"", TestOf = typeof(string), ExpectedResult = "\n", Category = "StringEscape")]
+        [TestCase("\"\\r\"", TestOf = typeof(string), ExpectedResult = "\r", Category = "StringEscape")]
+        [TestCase("\"\\t\"", TestOf = typeof(string), ExpectedResult = "\t", Category = "StringEscape")]
+        [TestCase("\""+ @"\\" + "\"", TestOf = typeof(string), ExpectedResult = @"\", Category = "StringEscape")]
         [TestCase("\"" + @"\\\n" + "\"", TestOf = typeof(string), ExpectedResult = "\\\n", Category = "StringEscape")]
         [TestCase("@\"" + @"\\n" + "\"", TestOf = typeof(string), ExpectedResult = @"\\n", Category = "StringEscape")]
 
         [TestCase("$\"Hello {1 + 2}\"", TestOf = typeof(string), ExpectedResult = "Hello 3", Category = "StringInterpolation")]
+        [TestCase("$\"{'\"'}\"", TestOf = typeof(string), ExpectedResult = "\"", Category = "StringInterpolation")]
+        [TestCase("$\"{ '\"' }\"", TestOf = typeof(string), ExpectedResult = "\"", Category = "StringInterpolation")]
+        [TestCase("$\"{{\"", TestOf = typeof(string), ExpectedResult = "{", Category = "StringInterpolation")]
+        [TestCase("$\"{ \"{\" }\"", TestOf = typeof(string), ExpectedResult = "{", Category = "StringInterpolation")]
         [TestCase("$\"Test { 5+5 } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test", Category = "StringInterpolation")]
-        [TestCase("$\"Test { 5+5 + \" Test\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test Test", Category = "StringInterpolation")]
+        [TestCase("$\"Test { 5+5 + \" Test\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test Test", Category = "StringInterpolation")]      
         [TestCase("$\"Test { 5+5 + \" Test{\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test{ Test", Category = "StringInterpolation")]
         [TestCase("$\"Test { 5+5 + \" Test{{ }\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test{{ } Test", Category = "StringInterpolation")]
 
@@ -133,9 +143,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"Text()\".Replace(\"(\", \",\")", TestOf = typeof(string), ExpectedResult = "Text,)", Category = "StringWithParenthisOrComaInFunctionsArgs")]
 
         [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Length", ExpectedResult = 3, Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[0]", ExpectedResult = "Hello", Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[1]", ExpectedResult = "Test", Category = "StringSplit,ArrayOfType")]
-        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ','))[2]", ExpectedResult = "What", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(ArrayOfType(typeof(char), ',')).Json", ExpectedResult = "[\"Hello\",\"Test\",\"What\"]", Category = "StringSplit,ArrayOfType")]
+        [TestCase("\"Hello,Test,What\".Split(new char[]{','}).Length", ExpectedResult = 3, Category = "StringSplit,Array instanciation")]
+        [TestCase("\"Hello,Test,What\".Split(new char[]{','}).Json", ExpectedResult = "[\"Hello\",\"Test\",\"What\"]", Category = "StringSplit,Array instanciation")]
         #endregion
 
         #region char
@@ -162,6 +172,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase(@"'\r'", TestOf = typeof(char), ExpectedResult = '\r', Category = "char")]
         [TestCase(@"'\t'", TestOf = typeof(char), ExpectedResult = '\t', Category = "char")]
         [TestCase(@"'\v'", TestOf = typeof(char), ExpectedResult = '\v', Category = "char")]
+        [TestCase("'\"'", TestOf = typeof(char), ExpectedResult = '"', Category = "char")]
         [TestCase("\"hello\" + ' ' + '!'", ExpectedResult = "hello !", Category = "char")]
         [TestCase("(int)'a'", ExpectedResult = 97, Category = "char")]
         [TestCase("'a'.CompareTo('b')", ExpectedResult = -1, Category = "char")]
@@ -860,9 +871,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
+            evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
+
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
-            return evaluator.Evaluate(expression);
+            object result = evaluator.Evaluate(expression);
+
+            evaluator.EvaluateVariable -= Evaluator_EvaluateVariable;
+
+            return result;
         }
 
         #endregion
@@ -1087,6 +1104,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             else if (e.Name.Equals("myVar"))
             {
                 e.Value = 8;
+            }
+            else if (e.This != null && e.Name.Equals("Json"))
+            {
+                e.Value = JsonConvert.SerializeObject(e.This);
             }
         }
 

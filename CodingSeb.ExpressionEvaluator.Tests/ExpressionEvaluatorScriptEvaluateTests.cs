@@ -566,6 +566,123 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Array content assignation
+
+                yield return new TestCaseData(Resources.Script0033, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[0,5,0]");
+
+                yield return new TestCaseData(Resources.Script0034, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[0,5,0]");
+
+                yield return new TestCaseData(Resources.Script0035, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[1,2,3]");
+
+                yield return new TestCaseData(Resources.Script0036, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Array instanciation")
+                    .SetCategory("new")
+                    .SetCategory("Array Assignation")
+                    .SetCategory("=")
+                    .Returns("[1,2,3]");
+
+                #endregion
+
+                #region StringEscape
+
+                yield return new TestCaseData(Resources.Script0037, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("=")
+                    .Returns("\"");
+
+                yield return new TestCaseData(Resources.Script0038, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                yield return new TestCaseData(Resources.Script0039, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                yield return new TestCaseData(Resources.Script0040, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                yield return new TestCaseData(Resources.Script0041, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                yield return new TestCaseData(Resources.Script0042, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("char")
+                    .SetCategory("doubleQuote")
+                    .SetCategory("=")
+                    .Returns('"');
+
+                yield return new TestCaseData(Resources.Script0043, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("char")
+                    .SetCategory("doubleQuote")
+                    .SetCategory("=")
+                    .Returns("\"");
+
+                yield return new TestCaseData(Resources.Script0044, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("char")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("\"");
+
+                yield return new TestCaseData(Resources.Script0045, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                yield return new TestCaseData(Resources.Script0046, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("StringEscape")
+                    .SetCategory("StringInterpolate")
+                    .SetCategory("=")
+                    .Returns("(?<begining>[<]tag\\s+id\\s*[=]\\s*\"A.Id.For.The_Tag[^\"]*\"\\s*version\\s*[=]\\s*\")(?<version>[^\"]*)");
+
+                #endregion
+
                 #endregion
 
                 #region while

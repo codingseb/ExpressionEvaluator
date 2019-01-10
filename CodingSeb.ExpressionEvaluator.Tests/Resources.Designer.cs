@@ -698,5 +698,165 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0032", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0033 */
+        ///
+        ///array = Array.CreateInstance(typeof(int), 3);
+        ///array[1] = 5;
+        ///array.Json;.
+        /// </summary>
+        public static string Script0033 {
+            get {
+                return ResourceManager.GetString("Script0033", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0034 */
+        ///
+        ///array = new int[3];
+        ///array[1] = 5;
+        ///array.Json;.
+        /// </summary>
+        public static string Script0034 {
+            get {
+                return ResourceManager.GetString("Script0034", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0035 */
+        ///
+        ///array = new int[] {1, 2, 3};
+        ///array.Json;.
+        /// </summary>
+        public static string Script0035 {
+            get {
+                return ResourceManager.GetString("Script0035", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0036 */
+        ///
+        ///array = new int[3] {1, 2, 3};
+        ///array.Json;.
+        /// </summary>
+        public static string Script0036 {
+            get {
+                return ResourceManager.GetString("Script0036", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0037 */
+        ///
+        ///test = &quot;\&quot;&quot; ;.
+        /// </summary>
+        public static string Script0037 {
+            get {
+                return ResourceManager.GetString("Script0037", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0038 */
+        ///
+        ///xmlTagRegexPattern = &quot;(?&lt;begining&gt;[&lt;]tag\\s+id\\s*[=]\\s*\&quot;A.Id.For.The_Tag[^\&quot;]*\&quot;\\s*version\\s*[=]\\s*\&quot;)(?&lt;version&gt;[^\&quot;]*)&quot;;.
+        /// </summary>
+        public static string Script0038 {
+            get {
+                return ResourceManager.GetString("Script0038", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0039 */
+        ///
+        ///xmlTagRegexPattern = $&quot;(?&lt;begining&gt;[&lt;]tag\\s+id\\s*[=]\\s*{&apos;&quot;&apos;}A.Id.For.The_Tag[^{&apos;&quot;&apos;}]*{&apos;&quot;&apos;}\\s*version\\s*[=]\\s*{&apos;&quot;&apos;})(?&lt;version&gt;[^{&apos;&quot;&apos;}]*)&quot;;.
+        /// </summary>
+        public static string Script0039 {
+            get {
+                return ResourceManager.GetString("Script0039", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0040 */
+        ///
+        ///xmlTagRegexPattern = $&quot;(?&lt;begining&gt;[&lt;]tag\\s+id\\s*[=]\\s*{&quot;\&quot;&quot;}A.Id.For.The_Tag[^{&quot;\&quot;&quot;}]*{&quot;\&quot;&quot;}\\s*version\\s*[=]\\s*{&quot;\&quot;&quot;})(?&lt;version&gt;[^{&quot;\&quot;&quot;}]*)&quot;;.
+        /// </summary>
+        public static string Script0040 {
+            get {
+                return ResourceManager.GetString("Script0040", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0041 */
+        ///
+        ///xmlTagRegexPattern = $@&quot;(?&lt;begining&gt;[&lt;]tag\s+id\s*[=]\s*{&quot;\&quot;&quot;}A.Id.For.The_Tag[^{&quot;\&quot;&quot;}]*{&quot;\&quot;&quot;}\s*version\s*[=]\s*{&quot;\&quot;&quot;})(?&lt;version&gt;[^{&quot;\&quot;&quot;}]*)&quot;;.
+        /// </summary>
+        public static string Script0041 {
+            get {
+                return ResourceManager.GetString("Script0041", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0042 */
+        ///
+        ///doubleQuoteChar = &apos;&quot;&apos;;.
+        /// </summary>
+        public static string Script0042 {
+            get {
+                return ResourceManager.GetString("Script0042", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0043 */
+        ///
+        ///doubleQuoteString = $&quot;{&apos;&quot;&apos;}&quot;;.
+        /// </summary>
+        public static string Script0043 {
+            get {
+                return ResourceManager.GetString("Script0043", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0044 */
+        ///
+        ///xmlTagRegexPattern = $@&quot;{ &apos;&quot;&apos; }&quot;;.
+        /// </summary>
+        public static string Script0044 {
+            get {
+                return ResourceManager.GetString("Script0044", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0045 */
+        ///
+        ///xmlTagRegexPattern = $@&quot;(?&lt;begining&gt;[&lt;]tag\s+id\s*[=]\s*{&apos;&quot;&apos;}A.Id.For.The_Tag[^{&apos;&quot;&apos;}]*{&apos;&quot;&apos;}\s*version\s*[=]\s*{&apos;&quot;&apos;})(?&lt;version&gt;[^{&apos;&quot;&apos;}]*)&quot;;.
+        /// </summary>
+        public static string Script0045 {
+            get {
+                return ResourceManager.GetString("Script0045", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0046 */
+        ///
+        ///xmlTagRegexPattern = $@&quot;(?&lt;begining&gt;[&lt;]tag\s+id\s*[=]\s*{ &apos;&quot;&apos; }A.Id.For.The_Tag[^{ &apos;&quot;&apos; }]*{ &apos;&quot;&apos; }\s*version\s*[=]\s*{ &apos;&quot;&apos; })(?&lt;version&gt;[^{ &apos;&quot;&apos; }]*)&quot;;.
+        /// </summary>
+        public static string Script0046 {
+            get {
+                return ResourceManager.GetString("Script0046", resourceCulture);
+            }
+        }
     }
 }

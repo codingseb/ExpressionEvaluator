@@ -1,0 +1,4 @@
+﻿/* Script0035 */
+
+array = new int[] {1, 2, 3};
+array.Json;

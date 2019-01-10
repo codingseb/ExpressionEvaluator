@@ -1,0 +1,5 @@
+﻿/* Script0033 */
+
+array = Array.CreateInstance(typeof(int), 3);
+array[1] = 5;
+array.Json;
