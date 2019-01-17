@@ -476,13 +476,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region default values
         [TestCase("default(int)", TestOf = typeof(int), ExpectedResult = 0, Category = "default values")]
         [TestCase("default(bool)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values")]
+        [TestCase("default(System.Boolean)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values, Inline namespaces")]
         #endregion
-
+        
         #region typeof keyword
         [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "typeof keyword")]
         [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "typeof keyword")]
         [TestCase("typeof(string)", ExpectedResult = typeof(string), Category = "typeof keyword")]
         [TestCase("typeof(Regex)", ExpectedResult = typeof(Regex), Category = "typeof keyword")]
+        [TestCase("typeof(System.Text.RegularExpressions.Regex)", ExpectedResult = typeof(Regex), Category = "typeof keyword,inline namespace")]
         [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "typeof keyword")]
         [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "typeof keyword")]
         [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof keyword")]
@@ -492,7 +494,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("new ClassForTest1().GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Create instance with new Keyword")]
         [TestCase("new ClassForTest2(15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Create instance with new Keyword")]
         [TestCase("new ClassForTest2(15).Value1", ExpectedResult = 15, Category = "Create instance with new Keyword")]
-        [TestCase("new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1().Value1", ExpectedResult = 26, Category = "Create instance with new Keyword")]
+        [TestCase("new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1().Value1", ExpectedResult = 26, Category = "Create instance with new Keyword,Inline namespace")]
         [TestCase("new Regex(@\"\\w*[n]\\w*\").Match(\"Which word contains the desired letter ?\").Value", ExpectedResult = "contains", Category = "Create instance with new Keyword")]
         #endregion
 
@@ -859,6 +861,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #region Complex expressions
         [TestCase("Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
+        [TestCase("System.Linq.Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
         [TestCase("List(1,2,3,4,5,6).ConvertAll(x => (float)x)[2].GetType()", ExpectedResult = typeof(float), Category = "Complex expression,Type Manage,Instance method,Lambda function,Cast,Indexing")]
         [TestCase("List(\"hello\", \"bye\").Select(x => x.ToUpper()).ToList().FluidAdd(\"test\").Count", ExpectedResult = 3, Category = "Complex expression,Fluid Functions")]
         [TestCase("List(\"hello\", \"bye\").Select(x => x.ToUpper()).ToList().FluidAdd(\"test\")[0]", ExpectedResult = "HELLO", Category = "Complex expression,Fluid Functions")]
