@@ -119,6 +119,9 @@
     <None Include="Resources\Script0032.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.Net" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
