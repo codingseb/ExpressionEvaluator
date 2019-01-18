@@ -2612,7 +2612,7 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName, bool withNameSpace = false)
+        private Type GetTypeByFriendlyName(string typeName)
         {
             Type result = null;
             try
@@ -2636,9 +2636,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
-                    result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
-
-                    if (!typeName.Contains("."))
+                    if(typeName.Contains("."))
+                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                    else
                     {
                         for (int i = 0; i < Namespaces.Count && result == null; i++)
                         {
