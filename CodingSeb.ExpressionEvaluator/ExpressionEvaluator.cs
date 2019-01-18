@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.1.0 
+    Version : 1.3.1.1 
     (if last digit is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1360,7 +1360,7 @@ namespace CodingSeb.ExpressionEvaluator
                 || stack.Peek() is ExpressionOperator))
             {
                 string completeName = instanceCreationMatch.Groups["name"].Value;
-                Type type = GetTypeByFriendlyName(completeName, true);
+                Type type = GetTypeByFriendlyName(completeName);
 
                 i += instanceCreationMatch.Length;
 
@@ -2560,12 +2560,12 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName, bool tryWithNamespaceInclude = false)
+        private Type GetTypeByFriendlyName(string typeName)
         {
             Type result = null;
             try
             {
-                result = Type.GetType(typeName, false, true);
+                result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
 
                 if (result == null)
                 {
@@ -2574,7 +2574,7 @@ namespace CodingSeb.ExpressionEvaluator
                         return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
                     });
 
-                    result = Type.GetType(typeName, false, true);
+                    result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
 
                 if (result == null)
@@ -2584,12 +2584,11 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
-                    if (tryWithNamespaceInclude)
-                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, true);
+                    result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
 
                     for (int i = 0; i < Namespaces.Count && result == null; i++)
                     {
-                        result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, true);
+                        result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
                     }
                 }
             }
