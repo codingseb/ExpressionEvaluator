@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.1.0 
+    Version : 1.3.2.0 
     (if last digit is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -29,11 +29,10 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
         private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
-        private static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>["+ diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
-        private static readonly Regex castRegex = new Regex(@"^\(\s*(?<typeName>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9\.\[\]<>]*[?]?)\s*\)");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
         private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
 
@@ -43,13 +42,18 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]");
         private static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]");
         private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static readonly Regex lambdaExpressionRegex = new Regex(@"^\s*(?<args>(\s*[(]\s*([" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*([,]\s*[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*\s*)*)?[)])|[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
-        private static readonly Regex lambdaArgRegex = new Regex(@"[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*");
+        private static readonly Regex lambdaExpressionRegex = new Regex($@"^\s*(?<args>(\s*[(]\s*([{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*\s*([,]\s*[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*\s*)*)?[)])|[{ diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern }0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
+        private static readonly Regex lambdaArgRegex = new Regex($@"[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*");
         private static readonly Regex initInNewBeginningRegex = new Regex(@"^\s*{");
         private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^\s*\[");
 
-        private static readonly string instanceCreationWithNewKeywordRegexPattern = @"^new\s+(?<name>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9.]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?";
-        private Regex instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern);
+
+        // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
+        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
+        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?"; } }
+        private Regex instanceCreationWithNewKeywordRegex = null;
+        private Regex castRegex = null;
+
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
         private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
 
@@ -462,7 +466,7 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(instanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
                 primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
@@ -488,6 +492,22 @@ namespace CodingSeb.ExpressionEvaluator
         /// By default : true
         /// </summary>
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
+        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
+        /// By default : true
+        /// </summary>
+        public bool OptionInlineNamespacesEvaluationActive
+        {
+            get { return optionInlineNamespacesEvaluationActive; }
+            set
+            {
+                optionInlineNamespacesEvaluationActive = value;
+                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+            }
+        }
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -673,6 +693,8 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator()
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+            instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
+            castRegex = new Regex(CastRegexPattern);
         }
 
         /// <summary>
@@ -689,6 +711,7 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
+        private bool optionInlineNamespacesEvaluationActive = true;
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -1360,7 +1383,7 @@ namespace CodingSeb.ExpressionEvaluator
                 || stack.Peek() is ExpressionOperator))
             {
                 string completeName = instanceCreationMatch.Groups["name"].Value;
-                Type type = GetTypeByFriendlyName(completeName, true);
+                Type type = GetTypeByFriendlyName(completeName);
 
                 i += instanceCreationMatch.Length;
 
@@ -1765,6 +1788,35 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
                                 Type staticType = GetTypeByFriendlyName(typeName);
+
+                                if(staticType == null && OptionInlineNamespacesEvaluationActive)
+                                {
+                                    int subIndex = 0;
+                                    Match namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
+                                    
+                                    while (staticType == null && 
+                                        namespaceMatch.Success && 
+                                        !namespaceMatch.Groups["sign"].Success && 
+                                        !namespaceMatch.Groups["assignationOperator"].Success && 
+                                        !namespaceMatch.Groups["postfixOperator"].Success && 
+                                        !namespaceMatch.Groups["postfixOperator"].Success && 
+                                        !namespaceMatch.Groups["isfunction"].Success && 
+                                        i + subIndex < expr.Length && 
+                                        !typeName.EndsWith("?"))
+                                    {
+                                        subIndex += namespaceMatch.Length;
+                                        typeName += $"{namespaceMatch.Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+                                        staticType = GetTypeByFriendlyName(typeName);
+
+                                        if(staticType != null)
+                                        {
+                                            i += subIndex;
+                                            break;
+                                        }
+
+                                        namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
+                                    }
+                                }
 
                                 if (typeName.EndsWith("?") && staticType != null)
                                     i++;
@@ -2560,12 +2612,12 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName, bool tryWithNamespaceInclude = false)
+        private Type GetTypeByFriendlyName(string typeName)
         {
             Type result = null;
             try
             {
-                result = Type.GetType(typeName, false, true);
+                result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
 
                 if (result == null)
                 {
@@ -2574,7 +2626,7 @@ namespace CodingSeb.ExpressionEvaluator
                         return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
                     });
 
-                    result = Type.GetType(typeName, false, true);
+                    result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
 
                 if (result == null)
@@ -2584,12 +2636,14 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
-                    if (tryWithNamespaceInclude)
-                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, true);
-
-                    for (int i = 0; i < Namespaces.Count && result == null; i++)
+                    if(typeName.Contains("."))
+                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                    else
                     {
-                        result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, true);
+                        for (int i = 0; i < Namespaces.Count && result == null; i++)
+                        {
+                            result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                        }
                     }
                 }
             }
