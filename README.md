@@ -18,28 +18,28 @@ It is largely based on and inspired by the following resources [this post on st
 ## Features
 * Basic mathematical expression evaluation
 * System.Math methods and constants directly available (some like Max, Min, Avg are improved)
-* Some useful [functions](./wiki/Variables-and-functions#standard-functions) for example to create List and Arrays
-* [Custom variables definition](./wiki/Variables-and-functions#custom-variables)
-* [On the fly variables and functions evaluation](./wiki/Variables-and-functions#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities, Manage also on instance Property and Methods)
-* [A large set of C# operators availables](./wiki/Operators-and-Keywords#standard-operators)
+* Some useful [functions](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#standard-functions) for example to create List and Arrays
+* [Custom variables definition](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#custom-variables)
+* [On the fly variables and functions evaluation](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#on-the-fly-variables-and-functions-evaluation) (To easily extend possibilities, Manage also on instance Property and Methods)
+* [A large set of C# operators availables](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#standard-operators)
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
-* [C# primary types](./wiki/C%23-Types-Management#primary-types)
+* [C# primary types](https://github.com/codingseb/ExpressionEvaluator/wiki/C%23-Types-Management#primary-types)
 * Use strings as in C# (@"", $"", $@"" available)
 * Lambda expressions
-* Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](./wiki/C%23-Types-Management#assemblies-namespaces-and-types))
-* Create instance with [new(MyClassName, constructorArgs)](./wiki/Variables-and-Functions#standard-functions) or [new MyClassName(constructorArgs)](./wiki/Operators-and-Keywords#standard-operators)
-* [Call void methods with fluid prefix convention to chain operations](./wiki/Variables-and-Functions#go-fluid-with-a-simple-methods-prefixing-convention)
-* Manage [ExpandoObject](./wiki/ExpandoObject)
+* Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](https://github.com/codingseb/ExpressionEvaluator/wiki/C%23-Types-Management#assemblies-namespaces-and-types))
+* Create instance with [new(MyClassName, constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-Functions#standard-functions) or [new MyClassName(constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#standard-operators)
+* [Call void methods with fluid prefix convention to chain operations](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-Functions#go-fluid-with-a-simple-methods-prefixing-convention)
+* Manage [ExpandoObject](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpandoObject)
 
-## And with [ScriptEvaluate](./wiki/Getting-Started#small-scripts) method
+## And with [ScriptEvaluate](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started#small-scripts) method
 * Small C# like script evaluation (Multi expressions separated by ; )
-* Some conditional and loop blocks [keywords](./wiki/Operators-and-Keywords#scripts-keywords) (if, while, for, foreach ...)
+* Some conditional and loop blocks [keywords](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#scripts-keywords) (if, while, for, foreach ...)
 * Multi-line (multi expression) Lambda expressions.
 
 ## Resources
-* [Getting Started](./wiki/Getting-Started)
-* [Documentation on the wiki](./wiki)
+* [Getting Started](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started)
+* [Documentation on the wiki](https://github.com/codingseb/ExpressionEvaluator/wiki)
 
 ## Similar projects
 ### Free
