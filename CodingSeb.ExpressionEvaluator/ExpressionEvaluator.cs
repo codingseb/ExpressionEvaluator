@@ -237,7 +237,10 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right] },
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => {
+                        return left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right];
+                    }
+                },
                 {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
@@ -486,29 +489,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
-        /// <summary>
-        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
-        /// if <c>false</c> unactive this functionality.
-        /// By default : true
-        /// </summary>
-        public bool OptionNewKeywordEvaluationActive { get; set; } = true;
-
-        /// <summary>
-        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
-        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
-        /// By default : true
-        /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive
-        {
-            get { return optionInlineNamespacesEvaluationActive; }
-            set
-            {
-                optionInlineNamespacesEvaluationActive = value;
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-            }
-        }
-
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
         /// <summary>
@@ -531,6 +511,29 @@ namespace CodingSeb.ExpressionEvaluator
                     newMethodMem = complexStandardFuncsDictionary["new"];
                     complexStandardFuncsDictionary.Remove("new");
                 }
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool OptionNewKeywordEvaluationActive { get; set; } = true;
+
+        /// <summary>
+        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
+        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
+        /// By default : true
+        /// </summary>
+        public bool OptionInlineNamespacesEvaluationActive
+        {
+            get { return optionInlineNamespacesEvaluationActive; }
+            set
+            {
+                optionInlineNamespacesEvaluationActive = value;
+                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 

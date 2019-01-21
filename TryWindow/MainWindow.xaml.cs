@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,9 +103,20 @@ namespace TryWindow
 
         private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
         {
-            if(e.This != null && e.Name.Equals("Json"))
+            if (e.This != null)
             {
-                e.Value = JsonConvert.SerializeObject(e.This); 
+                if (e.Name.Equals("Json"))
+                {
+                    e.Value = JsonConvert.SerializeObject(e.This);
+                }
+                else if (e.Name.Equals("MethodsNames"))
+                {
+                    e.Value = JsonConvert.SerializeObject(e.This.GetType().GetMethods().Select(m => m.Name));
+                }
+                else if (e.Name.Equals("PropertiesNames"))
+                {
+                    e.Value = JsonConvert.SerializeObject(e.This.GetType().GetProperties().Select(m => m.Name));
+                }
             }
         }
 
