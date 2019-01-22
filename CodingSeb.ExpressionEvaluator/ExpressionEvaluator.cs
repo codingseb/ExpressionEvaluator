@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.2.0 
+    Version : 1.3.2.1 
     (if last digit is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -489,6 +489,24 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
+        private bool optionInlineNamespacesEvaluationActive = true;
+
+        /// <summary>
+        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
+        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
+        /// By default : true
+        /// </summary>
+        public bool OptionInlineNamespacesEvaluationActive
+        {
+            get { return optionInlineNamespacesEvaluationActive; }
+            set
+            {
+                optionInlineNamespacesEvaluationActive = value;
+                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+            }
+        }
+
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
         /// <summary>
@@ -520,22 +538,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// By default : true
         /// </summary>
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
-
-        /// <summary>
-        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
-        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
-        /// By default : true
-        /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive
-        {
-            get { return optionInlineNamespacesEvaluationActive; }
-            set
-            {
-                optionInlineNamespacesEvaluationActive = value;
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-            }
-        }
 
         /// <summary>
         /// if <c>true</c> allow to call static methods on classes.
@@ -714,7 +716,7 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
-        private bool optionInlineNamespacesEvaluationActive = true;
+        
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
