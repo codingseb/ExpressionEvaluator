@@ -237,8 +237,19 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => {
-                        return left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right];
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => 
+                    {
+                        Type type = ((object)left).GetType();
+
+                        if(left is IDictionary<string, object> dictionaryLeft)
+                            return dictionaryLeft[right];
+                        else if(type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
+                        {
+                            return methodInfo.Invoke(left, new object[] { right });
+                        }
+
+
+                        return left[right];
                     }
                 },
                 {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
