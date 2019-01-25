@@ -1416,7 +1416,8 @@ namespace CodingSeb.ExpressionEvaluator
                 || stack.Peek() is ExpressionOperator))
             {
                 string completeName = instanceCreationMatch.Groups["name"].Value;
-                Type type = GetTypeByFriendlyName(completeName);
+                string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
+                Type type = GetTypeByFriendlyName(completeName, genericTypes);
 
                 i += instanceCreationMatch.Length;
 
@@ -1839,8 +1840,9 @@ namespace CodingSeb.ExpressionEvaluator
                                         !typeName.EndsWith("?"))
                                     {
                                         subIndex += namespaceMatch.Length;
-                                        typeName += $"{namespaceMatch.Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-                                        staticType = GetTypeByFriendlyName(typeName);
+                                        typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                                        staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
 
                                         if(staticType != null)
                                         {
@@ -2658,12 +2660,20 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName)
+        private Type GetTypeByFriendlyName(string typeName, string genericTypes = "")
         {
             Type result = null;
             try
             {
-                result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
+                string formatedGenericTypes = string.Empty;
+
+                if (!genericTypes.Equals(string.Empty))
+                {
+                    Type[] types = GetConcreteTypes(genericTypes);
+                    formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => type.FullName))}]";
+                }
+
+                result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
 
                 if (result == null)
                 {
@@ -2683,12 +2693,12 @@ namespace CodingSeb.ExpressionEvaluator
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
                     if(typeName.Contains("."))
-                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                        result = Type.GetType($"{typeName}{formatedGenericTypes},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
                     else
                     {
                         for (int i = 0; i < Namespaces.Count && result == null; i++)
                         {
-                            result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                            result = Type.GetType($"{Namespaces[i]}.{typeName}{formatedGenericTypes},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
                         }
                     }
                 }

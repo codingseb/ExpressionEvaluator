@@ -867,6 +867,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region Generic types Management
 
         [TestCase("List(\"Hello\", \"Test\").Cast<string>().ToList<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "List function, Generics")]
+        [TestCase("new List<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "List function, Generics")]
 
         #endregion
 
