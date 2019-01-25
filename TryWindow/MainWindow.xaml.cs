@@ -39,6 +39,7 @@ namespace TryWindow
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
             evaluator.Namespaces.Add("System.Windows");
+            evaluator.Namespaces.Add("System.Diagnostics");
 
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
 

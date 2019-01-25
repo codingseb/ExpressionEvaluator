@@ -11,6 +11,9 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <ExtrasEnableWpfProjectSetup>true</ExtrasEnableWpfProjectSetup>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AvalonEdit" Version="5.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
