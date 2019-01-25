@@ -380,6 +380,22 @@ namespace CodingSeb.ExpressionEvaluator
             //{ "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
             { "in", (self, args) => args.Skip(1).ToList().ConvertAll(arg => self.Evaluate(arg)).Contains(self.Evaluate(args[0])) },
             { "List", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
+            { "ListOfType", (self, args) =>
+                {
+                    Type type = (Type)self.Evaluate(args[0]);
+                    Array sourceArray = args.Skip(1).Select(arg => self.Evaluate(arg)).ToArray();
+                    Array typedArray = Array.CreateInstance(type, sourceArray.Length);
+                    Array.Copy(sourceArray, typedArray, sourceArray.Length);
+
+                    Type typeOfList = typeof(List<>).MakeGenericType(type);
+
+                    object list = Activator.CreateInstance(typeOfList);
+
+                    typeOfList.GetMethod("AddRange").Invoke(list, new object[]{ typedArray });
+
+                    return list;
+                }
+            },
             { "Max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
             { "Min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
             { "new", (self, args) =>

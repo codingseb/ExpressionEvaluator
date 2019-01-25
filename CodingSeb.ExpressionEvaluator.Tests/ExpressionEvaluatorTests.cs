@@ -688,13 +688,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("IEEERemainder(6, 3)", ExpectedResult = 0, Category = "Standard Functions,IEEERemainder Function")]
         #endregion
 
-        //#region if Function
-        //[TestCase("if(true, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        //[TestCase("if(false, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        //[TestCase("if(3<5, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        //[TestCase("if(3>5, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        //#endregion
-
         #region in Function
         [TestCase("in(8, 4, 2, 8)", ExpectedResult = true, Category = "Standard Functions,in Function")]
         [TestCase("in(20, 4, 2, 8)", ExpectedResult = false, Category = "Standard Functions,in Function")]
@@ -706,6 +699,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("List(14, \"A text for test\", 2.5, true)[1]", ExpectedResult = "A text for test", Category = "Standard Functions,List Function,Indexing")]
         [TestCase("List(14, \"A text for test\", 2.5, true)[2]", ExpectedResult = 2.5, Category = "Standard Functions,List Function,Indexing")]
         [TestCase("List(14, \"A text for test\", 2.5, true)[3]", ExpectedResult = true, Category = "Standard Functions,List Function,Indexing")]
+        #endregion
+
+        #region ListOfType Function
+        [TestCase("ListOfType(typeof(int), 1,2,3 ).GetType()", ExpectedResult = typeof(List<int>), Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 ).Count", ExpectedResult = 3, Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[0]", ExpectedResult = 1, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[1]", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[2]", ExpectedResult = 3, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).GetType()", ExpectedResult = typeof(List<string>), Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).Count", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[0]", ExpectedResult = "hello", Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[1]", ExpectedResult = "Test", Category = "Standard Functions,ListOfType Function,Indexing")]
         #endregion
 
         #region Log Function
