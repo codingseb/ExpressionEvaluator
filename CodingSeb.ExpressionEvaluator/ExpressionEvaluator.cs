@@ -1,7 +1,7 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.2.1 
-    (if last digit is not a zero, the version is an intermediate version and can be unstable)
+    Version : 1.3.2.2 
+    (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
     Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
@@ -35,6 +35,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
         private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
+        private static readonly Regex genericsDecodeRegex = new Regex("[^,<>]+(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
 
         private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]");
         private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]");
@@ -1463,6 +1464,7 @@ namespace CodingSeb.ExpressionEvaluator
             && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
             {
                 string varFuncName = varFuncMatch.Groups["name"].Value;
+                string genericsTypes = varFuncMatch.Groups["isgeneric"].Value;
 
                 i += varFuncMatch.Length;
 
@@ -1514,7 +1516,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
-                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
+                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
 
                                         // if not found check if obj is an expandoObject or similar
                                         if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
@@ -1540,7 +1542,7 @@ namespace CodingSeb.ExpressionEvaluator
                                                 for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                                 {
                                                     Type type = StaticTypesForExtensionsMethods[e];
-                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
+                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs, genericsTypes);
                                                 }
                                             }
 
@@ -2353,7 +2355,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args)
+        private MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes = "")
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
@@ -2362,7 +2364,7 @@ namespace CodingSeb.ExpressionEvaluator
                 (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
                     || func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluent".ManageCasing(OptionCaseSensitiveEvaluationActive))))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs);
+                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs, genericsTypes);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -2390,7 +2392,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (methodInfo != null)
             {
-                methodInfo = MakeConcreteMethodIfGeneric(methodInfo);
+                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes);
             }
             else
             {
@@ -2400,7 +2402,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m]);
+                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes);
 
                     bool parametersCastOK = true;
 
@@ -2463,14 +2465,26 @@ namespace CodingSeb.ExpressionEvaluator
             return methodInfo;
         }
 
-        private MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo)
+        private MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo, string genericsTypes = "")
         {
             if (methodInfo.IsGenericMethod)
             {
-                return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+                if (genericsTypes.Equals(string.Empty))
+                    return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+                else
+                    return methodInfo.MakeGenericMethod(GetConcreteTypes(genericsTypes));
             }
 
             return methodInfo;
+        }
+
+        private Type[] GetConcreteTypes(string genericsTypes)
+        {
+            return genericsDecodeRegex
+                .Matches(genericsTypes.TrimStart(' ', '<').TrimEnd(' ', '>'))
+                .Cast<Match>()
+                .Select(match => GetTypeByFriendlyName(match.Value))
+                .ToArray();
         }
 
         private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)

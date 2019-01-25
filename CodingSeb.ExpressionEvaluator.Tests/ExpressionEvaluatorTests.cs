@@ -859,6 +859,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
+        #region Generic types Management
+
+        [TestCase("List(\"Hello\", \"Test\").Cast<string>().ToList<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "List function, Generics")]
+
+        #endregion
+
         #region Complex expressions
         [TestCase("Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
         [TestCase("System.Linq.Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
