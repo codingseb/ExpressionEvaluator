@@ -35,7 +35,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
         private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
-        private static readonly Regex genericsDecodeRegex = new Regex("[^,<>]+(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
+        private static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
+        private static readonly Regex genericsEndOnlyOneTrim = new Regex(@"\s+[>]\s+$");
 
         private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]");
         private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]");
@@ -50,9 +51,9 @@ namespace CodingSeb.ExpressionEvaluator
 
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
         private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?"; } }
         private Regex instanceCreationWithNewKeywordRegex = null;
+        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
         private Regex castRegex = null;
 
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
@@ -1348,6 +1349,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (castMatch.Success)
             {
                 string typeName = castMatch.Groups["typeName"].Value;
+
                 Type type = GetTypeByFriendlyName(typeName);
 
                 if (type != null)
@@ -1426,7 +1428,7 @@ namespace CodingSeb.ExpressionEvaluator
                     List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
 
                     if (type == null)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"type or class {completeName} is unknown");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
                     List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
                     stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
@@ -2499,9 +2501,9 @@ namespace CodingSeb.ExpressionEvaluator
         private Type[] GetConcreteTypes(string genericsTypes)
         {
             return genericsDecodeRegex
-                .Matches(genericsTypes.TrimStart(' ', '<').TrimEnd(' ', '>'))
+                .Matches(genericsEndOnlyOneTrim.Replace(genericsTypes.TrimStart(' ', '<'), ""))
                 .Cast<Match>()
-                .Select(match => GetTypeByFriendlyName(match.Value))
+                .Select(match => GetTypeByFriendlyName(match.Groups["name"].Value, match.Groups["isgeneric"].Value, true))
                 .ToArray();
         }
 
@@ -2660,7 +2662,7 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName, string genericTypes = "")
+        private Type GetTypeByFriendlyName(string typeName, string genericTypes = "", bool throwExceptionIfNotFound = false)
         {
             Type result = null;
             try
@@ -2703,10 +2705,17 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                 }
             }
+            catch(ExpressionEvaluatorSyntaxErrorException)
+            {
+                throw;
+            }
             catch { }
 
             if (result != null && TypesToBlock.Contains(result))
                 result = null;
+
+            if (result == null && throwExceptionIfNotFound)
+                throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {typeName}{genericTypes} is unknown");
 
             return result;
         }
