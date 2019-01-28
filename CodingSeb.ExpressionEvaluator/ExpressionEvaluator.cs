@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.2.2 
+    Version : 1.3.2.3 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -8,6 +8,7 @@
 *******************************************************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
@@ -51,7 +52,7 @@ namespace CodingSeb.ExpressionEvaluator
 
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?"; } }
+        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
         private Regex instanceCreationWithNewKeywordRegex = null;
         private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
         private Regex castRegex = null;
@@ -1423,15 +1424,52 @@ namespace CodingSeb.ExpressionEvaluator
 
                 i += instanceCreationMatch.Length;
 
+                if (type == null)
+                    throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
+
                 if (instanceCreationMatch.Groups["isfunction"].Success)
                 { 
                     List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
-
-                    if (type == null)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
+                    i++;
 
                     List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
-                    stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
+
+                    object element = Activator.CreateInstance(type, cArgs.ToArray());
+
+                    Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
+
+                    if (blockBeginningMatch.Success)
+                    {
+                        i += blockBeginningMatch.Length;
+
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                        if (typeof(IEnumerable).IsAssignableFrom(type))
+                        {
+                            MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
+
+                            initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
+                        }
+                    }
+                    else
+                        i--;
+
+                    stack.Push(element);
+                }
+                else if(instanceCreationMatch.Groups["isInit"].Success)
+                {
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                    object element = Activator.CreateInstance(type, new object[0]);
+
+                    if (typeof(IEnumerable).IsAssignableFrom(type))
+                    {
+                        MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
+
+                        initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) })); 
+                    }
+
+                    stack.Push(element);
                 }
                 else if(instanceCreationMatch.Groups["isArray"].Success)
                 {
@@ -1462,7 +1500,7 @@ namespace CodingSeb.ExpressionEvaluator
                     stack.Push(array);
                 }
                 else
-                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by () or [](Check : {instanceCreationMatch.Value})");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
 
                 return true;
             }
