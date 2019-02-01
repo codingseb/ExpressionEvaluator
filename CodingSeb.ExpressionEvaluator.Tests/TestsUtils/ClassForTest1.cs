@@ -8,7 +8,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         public int IntProperty { get; set; } = 25;
 
-
+        public string StringProperty { get; set; } = string.Empty;
 
         public static int StaticIntProperty { get; set; } = 67;
 

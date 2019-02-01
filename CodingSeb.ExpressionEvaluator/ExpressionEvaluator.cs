@@ -54,7 +54,7 @@ namespace CodingSeb.ExpressionEvaluator
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
         private Regex instanceCreationWithNewKeywordRegex = null;
-        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
+        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)\s*\)"; } }
         private Regex castRegex = null;
 
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
@@ -1444,11 +1444,27 @@ namespace CodingSeb.ExpressionEvaluator
 
                         List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
 
-                        if (typeof(IEnumerable).IsAssignableFrom(type))
+                        if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
                         {
                             MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
                             initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
+                        }
+                        else
+                        {
+                            ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
+
+                            initArgs.ForEach(subExpr =>
+                            {
+                                if (subExpr.Contains("="))
+                                {
+                                    string trimmedSubExpr = subExpr.TrimStart();
+
+                                    initEvaluator.Evaluate($"this{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                                }
+                                else
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                            });
                         }
                     }
                     else
@@ -1462,12 +1478,29 @@ namespace CodingSeb.ExpressionEvaluator
 
                     object element = Activator.CreateInstance(type, new object[0]);
 
-                    if (typeof(IEnumerable).IsAssignableFrom(type))
+                    if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
                     {
                         MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
                         initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) })); 
                     }
+                    else
+                    {
+                        ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
+
+                        initArgs.ForEach(subExpr =>
+                        {
+                            if (subExpr.Contains("="))
+                            {
+                                string trimmedSubExpr = subExpr.TrimStart();
+
+                                initEvaluator.Evaluate($"this{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                            }
+                            else
+                                throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                        });
+                    }
+
 
                     stack.Push(element);
                 }
@@ -1862,7 +1895,7 @@ namespace CodingSeb.ExpressionEvaluator
                             else
                             {
                                 string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
-                                Type staticType = GetTypeByFriendlyName(typeName);
+                                Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
                                 if(staticType == null && OptionInlineNamespacesEvaluationActive)
                                 {
@@ -1979,7 +2012,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             if (i < expr.Length - 1)
             {
-                String op = expr.Substring(i, 2);
+                string op = expr.Substring(i, 2);
                 if (operatorsDictionary.ContainsKey(op))
                 {
                     stack.Push(operatorsDictionary[op]);
