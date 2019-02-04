@@ -746,7 +746,6 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
-        
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -1570,7 +1569,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, obj);
+                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj);
 
                                     EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1665,7 +1664,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs);
+                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this);
 
                         EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1762,7 +1761,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, obj);
+                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj);
 
                                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -1867,7 +1866,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName);
+                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this);
 
                             EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -3024,10 +3023,11 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
-        public VariableEvaluationEventArg(string name, object onInstance = null)
+        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
             Name = name;
             This = onInstance;
+            Evaluator = evaluator;
         }
 
         /// <summary>
@@ -3060,18 +3060,24 @@ namespace CodingSeb.ExpressionEvaluator
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; private set; } = null;
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; private set; }
     }
 
     public class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, object onInstance = null)
+        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
             Name = name;
             Args = args ?? new List<string>();
             this.evaluateFunc = evaluateFunc;
             This = onInstance;
+            Evaluator = evaluator;
         }
 
         /// <summary>
@@ -3139,6 +3145,11 @@ namespace CodingSeb.ExpressionEvaluator
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; private set; } = null;
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; private set; }
     }
 
     #endregion
