@@ -1427,62 +1427,13 @@ namespace CodingSeb.ExpressionEvaluator
                 if (type == null)
                     throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
-                if (instanceCreationMatch.Groups["isfunction"].Success)
-                { 
-                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
-                    i++;
-
-                    List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
-
-                    object element = Activator.CreateInstance(type, cArgs.ToArray());
-
-                    Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
-
-                    if (blockBeginningMatch.Success)
-                    {
-                        i += blockBeginningMatch.Length;
-
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
-
-                        if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
-                        {
-                            MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
-
-                            initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
-                        }
-                        else
-                        {
-                            ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
-
-                            initArgs.ForEach(subExpr =>
-                            {
-                                if (subExpr.Contains("="))
-                                {
-                                    string trimmedSubExpr = subExpr.TrimStart();
-
-                                    initEvaluator.Evaluate($"this{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
-                                }
-                                else
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
-                            });
-                        }
-                    }
-                    else
-                        i--;
-
-                    stack.Push(element);
-                }
-                else if(instanceCreationMatch.Groups["isInit"].Success)
+                void Init(object element, List<string> initArgs)
                 {
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
-
-                    object element = Activator.CreateInstance(type, new object[0]);
-
                     if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
                     {
                         MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
-                        initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) })); 
+                        initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
                     }
                     else
                     {
@@ -1500,7 +1451,39 @@ namespace CodingSeb.ExpressionEvaluator
                                 throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
                         });
                     }
+                }
 
+                if (instanceCreationMatch.Groups["isfunction"].Success)
+                { 
+                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
+                    i++;
+
+                    List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
+
+                    object element = Activator.CreateInstance(type, cArgs.ToArray());
+
+                    Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
+
+                    if (blockBeginningMatch.Success)
+                    {
+                        i += blockBeginningMatch.Length;
+
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                        Init(element, initArgs);
+                    }
+                    else
+                        i--;
+
+                    stack.Push(element);
+                }
+                else if(instanceCreationMatch.Groups["isInit"].Success)
+                {
+                    object element = Activator.CreateInstance(type, new object[0]);
+
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                    Init(element, initArgs);
 
                     stack.Push(element);
                 }
