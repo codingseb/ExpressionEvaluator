@@ -1434,6 +1434,28 @@ namespace CodingSeb.ExpressionEvaluator
 
                         initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
                     }
+                    else if(typeof(IDictionary).IsAssignableFrom(type) && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")))
+                    {
+                        initArgs.ForEach(subExpr =>
+                        {
+                            int subIndex = subExpr.IndexOf("{") + 1;
+
+                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, ",", "{", "}");
+
+                            if(subArgs.Count == 2)
+                            {
+                                dynamic indexedObject = element;
+                                dynamic index = Evaluate(subArgs[0]);
+                                dynamic value = Evaluate(subArgs[1]);
+
+                                indexedObject[index] = value;
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Bad Number of args in initialization of [{subExpr}]");
+                            }
+                        });
+                    }
                     else
                     {
                         ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
