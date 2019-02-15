@@ -496,6 +496,48 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("new ClassForTest2(15).Value1", ExpectedResult = 15, Category = "Create instance with new Keyword")]
         [TestCase("new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1().Value1", ExpectedResult = 26, Category = "Create instance with new Keyword,Inline namespace")]
         [TestCase("new Regex(@\"\\w*[n]\\w*\").Match(\"Which word contains the desired letter ?\").Value", ExpectedResult = "contains", Category = "Create instance with new Keyword")]
+        [TestCase("new List<string>(){ \"Hello\", \"Test\" }.GetType()", ExpectedResult = typeof(List<string>), Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>(){ \"Hello\", \"Test\" }.Count", ExpectedResult = 2, Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>(){ \"Hello\", \"Test\" }[0]", ExpectedResult = "Hello", Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>(){ \"Hello\", \"Test\" }[1]", ExpectedResult = "Test", Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>{ \"Hello\", \"Test\" }.GetType()", ExpectedResult = typeof(List<string>), Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>{ \"Hello\", \"Test\" }.Count", ExpectedResult = 2, Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>{ \"Hello\", \"Test\" }[0]", ExpectedResult = "Hello", Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new List<string>{ \"Hello\", \"Test\" }[1]", ExpectedResult = "Test", Category = "Create instance with new Keyword, Collection Initializer")]
+        [TestCase("new ClassForTest1(){ IntProperty = 100, StringProperty = \"A Text\" }.GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest1(){ IntProperty = 100, StringProperty = \"A Text\" }.IntProperty", ExpectedResult = 100, Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest1(){ IntProperty = 100, StringProperty = \"A Text\" }.StringProperty", ExpectedResult = "A Text", Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest1{ IntProperty = 100, StringProperty = \"A Text\" }.GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest1{ IntProperty = 100, StringProperty = \"A Text\" }.IntProperty", ExpectedResult = 100, Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest1{ IntProperty = 100, StringProperty = \"A Text\" }.StringProperty", ExpectedResult = "A Text", Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest2(10){ Value2 = 100 }.GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest2(10){ Value2 = 100 }.Value1", ExpectedResult = 10, Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new ClassForTest2(10){ Value2 = 100 }.Value2", ExpectedResult = 100, Category = "Create instance with new Keyword, Object Initializer")]
+        [TestCase("new Dictionary<int, string>(){ [7] = \"seven\", [7+2] = \"nine\" }.GetType()", ExpectedResult = typeof(Dictionary<int, string>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>(){ [7] = \"seven\", [7+2] = \"nine\" }[7]", ExpectedResult = "seven", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>(){ [7] = \"seven\", [7+2] = \"nine\" }[9]", ExpectedResult = "nine", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ [7] = \"seven\", [7+2] = \"nine\" }.GetType()", ExpectedResult = typeof(Dictionary<int, string>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ [7] = \"seven\", [7+2] = \"nine\" }[7]", ExpectedResult = "seven", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ [7] = \"seven\", [7+2] = \"nine\" }[9]", ExpectedResult = "nine", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ [\"seven\"] = 7, [\"nine\"] = 9 }.GetType()", ExpectedResult = typeof(Dictionary<string, int>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ [\"seven\"] = 7, [\"nine\"] = 9 }[\"seven\"]", ExpectedResult = 7, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ [\"seven\"] = 7, [\"nine\"] = 9 }[\"nine\"]", ExpectedResult = 9, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ [\"seven\"] = 7, [\"nine\"] = 9 }.GetType()", ExpectedResult = typeof(Dictionary<string, int>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ [\"seven\"] = 7, [\"nine\"] = 9 }[\"seven\"]", ExpectedResult = 7, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ [\"seven\"] = 7, [\"nine\"] = 9 }[\"nine\"]", ExpectedResult = 9, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>(){ {7 ,\"seven\"}, {7+2, \"nine\"} }.GetType()", ExpectedResult = typeof(Dictionary<int, string>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>(){ {7 ,\"seven\"}, {7+2, \"nine\"} }[7]", ExpectedResult = "seven", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>(){ {7 ,\"seven\"}, {7+2, \"nine\"}  }[9]", ExpectedResult = "nine", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ {7 ,\"seven\"}, {7+2, \"nine\"}  }.GetType()", ExpectedResult = typeof(Dictionary<int, string>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ {7 ,\"seven\"}, {7+2, \"nine\"}  }[7]", ExpectedResult = "seven", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<int, string>{ {7 ,\"seven\"}, {7+2, \"nine\"} }[9]", ExpectedResult = "nine", Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ {\"seven\", 7} , {\"nine\", 9 } }.GetType()", ExpectedResult = typeof(Dictionary<string, int>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ {\"seven\", 7} , {\"nine\", 9 } }[\"seven\"]", ExpectedResult = 7, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>(){ {\"seven\", 7} , {\"nine\", 9 } }[\"nine\"]", ExpectedResult = 9, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ {\"seven\", 7} , {\"nine\", 9 }  }.GetType()", ExpectedResult = typeof(Dictionary<string, int>), Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ {\"seven\", 7} , {\"nine\", 9 }  }[\"seven\"]", ExpectedResult = 7, Category = "Create instance with new Keyword, Dictionary Initializer")]
+        [TestCase("new Dictionary<string, int>{ {\"seven\", 7} , {\"nine\", 9 }  }[\"nine\"]", ExpectedResult = 9, Category = "Create instance with new Keyword, Dictionary Initializer")]
+
         #endregion
 
         #region Logical And Shift Operators
@@ -688,13 +730,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("IEEERemainder(6, 3)", ExpectedResult = 0, Category = "Standard Functions,IEEERemainder Function")]
         #endregion
 
-        //#region if Function
-        //[TestCase("if(true, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        //[TestCase("if(false, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        //[TestCase("if(3<5, \"It's OK\", \"Ho no\")", ExpectedResult = "It's OK", Category = "Standard Functions,if Function")]
-        //[TestCase("if(3>5, \"It's OK\", \"Ho no\")", ExpectedResult = "Ho no", Category = "Standard Functions,if Function")]
-        //#endregion
-
         #region in Function
         [TestCase("in(8, 4, 2, 8)", ExpectedResult = true, Category = "Standard Functions,in Function")]
         [TestCase("in(20, 4, 2, 8)", ExpectedResult = false, Category = "Standard Functions,in Function")]
@@ -706,6 +741,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("List(14, \"A text for test\", 2.5, true)[1]", ExpectedResult = "A text for test", Category = "Standard Functions,List Function,Indexing")]
         [TestCase("List(14, \"A text for test\", 2.5, true)[2]", ExpectedResult = 2.5, Category = "Standard Functions,List Function,Indexing")]
         [TestCase("List(14, \"A text for test\", 2.5, true)[3]", ExpectedResult = true, Category = "Standard Functions,List Function,Indexing")]
+        #endregion
+
+        #region ListOfType Function
+        [TestCase("ListOfType(typeof(int), 1,2,3 ).GetType()", ExpectedResult = typeof(List<int>), Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 ).Count", ExpectedResult = 3, Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[0]", ExpectedResult = 1, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[1]", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(int), 1,2,3 )[2]", ExpectedResult = 3, Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).GetType()", ExpectedResult = typeof(List<string>), Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).Count", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[0]", ExpectedResult = "hello", Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[1]", ExpectedResult = "Test", Category = "Standard Functions,ListOfType Function,Indexing")]
         #endregion
 
         #region Log Function
@@ -859,6 +906,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
+        #region Generic types Management
+
+        [TestCase("List(\"Hello\", \"Test\").Cast<string>().ToList<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "List function, Generics")]
+        [TestCase("new List<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "new Keyword, Generics")]
+        [TestCase("new Dictionary<string,List<int>>().GetType()", ExpectedResult = typeof(Dictionary<string, List<int>>) , Category = "new Keyword, Generics")]
+
+        #endregion
+
         #region Complex expressions
         [TestCase("Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
         [TestCase("System.Linq.Enumerable.Range(1,4).Cast().Sum(x =>(int)x)", ExpectedResult = 10, Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
@@ -868,7 +923,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("List(\"hello\", \"bye\").Select(x => x.ToUpper()).ToList().FluidAdd(\"test\")[1]", ExpectedResult = "BYE", Category = "Complex expression,Fluid Functions")]
         [TestCase("List(\"hello\", \"bye\").Select(x => x.ToUpper()).ToList().FluidAdd(\"test\")[2]", ExpectedResult = "test", Category = "Complex expression,Fluid Functions")]
         [TestCase("List(\"hello\", \"bye\").Select(x => x.ToUpper()).ToList().FluidAdd(\"test\")[2]", ExpectedResult = "test", Category = "Complex expression,Fluid Functions")]
-        [TestCase("$\"https://www.google.ch/search?q={System.Net.WebUtility.UrlEncode(\"test of request with url encode() ?\")}\"", ExpectedResult = "https://www.google.ch/search?q=test+of+request+with+url+encode()+%3F", Category = "Complex expression,Inline namespace")]
+        [TestCase("$\"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(\"test of request with url encode() ?\")}\"", ExpectedResult = "https://www.google.com/search?q=test+of+request+with+url+encode()+%3F", Category = "Complex expression,Inline namespace")]
+        [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").SelectSingleNode(\"//element[@id='MyElement']\").InnerXml", ExpectedResult = "Xml Content", Category = "Complex expression,Inline namespace,Fluid")]
+        [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").ChildNodes[0].Name", ExpectedResult = "root", Category = "Complex expression,Inline namespace,Fluid,Custom Indexer")]
+
         #endregion
 
         #endregion

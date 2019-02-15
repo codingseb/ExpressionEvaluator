@@ -1,13 +1,14 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.2.0 
-    (if last digit is not a zero, the version is an intermediate version and can be unstable)
+    Version : 1.3.3.0 
+    (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
     Licence : MIT (https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md)
 *******************************************************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
@@ -35,6 +36,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
         private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
+        private static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
+        private static readonly Regex genericsEndOnlyOneTrim = new Regex(@"\s+[>]\s+$");
 
         private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]");
         private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]");
@@ -49,9 +52,9 @@ namespace CodingSeb.ExpressionEvaluator
 
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9\{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }[\]<>]*[?]?)\s*\)"; } }
-        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[))?"; } }
+        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
         private Regex instanceCreationWithNewKeywordRegex = null;
+        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)\s*\)"; } }
         private Regex castRegex = null;
 
         private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
@@ -237,7 +240,21 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left[right] },
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => 
+                    {
+                        Type type = ((object)left).GetType();
+
+                        if(left is IDictionary<string, object> dictionaryLeft)
+                            return dictionaryLeft[right];
+                        else if(type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
+                        {
+                            return methodInfo.Invoke(left, new object[] { right });
+                        }
+
+
+                        return left[right];
+                    }
+                },
                 {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
@@ -365,6 +382,22 @@ namespace CodingSeb.ExpressionEvaluator
             //{ "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
             { "in", (self, args) => args.Skip(1).ToList().ConvertAll(arg => self.Evaluate(arg)).Contains(self.Evaluate(args[0])) },
             { "List", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)) },
+            { "ListOfType", (self, args) =>
+                {
+                    Type type = (Type)self.Evaluate(args[0]);
+                    Array sourceArray = args.Skip(1).Select(arg => self.Evaluate(arg)).ToArray();
+                    Array typedArray = Array.CreateInstance(type, sourceArray.Length);
+                    Array.Copy(sourceArray, typedArray, sourceArray.Length);
+
+                    Type typeOfList = typeof(List<>).MakeGenericType(type);
+
+                    object list = Activator.CreateInstance(typeOfList);
+
+                    typeOfList.GetMethod("AddRange").Invoke(list, new object[]{ typedArray });
+
+                    return list;
+                }
+            },
             { "Max", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Max() },
             { "Min", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Min() },
             { "new", (self, args) =>
@@ -486,12 +519,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
-        /// <summary>
-        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
-        /// if <c>false</c> unactive this functionality.
-        /// By default : true
-        /// </summary>
-        public bool OptionNewKeywordEvaluationActive { get; set; } = true;
+        private bool optionInlineNamespacesEvaluationActive = true;
 
         /// <summary>
         /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
@@ -533,6 +561,13 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
         }
+
+        /// <summary>
+        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
+        /// if <c>false</c> unactive this functionality.
+        /// By default : true
+        /// </summary>
+        public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to call static methods on classes.
@@ -711,7 +746,6 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
-        private bool optionInlineNamespacesEvaluationActive = true;
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -1315,6 +1349,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (castMatch.Success)
             {
                 string typeName = castMatch.Groups["typeName"].Value;
+
                 Type type = GetTypeByFriendlyName(typeName);
 
                 if (type != null)
@@ -1383,19 +1418,95 @@ namespace CodingSeb.ExpressionEvaluator
                 || stack.Peek() is ExpressionOperator))
             {
                 string completeName = instanceCreationMatch.Groups["name"].Value;
-                Type type = GetTypeByFriendlyName(completeName);
+                string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
+                Type type = GetTypeByFriendlyName(completeName, genericTypes);
 
                 i += instanceCreationMatch.Length;
+
+                if (type == null)
+                    throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
+
+                void Init(object element, List<string> initArgs)
+                {
+                    if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
+                    {
+                        MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
+
+                        initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
+                    }
+                    else if(typeof(IDictionary).IsAssignableFrom(type) && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")))
+                    {
+                        initArgs.ForEach(subExpr =>
+                        {
+                            int subIndex = subExpr.IndexOf("{") + 1;
+
+                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, ",", "{", "}");
+
+                            if(subArgs.Count == 2)
+                            {
+                                dynamic indexedObject = element;
+                                dynamic index = Evaluate(subArgs[0]);
+                                dynamic value = Evaluate(subArgs[1]);
+
+                                indexedObject[index] = value;
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Bad Number of args in initialization of [{subExpr}]");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
+
+                        initArgs.ForEach(subExpr =>
+                        {
+                            if (subExpr.Contains("="))
+                            {
+                                string trimmedSubExpr = subExpr.TrimStart();
+
+                                initEvaluator.Evaluate($"this{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                            }
+                            else
+                                throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                        });
+                    }
+                }
 
                 if (instanceCreationMatch.Groups["isfunction"].Success)
                 { 
                     List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
-
-                    if (type == null)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"type or class {completeName} is unknown");
+                    i++;
 
                     List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
-                    stack.Push(Activator.CreateInstance(type, cArgs.ToArray()));
+
+                    object element = Activator.CreateInstance(type, cArgs.ToArray());
+
+                    Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
+
+                    if (blockBeginningMatch.Success)
+                    {
+                        i += blockBeginningMatch.Length;
+
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                        Init(element, initArgs);
+                    }
+                    else
+                        i--;
+
+                    stack.Push(element);
+                }
+                else if(instanceCreationMatch.Groups["isInit"].Success)
+                {
+                    object element = Activator.CreateInstance(type, new object[0]);
+
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+
+                    Init(element, initArgs);
+
+                    stack.Push(element);
                 }
                 else if(instanceCreationMatch.Groups["isArray"].Success)
                 {
@@ -1426,7 +1537,7 @@ namespace CodingSeb.ExpressionEvaluator
                     stack.Push(array);
                 }
                 else
-                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by () or [](Check : {instanceCreationMatch.Value})");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
 
                 return true;
             }
@@ -1447,6 +1558,7 @@ namespace CodingSeb.ExpressionEvaluator
             && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
             {
                 string varFuncName = varFuncMatch.Groups["name"].Value;
+                string genericsTypes = varFuncMatch.Groups["isgeneric"].Value;
 
                 i += varFuncMatch.Length;
 
@@ -1479,7 +1591,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, obj);
+                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj);
 
                                     EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1498,7 +1610,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
-                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs);
+                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
 
                                         // if not found check if obj is an expandoObject or similar
                                         if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
@@ -1524,7 +1636,7 @@ namespace CodingSeb.ExpressionEvaluator
                                                 for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                                 {
                                                     Type type = StaticTypesForExtensionsMethods[e];
-                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs);
+                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs, genericsTypes);
                                                 }
                                             }
 
@@ -1574,7 +1686,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs);
+                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this);
 
                         EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1671,7 +1783,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, obj);
+                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj);
 
                                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -1776,7 +1888,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName);
+                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this);
 
                             EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -1787,7 +1899,7 @@ namespace CodingSeb.ExpressionEvaluator
                             else
                             {
                                 string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
-                                Type staticType = GetTypeByFriendlyName(typeName);
+                                Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
                                 if(staticType == null && OptionInlineNamespacesEvaluationActive)
                                 {
@@ -1805,8 +1917,9 @@ namespace CodingSeb.ExpressionEvaluator
                                         !typeName.EndsWith("?"))
                                     {
                                         subIndex += namespaceMatch.Length;
-                                        typeName += $"{namespaceMatch.Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-                                        staticType = GetTypeByFriendlyName(typeName);
+                                        typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                                        staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
 
                                         if(staticType != null)
                                         {
@@ -1903,7 +2016,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             if (i < expr.Length - 1)
             {
-                String op = expr.Substring(i, 2);
+                string op = expr.Substring(i, 2);
                 if (operatorsDictionary.ContainsKey(op))
                 {
                     stack.Push(operatorsDictionary[op]);
@@ -2337,7 +2450,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args)
+        private MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes = "")
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
@@ -2346,7 +2459,7 @@ namespace CodingSeb.ExpressionEvaluator
                 (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
                     || func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluent".ManageCasing(OptionCaseSensitiveEvaluationActive))))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs);
+                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs, genericsTypes);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -2374,7 +2487,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (methodInfo != null)
             {
-                methodInfo = MakeConcreteMethodIfGeneric(methodInfo);
+                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes);
             }
             else
             {
@@ -2384,7 +2497,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m]);
+                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes);
 
                     bool parametersCastOK = true;
 
@@ -2447,14 +2560,26 @@ namespace CodingSeb.ExpressionEvaluator
             return methodInfo;
         }
 
-        private MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo)
+        private MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo, string genericsTypes = "")
         {
             if (methodInfo.IsGenericMethod)
             {
-                return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+                if (genericsTypes.Equals(string.Empty))
+                    return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+                else
+                    return methodInfo.MakeGenericMethod(GetConcreteTypes(genericsTypes));
             }
 
             return methodInfo;
+        }
+
+        private Type[] GetConcreteTypes(string genericsTypes)
+        {
+            return genericsDecodeRegex
+                .Matches(genericsEndOnlyOneTrim.Replace(genericsTypes.TrimStart(' ', '<'), ""))
+                .Cast<Match>()
+                .Select(match => GetTypeByFriendlyName(match.Groups["name"].Value, match.Groups["isgeneric"].Value, true))
+                .ToArray();
         }
 
         private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
@@ -2612,12 +2737,20 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        private Type GetTypeByFriendlyName(string typeName)
+        private Type GetTypeByFriendlyName(string typeName, string genericTypes = "", bool throwExceptionIfNotFound = false)
         {
             Type result = null;
             try
             {
-                result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
+                string formatedGenericTypes = string.Empty;
+
+                if (!genericTypes.Equals(string.Empty))
+                {
+                    Type[] types = GetConcreteTypes(genericTypes);
+                    formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => type.FullName))}]";
+                }
+
+                result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
 
                 if (result == null)
                 {
@@ -2637,20 +2770,27 @@ namespace CodingSeb.ExpressionEvaluator
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
                     if(typeName.Contains("."))
-                        result = Type.GetType($"{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                        result = Type.GetType($"{typeName}{formatedGenericTypes},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
                     else
                     {
                         for (int i = 0; i < Namespaces.Count && result == null; i++)
                         {
-                            result = Type.GetType($"{Namespaces[i]}.{typeName},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                            result = Type.GetType($"{Namespaces[i]}.{typeName}{formatedGenericTypes},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
                         }
                     }
                 }
+            }
+            catch(ExpressionEvaluatorSyntaxErrorException)
+            {
+                throw;
             }
             catch { }
 
             if (result != null && TypesToBlock.Contains(result))
                 result = null;
+
+            if (result == null && throwExceptionIfNotFound)
+                throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {typeName}{genericTypes} is unknown");
 
             return result;
         }
@@ -2905,10 +3045,11 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
-        public VariableEvaluationEventArg(string name, object onInstance = null)
+        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
             Name = name;
             This = onInstance;
+            Evaluator = evaluator;
         }
 
         /// <summary>
@@ -2941,18 +3082,24 @@ namespace CodingSeb.ExpressionEvaluator
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; private set; } = null;
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; private set; }
     }
 
     public class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, object onInstance = null)
+        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
             Name = name;
             Args = args ?? new List<string>();
             this.evaluateFunc = evaluateFunc;
             This = onInstance;
+            Evaluator = evaluator;
         }
 
         /// <summary>
@@ -3020,6 +3167,11 @@ namespace CodingSeb.ExpressionEvaluator
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; private set; } = null;
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; private set; }
     }
 
     #endregion
