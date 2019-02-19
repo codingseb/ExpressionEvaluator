@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.3.0 
+    Version : 1.3.3.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -97,6 +97,7 @@ namespace CodingSeb.ExpressionEvaluator
             Is,
             NotEqual,
             LogicalNegation,
+            BitwiseComplement,
             ConditionalAnd,
             ConditionalOr,
             LogicalAnd,
@@ -216,6 +217,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "&&", ExpressionOperator.ConditionalAnd },
             { "||", ExpressionOperator.ConditionalOr },
             { "!", ExpressionOperator.LogicalNegation },
+            { "~", ExpressionOperator.BitwiseComplement },
             { "&", ExpressionOperator.LogicalAnd },
             { "|", ExpressionOperator.LogicalOr },
             { "^", ExpressionOperator.LogicalXor },
@@ -231,6 +233,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
         {
             {ExpressionOperator.LogicalNegation, true },
+            {ExpressionOperator.BitwiseComplement, true },
             {ExpressionOperator.UnaryPlus, true },
             {ExpressionOperator.UnaryMinus, true }
         };
@@ -262,6 +265,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.UnaryPlus, (dynamic left, dynamic right) => +right },
                 {ExpressionOperator.UnaryMinus, (dynamic left, dynamic right) => -right },
                 {ExpressionOperator.LogicalNegation, (dynamic left, dynamic right) => !right },
+                {ExpressionOperator.BitwiseComplement, (dynamic left, dynamic right) => ~right },
                 {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()

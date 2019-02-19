@@ -391,6 +391,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("3 --(2 *+(5 - 3 - +(-Abs(-5) - 6)))", TestOf = typeof(double), ExpectedResult = 29, Category = "ParenthesisPriority")]
         #endregion
 
+        #region BitwiseComplement
+        [TestCase("~-10", TestOf = typeof(int), ExpectedResult = 9, Category = "BitwiseComplement")]
+        [TestCase("~-2", TestOf = typeof(int), ExpectedResult = 1, Category = "BitwiseComplement")]
+        [TestCase("~-1", TestOf = typeof(int), ExpectedResult = 0, Category = "BitwiseComplement")]
+        [TestCase("~0", TestOf = typeof(int), ExpectedResult = -1, Category = "BitwiseComplement")]
+        [TestCase("~1", TestOf = typeof(int), ExpectedResult = -2, Category = "BitwiseComplement")]
+        [TestCase("~2", TestOf = typeof(int), ExpectedResult = -3, Category = "BitwiseComplement")]
+        [TestCase("~10", TestOf = typeof(int), ExpectedResult = -11, Category = "BitwiseComplement")]
+        #endregion
+
         #region SimpleModulo
         [TestCase("-4 % 2", TestOf = typeof(int), ExpectedResult = 0, Category = "SimpleModulo")]
         [TestCase("-3 % 2", TestOf = typeof(int), ExpectedResult = -1, Category = "SimpleModulo")]
