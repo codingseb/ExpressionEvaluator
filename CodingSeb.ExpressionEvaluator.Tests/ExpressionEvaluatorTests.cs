@@ -517,6 +517,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof keyword")]
         #endregion
 
+        #region sizeof keyword
+
+        [TestCase("sizeof(sbyte)", ExpectedResult = sizeof(sbyte), Category = "sizeof keyword")]
+        [TestCase("sizeof(byte)", ExpectedResult = sizeof(byte), Category = "sizeof keyword")]
+        [TestCase("sizeof(short)", ExpectedResult = sizeof(short), Category = "sizeof keyword")]
+        [TestCase("sizeof(ushort)", ExpectedResult = sizeof(ushort), Category = "sizeof keyword")]
+        [TestCase("sizeof(int)", ExpectedResult = sizeof(int), Category = "sizeof keyword")]
+        [TestCase("sizeof(uint)", ExpectedResult = sizeof(uint), Category = "sizeof keyword")]
+        [TestCase("sizeof(long)", ExpectedResult = sizeof(long), Category = "sizeof keyword")]
+        [TestCase("sizeof(ulong)", ExpectedResult = sizeof(ulong), Category = "sizeof keyword")]
+        [TestCase("sizeof(char)", ExpectedResult = sizeof(char), Category = "sizeof keyword")]
+        [TestCase("sizeof(float)", ExpectedResult = sizeof(float), Category = "sizeof keyword")]
+        [TestCase("sizeof(double)", ExpectedResult = sizeof(double), Category = "sizeof keyword")]
+        [TestCase("sizeof(decimal)", ExpectedResult = sizeof(decimal), Category = "sizeof keyword")]
+        [TestCase("sizeof(bool)", ExpectedResult = sizeof(bool), Category = "sizeof keyword")]
+
+        #endregion
+
         #region Create instance with new Keyword
         [TestCase("new ClassForTest1().GetType()", ExpectedResult = typeof(ClassForTest1), Category = "Create instance with new Keyword")]
         [TestCase("new ClassForTest2(15).GetType()", ExpectedResult = typeof(ClassForTest2), Category = "Create instance with new Keyword")]
