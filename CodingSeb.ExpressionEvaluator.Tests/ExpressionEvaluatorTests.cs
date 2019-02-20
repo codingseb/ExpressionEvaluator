@@ -91,6 +91,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #region Test cases for DirectExpressionEvaluation
 
+        #region HexNumber
+
+        [TestCase("0xab", ExpectedResult = 0xab, Category = "HexNumber")]
+        [TestCase("0xAB", ExpectedResult = 0xab, Category = "HexNumber")]
+        [TestCase("0x1", ExpectedResult = 0x1, Category = "HexNumber")]
+        [TestCase("0xf", ExpectedResult = 0xf, Category = "HexNumber")]
+        [TestCase("-0xf", ExpectedResult = -0xf, Category = "HexNumber")]
+
+        #endregion
+
         #region Null Expression
         [TestCase("null", ExpectedResult = null, Category = "Null Expression")]
         #endregion

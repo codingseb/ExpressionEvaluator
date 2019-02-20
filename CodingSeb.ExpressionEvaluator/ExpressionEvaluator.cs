@@ -32,6 +32,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
+        private static readonly Regex hexNumberRegex = new Regex(@"^(?<sign>[+-])?(?<hexValue>0x[0-9a-f]+)", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
@@ -49,7 +50,6 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex lambdaArgRegex = new Regex($@"[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*");
         private static readonly Regex initInNewBeginningRegex = new Regex(@"^\s*{");
         private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^\s*\[");
-
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
@@ -1371,8 +1371,24 @@ namespace CodingSeb.ExpressionEvaluator
         private bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
         {
             Match numberMatch = numberRegex.Match(restOfExpression);
+            Match hexMatch = hexNumberRegex.Match(restOfExpression);
 
-            if (numberMatch.Success
+            if (hexMatch.Success
+                && (!hexMatch.Groups["sign"].Success
+                || stack.Count == 0
+                || stack.Peek() is ExpressionOperator))
+            {
+                i += hexMatch.Length;
+                i--;
+
+                if (hexMatch.Groups["sign"].Success)
+                    stack.Push(hexMatch.Groups["sign"].Value.Equals("-") ? -Convert.ToInt32(hexMatch.Groups["hexValue"].Value, 16) : Convert.ToInt32(hexMatch.Groups["hexValue"].Value, 16));
+                else
+                    stack.Push(Convert.ToInt32(hexMatch.Value, 16));
+
+                return true;
+            }
+            else if (numberMatch.Success
                 && (!numberMatch.Groups["sign"].Success
             || stack.Count == 0
             || stack.Peek() is ExpressionOperator))
