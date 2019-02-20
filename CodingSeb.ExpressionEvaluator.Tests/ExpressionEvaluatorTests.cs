@@ -91,13 +91,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #region Test cases for DirectExpressionEvaluation
 
-        #region HexNumber
+        #region Other bases numbers
 
         [TestCase("0xab", ExpectedResult = 0xab, Category = "HexNumber")]
         [TestCase("0xAB", ExpectedResult = 0xab, Category = "HexNumber")]
         [TestCase("0x1", ExpectedResult = 0x1, Category = "HexNumber")]
         [TestCase("0xf", ExpectedResult = 0xf, Category = "HexNumber")]
         [TestCase("-0xf", ExpectedResult = -0xf, Category = "HexNumber")]
+        [TestCase("0xff_2a", ExpectedResult = 0xff_2a, Category = "HexNumber")]
+
+        [TestCase("0b01100111", ExpectedResult = 0b01100111, Category = "BinaryNumber")]
+        [TestCase("0b0100", ExpectedResult = 0b0100, Category = "BinaryNumber")]
+        [TestCase("0b1010", ExpectedResult = 0b1010, Category = "BinaryNumber")]
+        [TestCase("0b10_10", ExpectedResult = 0b10_10, Category = "BinaryNumber")]
+        [TestCase("-0b10_10", ExpectedResult = -0b10_10, Category = "BinaryNumber")]
 
         #endregion
 

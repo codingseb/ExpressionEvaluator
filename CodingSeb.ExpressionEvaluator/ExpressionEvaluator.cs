@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.3.1 
+    Version : 1.3.3.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -31,8 +31,8 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
         private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
-        private static readonly Regex hexNumberRegex = new Regex(@"^(?<sign>[+-])?(?<hexValue>0x[0-9a-f]+)", RegexOptions.IgnoreCase);
+        private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?([0-9][0-9_]*[0-9]|\d)(?<hasdecimal>\.?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
+        private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
@@ -1371,20 +1371,25 @@ namespace CodingSeb.ExpressionEvaluator
         private bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
         {
             Match numberMatch = numberRegex.Match(restOfExpression);
-            Match hexMatch = hexNumberRegex.Match(restOfExpression);
+            Match otherBaseMatch = otherBasesNumberRegex.Match(restOfExpression);
 
-            if (hexMatch.Success
-                && (!hexMatch.Groups["sign"].Success
+            if (otherBaseMatch.Success
+                && (!otherBaseMatch.Groups["sign"].Success
                 || stack.Count == 0
                 || stack.Peek() is ExpressionOperator))
             {
-                i += hexMatch.Length;
+                i += otherBaseMatch.Length;
                 i--;
 
-                if (hexMatch.Groups["sign"].Success)
-                    stack.Push(hexMatch.Groups["sign"].Value.Equals("-") ? -Convert.ToInt32(hexMatch.Groups["hexValue"].Value, 16) : Convert.ToInt32(hexMatch.Groups["hexValue"].Value, 16));
+                int baseValue = otherBaseMatch.Groups["type"].Value.Equals("b") ? 2 : 16;
+
+                if (otherBaseMatch.Groups["sign"].Success)
+                {
+                    string value = otherBaseMatch.Groups["value"].Value.Replace("_", "").Substring(2);
+                    stack.Push(otherBaseMatch.Groups["sign"].Value.Equals("-") ? -Convert.ToInt32(value, baseValue) : Convert.ToInt32(value, baseValue));
+                }
                 else
-                    stack.Push(Convert.ToInt32(hexMatch.Value, 16));
+                    stack.Push(Convert.ToInt32(otherBaseMatch.Value.Replace("_", "").Substring(2), baseValue));
 
                 return true;
             }
@@ -1399,7 +1404,7 @@ namespace CodingSeb.ExpressionEvaluator
                 if (numberMatch.Groups["type"].Success)
                 {
                     string type = numberMatch.Groups["type"].Value;
-                    string numberNoType = numberMatch.Value.Replace(type, string.Empty);
+                    string numberNoType = numberMatch.Value.Replace(type, string.Empty).Replace("_", "");
 
                     if (numberSuffixToParse.TryGetValue(type, out Func<string, object> parseFunc))
                     {
@@ -1410,11 +1415,11 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (numberMatch.Groups["hasdecimal"].Success)
                     {
-                        stack.Push(double.Parse(numberMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfo.InvariantCulture));
                     }
                     else
                     {
-                        stack.Push(int.Parse(numberMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfo.InvariantCulture));
                     }
                 }
 
