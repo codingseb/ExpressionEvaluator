@@ -683,6 +683,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region prefix operators
+                yield return new TestCaseData(Resources.Script0047, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("PrefixOperators")
+                    .SetCategory("++")
+                    .SetCategory("=")
+                    .Returns("x:6 y:6");
+                yield return new TestCaseData(Resources.Script0048, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Variable Assignation")
+                    .SetCategory("PrefixOperators")
+                    .SetCategory("--")
+                    .SetCategory("=")
+                    .Returns("x:4 y:4");
+
+                #endregion
+
                 #endregion
 
                 #region while

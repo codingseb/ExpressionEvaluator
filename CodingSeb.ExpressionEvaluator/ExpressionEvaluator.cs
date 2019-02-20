@@ -30,7 +30,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
         private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
-        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
@@ -1750,6 +1750,12 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else if (varFuncMatch.Groups["postfixOperator"].Success)
                                 cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                            else if (varFuncMatch.Groups["prefixOperator"].Success)
+                            {
+                                stack.Pop();
+                                cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                                stack.Push(cusVarValueToPush);
+                            }
                             else
                                 assign = false;
 

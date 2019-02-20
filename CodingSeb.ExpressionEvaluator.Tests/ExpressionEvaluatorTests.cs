@@ -980,9 +980,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData("+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(5);
                 yield return new TestCaseData("-5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-                yield return new TestCaseData("-5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
-                yield return new TestCaseData("5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
                 yield return new TestCaseData("5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("5-+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("-5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
@@ -995,23 +993,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("5 + -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("5+-x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("-5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-                yield return new TestCaseData("-5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
-                yield return new TestCaseData("5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
                 yield return new TestCaseData("-x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
-                yield return new TestCaseData("-x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
                 yield return new TestCaseData("+x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
-                yield return new TestCaseData("+x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
                 yield return new TestCaseData("+x + -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
                 yield return new TestCaseData("+x+-y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
                 yield return new TestCaseData("-x - +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
                 yield return new TestCaseData("-x-+y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
                 yield return new TestCaseData("-x + +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-                yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-                yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
                 yield return new TestCaseData("(-x + +y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-                yield return new TestCaseData("(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-                yield return new TestCaseData("-(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(-15);
 
                 yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
                 yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
