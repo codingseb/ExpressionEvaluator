@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Shouldly;
 using Newtonsoft.Json;
+using System.Globalization;
+using System.Threading;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -1399,6 +1401,41 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         public void ExceptionThrowingEvaluation(ExpressionEvaluator evaluator, string expression, Type exceptionType)
         {
             Assert.Catch(exceptionType, () => evaluator.Evaluate(expression));
+        }
+
+        #endregion
+
+        #region NumbersWithCommaDecimalSeparatorCulture
+
+        [TestCase("0,5", ExpectedResult = 0.5, Category = "Numbers")]
+        public object NumbersWithCommaDecimalSeparatorCulture(string expression)
+        {
+            object result = null;
+
+            CultureInfo oldCultureInfo = Thread.CurrentThread.CurrentCulture;
+            CultureInfo oldCultureUIInfo = Thread.CurrentThread.CurrentUICulture;
+
+            //CultureInfo cultureInfo = new CultureInfo("en");
+
+            //cultureInfo.NumberFormat.NumberDecimalSeparator = ",";
+
+            //Thread.CurrentThread.CurrentCulture = cultureInfo;
+            //Thread.CurrentThread.CurrentUICulture = cultureInfo;
+
+            try
+            {
+
+                ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+                result = evaluator.Evaluate(expression);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = oldCultureInfo;
+                Thread.CurrentThread.CurrentUICulture = oldCultureUIInfo;
+            }
+
+            return result;
         }
 
         #endregion
