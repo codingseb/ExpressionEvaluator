@@ -32,7 +32,10 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
         private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?([0-9][0-9_]*[0-9]|\d)(?<hasdecimal>\.?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
+
+        private string numberRegexPattern = @"^(?<sign>[+-])?([0-9][0-9_]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
+        private Regex numberRegex = null;
+
         private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
@@ -163,14 +166,14 @@ namespace CodingSeb.ExpressionEvaluator
             { "void", typeof(void) }
         };
 
-        private static Dictionary<string, Func<string, object>> numberSuffixToParse = new Dictionary<string, Func<string, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
+        private static Dictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
         {
-            { "f", number => float.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "d", number => double.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "u", number => uint.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "l", number => long.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "ul", number => ulong.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "m", number => decimal.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) }
+            { "f", (number, culture) => float.Parse(number, NumberStyles.Any, culture) },
+            { "d", (number, culture) => double.Parse(number, NumberStyles.Any, culture) },
+            { "u", (number, culture) => uint.Parse(number, NumberStyles.Any, culture) },
+            { "l", (number, culture) => long.Parse(number, NumberStyles.Any, culture) },
+            { "ul", (number, culture) => ulong.Parse(number, NumberStyles.Any, culture) },
+            { "m", (number, culture) => decimal.Parse(number, NumberStyles.Any, culture) }
         };
 
         private static Dictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
@@ -529,6 +532,42 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
+        private string optionNumberParsingDecimalSeparator = ".";
+
+        /// <summary>
+        /// Allow to change the decimal separator of numbers when parsing expressions.
+        /// By default "."
+        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts
+        /// </summary>
+        public string OptionNumberParsingDecimalSeparator
+        {
+
+            get => optionNumberParsingDecimalSeparator;
+
+            set
+            {
+                optionNumberParsingDecimalSeparator = value;
+                cultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = value;
+
+                numberRegex = new Regex(string.Format(numberRegexPattern, Regex.Escape(optionNumberParsingDecimalSeparator)), RegexOptions.IgnoreCase);
+            }
+        }
+
+        /// <summary>
+        /// Allow to change the separator of functions arguments.
+        /// By default ","
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// </summary>
+        public string OptionFunctionArgumentsSeparator { get; set; } = ",";
+
+        /// <summary>
+        /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.
+        /// By default ","
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// </summary>
+        public string OptionInitializersSeparator { get; set; } = ",";
+
         /// <summary>
         /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
         /// if <c>false</c> unactive this functionality.
@@ -746,6 +785,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
             instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
+            numberRegex = new Regex(string.Format(numberRegexPattern, @"\."), RegexOptions.IgnoreCase);
             castRegex = new Regex(CastRegexPattern);
         }
 
@@ -1419,20 +1459,20 @@ namespace CodingSeb.ExpressionEvaluator
                     string type = numberMatch.Groups["type"].Value;
                     string numberNoType = numberMatch.Value.Replace(type, string.Empty).Replace("_", "");
 
-                    if (numberSuffixToParse.TryGetValue(type, out Func<string, object> parseFunc))
+                    if (numberSuffixToParse.TryGetValue(type, out Func<string, CultureInfo, object> parseFunc))
                     {
-                        stack.Push(parseFunc(numberNoType));
+                        stack.Push(parseFunc(numberNoType, cultureInfoForNumberParsing));
                     }
                 }
                 else
                 {
                     if (numberMatch.Groups["hasdecimal"].Success)
                     {
-                        stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, cultureInfoForNumberParsing));
                     }
                     else
                     {
-                        stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, cultureInfoForNumberParsing));
                     }
                 }
 
@@ -1478,7 +1518,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             int subIndex = subExpr.IndexOf("{") + 1;
 
-                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, ",", "{", "}");
+                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
 
                             if(subArgs.Count == 2)
                             {
@@ -1514,7 +1554,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (instanceCreationMatch.Groups["isfunction"].Success)
                 { 
-                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
+                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
                     i++;
 
                     List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
@@ -1527,7 +1567,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         i += blockBeginningMatch.Length;
 
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                         Init(element, initArgs);
                     }
@@ -1540,7 +1580,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object element = Activator.CreateInstance(type, new object[0]);
 
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                     Init(element, initArgs);
 
@@ -1548,7 +1588,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else if(instanceCreationMatch.Groups["isArray"].Success)
                 {
-                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "[", "]");
+                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "[", "]");
                     i++;
                     Array array = null;
 
@@ -1563,7 +1603,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         i += initInNewBeginningMatch.Length;
 
-                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
                         i++;
 
                         if (array == null)
@@ -1602,7 +1642,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
+                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
                         if (stack.Count == 0 || stack.Peek() is ExpressionOperator)

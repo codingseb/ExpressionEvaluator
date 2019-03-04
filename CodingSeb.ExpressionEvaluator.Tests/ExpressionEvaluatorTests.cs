@@ -1407,35 +1407,19 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #region NumbersWithCommaDecimalSeparatorCulture
 
-        [TestCase("0,5", ExpectedResult = 0.5, Category = "Numbers")]
-        public object NumbersWithCommaDecimalSeparatorCulture(string expression)
+        [TestCase("0,5", ",", ";", ExpectedResult = 0.5, Category = "Numbers")]
+        [TestCase("0'5", "'", ",", ExpectedResult = 0.5, Category = "Numbers")]
+        [TestCase("0.5", ".", ",", ExpectedResult = 0.5, Category = "Numbers")]
+        [TestCase("Max(0,5; 0,7)", ",", ";", ExpectedResult = 0.7, Category = "Numbers")]
+        public object NumbersDecimalSeparatorAndFunctionArgsSeparators(string expression, string decimalSeparator, string functionArgsSeparator)
         {
-            object result = null;
-
-            CultureInfo oldCultureInfo = Thread.CurrentThread.CurrentCulture;
-            CultureInfo oldCultureUIInfo = Thread.CurrentThread.CurrentUICulture;
-
-            //CultureInfo cultureInfo = new CultureInfo("en");
-
-            //cultureInfo.NumberFormat.NumberDecimalSeparator = ",";
-
-            //Thread.CurrentThread.CurrentCulture = cultureInfo;
-            //Thread.CurrentThread.CurrentUICulture = cultureInfo;
-
-            try
+            ExpressionEvaluator evaluator = new ExpressionEvaluator
             {
+                OptionNumberParsingDecimalSeparator = decimalSeparator,
+                OptionFunctionArgumentsSeparator = functionArgsSeparator
+            };
 
-                ExpressionEvaluator evaluator = new ExpressionEvaluator();
-
-                result = evaluator.Evaluate(expression);
-            }
-            finally
-            {
-                Thread.CurrentThread.CurrentCulture = oldCultureInfo;
-                Thread.CurrentThread.CurrentUICulture = oldCultureUIInfo;
-            }
-
-            return result;
+            return evaluator.Evaluate(expression);
         }
 
         #endregion
