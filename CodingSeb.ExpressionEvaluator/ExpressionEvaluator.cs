@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.3.2 
+    Version : 1.3.3.3 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -786,6 +786,7 @@ namespace CodingSeb.ExpressionEvaluator
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
             instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
             numberRegex = new Regex(string.Format(numberRegexPattern, @"\."), RegexOptions.IgnoreCase);
+            cultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
             castRegex = new Regex(CastRegexPattern);
         }
 
