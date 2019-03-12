@@ -28,13 +28,13 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static readonly string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
-        private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
+        private const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
+        private const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
         private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private string numberRegexPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
-        private Regex numberRegex = null;
+        private const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
+        private string numberRegexPattern = null;
 
         private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
@@ -57,18 +57,15 @@ namespace CodingSeb.ExpressionEvaluator
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
-        private Regex instanceCreationWithNewKeywordRegex = null;
         private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)\s*\)"; } }
-        private Regex castRegex = null;
 
-        private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
-        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
+        private const string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
-        private static readonly string blockComments = @"/\*(.*?)\*/";
-        private static readonly string lineComments = @"//[^\r\n]*";
-        private static readonly string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
-        private static readonly string verbatimStringsIgnore = @"@(""[^""]*"")+";
+        private const string blockComments = @"/\*(.*?)\*/";
+        private const string lineComments = @"//[^\r\n]*";
+        private const string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
+        private const string verbatimStringsIgnore = @"@(""[^""]*"")+";
         private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline);
         private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
 
@@ -519,8 +516,6 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 
@@ -574,7 +569,9 @@ namespace CodingSeb.ExpressionEvaluator
                 optionNumberParsingDecimalSeparator = value;
                 CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = value;
 
-                numberRegex = new Regex(string.Format(numberRegexPattern, Regex.Escape(optionNumberParsingDecimalSeparator), Regex.Escape(optionNumberParsingThousandSeparator)), RegexOptions.IgnoreCase);
+                numberRegexPattern = string.Format(numberRegexOrigPattern,
+                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
+                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
             }
         }
 
@@ -595,9 +592,10 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 optionNumberParsingThousandSeparator = value;
                 CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
-
-                numberRegex = new Regex(string.Format(numberRegexPattern, Regex.Escape(optionNumberParsingDecimalSeparator), Regex.Escape(optionNumberParsingThousandSeparator)), RegexOptions.IgnoreCase);
-
+                
+                numberRegexPattern = string.Format(numberRegexOrigPattern,
+                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
+                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
             }
         }
 
@@ -635,8 +633,6 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 optionInlineNamespacesEvaluationActive = value;
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 
@@ -831,10 +827,8 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator()
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
-            instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
-            numberRegex = new Regex(string.Format(numberRegexPattern, @"\."), RegexOptions.IgnoreCase);
+            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", "");
             CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
-            castRegex = new Regex(CastRegexPattern);
         }
 
         /// <summary>
@@ -911,7 +905,6 @@ namespace CodingSeb.ExpressionEvaluator
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
-                string baseExpression = expression;
                 object result = null;
 
                 expression = expression.Trim();
@@ -1450,7 +1443,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
         {
-            Match castMatch = castRegex.Match(restOfExpression);
+            Match castMatch = Regex.Match(restOfExpression, CastRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
             if (castMatch.Success)
             {
@@ -1472,7 +1465,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
         {
-            Match numberMatch = numberRegex.Match(restOfExpression);
+            Match numberMatch = Regex.Match(restOfExpression, numberRegexPattern, RegexOptions.IgnoreCase);
             Match otherBaseMatch = otherBasesNumberRegex.Match(restOfExpression);
 
             if (otherBaseMatch.Success
@@ -1538,7 +1531,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!OptionNewKeywordEvaluationActive)
                 return false;
 
-            Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(restOfExpression);
+            Match instanceCreationMatch = Regex.Match(restOfExpression, InstanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
             if (instanceCreationMatch.Success &&
                 (stack.Count == 0
@@ -2887,10 +2880,10 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    typeName = primaryTypesRegex.Replace(typeName, delegate (Match match)
+                    typeName = Regex.Replace(typeName, primaryTypesRegexPattern, delegate (Match match)
                     {
                         return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
-                    });
+                    }, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
 
                     result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
