@@ -33,7 +33,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        private string numberRegexPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
+        private readonly string numberRegexPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         private Regex numberRegex = null;
 
         private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase);
@@ -534,8 +534,6 @@ namespace CodingSeb.ExpressionEvaluator
 
         private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
 
-        private string optionNumberParsingDecimalSeparator = ".";
-
         /// <summary>
         /// The culture used to evaluate numbers
         /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.
@@ -558,6 +556,8 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        private string optionNumberParsingDecimalSeparator = ".";
+
         /// <summary>
         /// Allow to change the decimal separator of numbers when parsing expressions.
         /// By default "."
@@ -567,16 +567,21 @@ namespace CodingSeb.ExpressionEvaluator
         public string OptionNumberParsingDecimalSeparator
         {
 
-            get => optionNumberParsingDecimalSeparator;
+            get
+            {
+                return optionNumberParsingDecimalSeparator;
+            }
 
             set
             {
-                optionNumberParsingDecimalSeparator = value;
-                CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = value;
+                optionNumberParsingDecimalSeparator = value ?? ".";
+                CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = optionNumberParsingDecimalSeparator;
 
                 numberRegex = new Regex(string.Format(numberRegexPattern, Regex.Escape(optionNumberParsingDecimalSeparator), Regex.Escape(optionNumberParsingThousandSeparator)), RegexOptions.IgnoreCase);
             }
         }
+
+        private string optionNumberParsingThousandSeparator = string.Empty;
 
         /// <summary>
         /// Allow to change the thousand separator of numbers when parsing expressions.
@@ -593,7 +598,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             set
             {
-                optionNumberParsingThousandSeparator = value;
+                optionNumberParsingThousandSeparator = value ?? string.Empty;
                 CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
 
                 numberRegex = new Regex(string.Format(numberRegexPattern, Regex.Escape(optionNumberParsingDecimalSeparator), Regex.Escape(optionNumberParsingThousandSeparator)), RegexOptions.IgnoreCase);
@@ -832,7 +837,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
             instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
-            numberRegex = new Regex(string.Format(numberRegexPattern, @"\."), RegexOptions.IgnoreCase);
+            numberRegex = new Regex(string.Format(numberRegexPattern, @"\.", string.Empty), RegexOptions.IgnoreCase);
             CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
             castRegex = new Regex(CastRegexPattern);
         }
@@ -851,7 +856,6 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
-        private string optionNumberParsingThousandSeparator;
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -1653,7 +1657,6 @@ namespace CodingSeb.ExpressionEvaluator
                         i += initInNewBeginningMatch.Length;
 
                         List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
-                        i++;
 
                         if (array == null)
                             array = Array.CreateInstance(type, arrayElements.Count);
@@ -2790,13 +2793,13 @@ namespace CodingSeb.ExpressionEvaluator
                 Match internalStringMatch = stringBeginningRegex.Match(subExpr);
                 Match internalCharMatch = internalCharRegex.Match(subExpr);
 
-                if (internalStringMatch.Success)
+                if (OptionStringEvaluationActive && internalStringMatch.Success)
                 {
                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
                     currentExpression += innerString;
                     i += innerString.Length - 1;
                 }
-                else if (internalCharMatch.Success)
+                else if (OptionCharEvaluationActive && internalCharMatch.Success)
                 {
                     currentExpression += internalCharMatch.Value;
                     i += internalCharMatch.Length - 1;
