@@ -1,11 +1,9 @@
-﻿using NUnit.Framework;
+﻿using Newtonsoft.Json;
+using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Shouldly;
-using Newtonsoft.Json;
-using System.Globalization;
-using System.Threading;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -1405,20 +1403,86 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
-        #region NumbersWithCommaDecimalSeparatorCulture
+        #region EvaluateWithSpecificEvaluator
 
-        [TestCase("0,5", ",", ";", ExpectedResult = 0.5, Category = "Numbers")]
-        [TestCase("0'5", "'", ",", ExpectedResult = 0.5, Category = "Numbers")]
-        [TestCase("0.5", ".", ",", ExpectedResult = 0.5, Category = "Numbers")]
-        [TestCase("Max(0,5; 0,7)", ",", ";", ExpectedResult = 0.7, Category = "Numbers")]
-        public object NumbersDecimalSeparatorAndFunctionArgsSeparators(string expression, string decimalSeparator, string functionArgsSeparator)
+        #region TestCasesEvaluateWithSpecificEvaluator
+
+        public static IEnumerable<TestCaseData> TestCasesEvaluateWithSpecificEvaluator
         {
-            ExpressionEvaluator evaluator = new ExpressionEvaluator
+            get
             {
-                OptionNumberParsingDecimalSeparator = decimalSeparator,
-                OptionFunctionArgumentsSeparator = functionArgsSeparator
-            };
+                #region Different culture for numbers
 
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                }
+                , "0,5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = "'",
+                }
+                , "0'5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ".",
+                }
+                , "0.5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionFunctionArgumentsSeparator = ";"
+                }
+                , "Max(0,5; 0,7)")
+                .Returns(0.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionNumberParsingThousandSeparator = "'",
+                    OptionCharEvaluationActive = false,
+                    OptionFunctionArgumentsSeparator = ";"
+                }
+                , "Max(1'200,5; 1'111'000,7)")
+                .Returns(1111000.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+               yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionNumberParsingThousandSeparator = "'",
+                    OptionCharEvaluationActive = false,
+                    OptionInitializersSeparator = ";"
+                }
+                , "new double[]{1'200,5; 1'111'000,7}.Max()")
+                .Returns(1111000.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                #endregion
+            }
+        }
+
+        #endregion
+
+        [TestCaseSource(nameof(TestCasesEvaluateWithSpecificEvaluator))]
+        public object EvaluateWithSpecificEvaluator(ExpressionEvaluator evaluator, string expression)
+        {
             return evaluator.Evaluate(expression);
         }
 

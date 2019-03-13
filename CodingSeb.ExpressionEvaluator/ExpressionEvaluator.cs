@@ -529,8 +529,6 @@ namespace CodingSeb.ExpressionEvaluator
 
         private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
 
-        private string optionNumberParsingDecimalSeparator = ".";
-
         /// <summary>
         /// The culture used to evaluate numbers
         /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.
@@ -553,6 +551,8 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        private string optionNumberParsingDecimalSeparator = ".";
+
         /// <summary>
         /// Allow to change the decimal separator of numbers when parsing expressions.
         /// By default "."
@@ -562,18 +562,23 @@ namespace CodingSeb.ExpressionEvaluator
         public string OptionNumberParsingDecimalSeparator
         {
 
-            get => optionNumberParsingDecimalSeparator;
+            get
+            {
+                return optionNumberParsingDecimalSeparator;
+            }
 
             set
             {
-                optionNumberParsingDecimalSeparator = value;
-                CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = value;
+                optionNumberParsingDecimalSeparator = value ?? ".";
+                CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = optionNumberParsingDecimalSeparator;
 
                 numberRegexPattern = string.Format(numberRegexOrigPattern,
                     optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
                     optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
             }
         }
+
+        private string optionNumberParsingThousandSeparator = string.Empty;
 
         /// <summary>
         /// Allow to change the thousand separator of numbers when parsing expressions.
@@ -590,7 +595,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             set
             {
-                optionNumberParsingThousandSeparator = value;
+                optionNumberParsingThousandSeparator = value ?? string.Empty;
                 CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
                 
                 numberRegexPattern = string.Format(numberRegexOrigPattern,
@@ -827,7 +832,9 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator()
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
-            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", "");
+
+            numberRegexPattern = string.Format(numberRegexPattern, @"\.", string.Empty);
+
             CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
         }
 
@@ -845,7 +852,6 @@ namespace CodingSeb.ExpressionEvaluator
         #region Main evaluate methods (Expressions and scripts ==> public)
 
         private bool inScript = false;
-        private string optionNumberParsingThousandSeparator;
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
@@ -1646,7 +1652,6 @@ namespace CodingSeb.ExpressionEvaluator
                         i += initInNewBeginningMatch.Length;
 
                         List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
-                        i++;
 
                         if (array == null)
                             array = Array.CreateInstance(type, arrayElements.Count);
@@ -2783,13 +2788,13 @@ namespace CodingSeb.ExpressionEvaluator
                 Match internalStringMatch = stringBeginningRegex.Match(subExpr);
                 Match internalCharMatch = internalCharRegex.Match(subExpr);
 
-                if (internalStringMatch.Success)
+                if (OptionStringEvaluationActive && internalStringMatch.Success)
                 {
                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
                     currentExpression += innerString;
                     i += innerString.Length - 1;
                 }
-                else if (internalCharMatch.Success)
+                else if (OptionCharEvaluationActive && internalCharMatch.Success)
                 {
                     currentExpression += internalCharMatch.Value;
                     i += internalCharMatch.Length - 1;
