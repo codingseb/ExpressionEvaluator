@@ -1454,7 +1454,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionNumberParsingThousandSeparator = "'",
-                    OptionCharEvaluationActive = false,
                     OptionFunctionArgumentsSeparator = ";"
                 }
                 , "Max(1'200,5; 1'111'000,7)")
@@ -1466,7 +1465,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionNumberParsingThousandSeparator = "'",
-                    OptionCharEvaluationActive = false,
                     OptionInitializersSeparator = ";"
                 }
                 , "new double[]{1'200,5; 1'111'000,7}.Max()")
