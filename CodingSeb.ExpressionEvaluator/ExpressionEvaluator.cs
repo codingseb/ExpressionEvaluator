@@ -833,7 +833,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
 
-            numberRegexPattern = string.Format(numberRegexPattern, @"\.", string.Empty);
+            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
 
             CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
         }
