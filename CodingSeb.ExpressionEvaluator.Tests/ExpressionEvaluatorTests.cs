@@ -1,9 +1,9 @@
-﻿using NUnit.Framework;
+﻿using Newtonsoft.Json;
+using NUnit.Framework;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Shouldly;
-using Newtonsoft.Json;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -90,6 +90,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region Direct Expression Evaluation
 
         #region Test cases for DirectExpressionEvaluation
+
+        #region Other bases numbers
+
+        [TestCase("0xab", ExpectedResult = 0xab, Category = "HexNumber")]
+        [TestCase("0xAB", ExpectedResult = 0xab, Category = "HexNumber")]
+        [TestCase("0x1", ExpectedResult = 0x1, Category = "HexNumber")]
+        [TestCase("0xf", ExpectedResult = 0xf, Category = "HexNumber")]
+        [TestCase("-0xf", ExpectedResult = -0xf, Category = "HexNumber")]
+        [TestCase("0xff_2a", ExpectedResult = 0xff_2a, Category = "HexNumber")]
+
+        [TestCase("0b01100111", ExpectedResult = 0b01100111, Category = "BinaryNumber")]
+        [TestCase("0b0100", ExpectedResult = 0b0100, Category = "BinaryNumber")]
+        [TestCase("0b1010", ExpectedResult = 0b1010, Category = "BinaryNumber")]
+        [TestCase("0b10_10", ExpectedResult = 0b10_10, Category = "BinaryNumber")]
+        [TestCase("-0b10_10", ExpectedResult = -0b10_10, Category = "BinaryNumber")]
+
+        #endregion
 
         #region Null Expression
         [TestCase("null", ExpectedResult = null, Category = "Null Expression")]
@@ -391,6 +408,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("3 --(2 *+(5 - 3 - +(-Abs(-5) - 6)))", TestOf = typeof(double), ExpectedResult = 29, Category = "ParenthesisPriority")]
         #endregion
 
+        #region BitwiseComplement
+        [TestCase("~-10", TestOf = typeof(int), ExpectedResult = 9, Category = "BitwiseComplement")]
+        [TestCase("~-2", TestOf = typeof(int), ExpectedResult = 1, Category = "BitwiseComplement")]
+        [TestCase("~-1", TestOf = typeof(int), ExpectedResult = 0, Category = "BitwiseComplement")]
+        [TestCase("~0", TestOf = typeof(int), ExpectedResult = -1, Category = "BitwiseComplement")]
+        [TestCase("~1", TestOf = typeof(int), ExpectedResult = -2, Category = "BitwiseComplement")]
+        [TestCase("~2", TestOf = typeof(int), ExpectedResult = -3, Category = "BitwiseComplement")]
+        [TestCase("~10", TestOf = typeof(int), ExpectedResult = -11, Category = "BitwiseComplement")]
+        #endregion
+
         #region SimpleModulo
         [TestCase("-4 % 2", TestOf = typeof(int), ExpectedResult = 0, Category = "SimpleModulo")]
         [TestCase("-3 % 2", TestOf = typeof(int), ExpectedResult = -1, Category = "SimpleModulo")]
@@ -488,6 +515,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("typeof(string) == \"Hello\".GetType()", ExpectedResult = true, Category = "typeof keyword")]
         [TestCase("typeof(int) == 12.GetType()", ExpectedResult = true, Category = "typeof keyword")]
         [TestCase("typeof(string) == 12.GetType()", ExpectedResult = false, Category = "typeof keyword")]
+        #endregion
+
+        #region sizeof keyword
+
+        [TestCase("sizeof(sbyte)", ExpectedResult = sizeof(sbyte), Category = "sizeof keyword")]
+        [TestCase("sizeof(byte)", ExpectedResult = sizeof(byte), Category = "sizeof keyword")]
+        [TestCase("sizeof(short)", ExpectedResult = sizeof(short), Category = "sizeof keyword")]
+        [TestCase("sizeof(ushort)", ExpectedResult = sizeof(ushort), Category = "sizeof keyword")]
+        [TestCase("sizeof(int)", ExpectedResult = sizeof(int), Category = "sizeof keyword")]
+        [TestCase("sizeof(uint)", ExpectedResult = sizeof(uint), Category = "sizeof keyword")]
+        [TestCase("sizeof(long)", ExpectedResult = sizeof(long), Category = "sizeof keyword")]
+        [TestCase("sizeof(ulong)", ExpectedResult = sizeof(ulong), Category = "sizeof keyword")]
+        [TestCase("sizeof(char)", ExpectedResult = sizeof(char), Category = "sizeof keyword")]
+        [TestCase("sizeof(float)", ExpectedResult = sizeof(float), Category = "sizeof keyword")]
+        [TestCase("sizeof(double)", ExpectedResult = sizeof(double), Category = "sizeof keyword")]
+        [TestCase("sizeof(decimal)", ExpectedResult = sizeof(decimal), Category = "sizeof keyword")]
+        [TestCase("sizeof(bool)", ExpectedResult = sizeof(bool), Category = "sizeof keyword")]
+
         #endregion
 
         #region Create instance with new Keyword
@@ -970,9 +1015,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData("+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(5);
                 yield return new TestCaseData("-5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
-                yield return new TestCaseData("-5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("5 + +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
-                yield return new TestCaseData("5++x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(10);
                 yield return new TestCaseData("5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("5-+x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(0);
                 yield return new TestCaseData("-5 - +x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary +").Returns(-10);
@@ -985,23 +1028,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("5 + -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("5+-x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("-5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
-                yield return new TestCaseData("-5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(0);
                 yield return new TestCaseData("5 - -x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
-                yield return new TestCaseData("5--x", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(10);
                 yield return new TestCaseData("-x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
-                yield return new TestCaseData("-x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary -").Returns(15);
                 yield return new TestCaseData("+x - -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
-                yield return new TestCaseData("+x--y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(25);
                 yield return new TestCaseData("+x + -y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
                 yield return new TestCaseData("+x+-y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-15);
                 yield return new TestCaseData("-x - +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
                 yield return new TestCaseData("-x-+y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
                 yield return new TestCaseData("-x + +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-                yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
-                yield return new TestCaseData("-x++y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
                 yield return new TestCaseData("(-x + +y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-                yield return new TestCaseData("(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
-                yield return new TestCaseData("-(-x++y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(-15);
 
                 yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
                 yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
@@ -1364,6 +1399,89 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         public void ExceptionThrowingEvaluation(ExpressionEvaluator evaluator, string expression, Type exceptionType)
         {
             Assert.Catch(exceptionType, () => evaluator.Evaluate(expression));
+        }
+
+        #endregion
+
+        #region EvaluateWithSpecificEvaluator
+
+        #region TestCasesEvaluateWithSpecificEvaluator
+
+        public static IEnumerable<TestCaseData> TestCasesEvaluateWithSpecificEvaluator
+        {
+            get
+            {
+                #region Different culture for numbers
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                }
+                , "0,5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = "'",
+                }
+                , "0'5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ".",
+                }
+                , "0.5")
+                .Returns(0.5)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionFunctionArgumentsSeparator = ";"
+                }
+                , "Max(0,5; 0,7)")
+                .Returns(0.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionNumberParsingThousandSeparator = "'",
+                    OptionFunctionArgumentsSeparator = ";"
+                }
+                , "Max(1'200,5; 1'111'000,7)")
+                .Returns(1111000.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+               yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionNumberParsingDecimalSeparator = ",",
+                    OptionNumberParsingThousandSeparator = "'",
+                    OptionInitializersSeparator = ";"
+                }
+                , "new double[]{1'200,5; 1'111'000,7}.Max()")
+                .Returns(1111000.7)
+                .SetCategory("Options")
+                .SetCategory("Numbers Culture");
+
+                #endregion
+            }
+        }
+
+        #endregion
+
+        [TestCaseSource(nameof(TestCasesEvaluateWithSpecificEvaluator))]
+        public object EvaluateWithSpecificEvaluator(ExpressionEvaluator evaluator, string expression)
+        {
+            return evaluator.Evaluate(expression);
         }
 
         #endregion

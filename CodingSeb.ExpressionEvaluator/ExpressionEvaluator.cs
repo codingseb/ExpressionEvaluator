@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.3.0 
+    Version : 1.3.4.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -15,6 +15,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -27,54 +28,54 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        private static readonly string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
-        private static readonly string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
+        private const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
+        private const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
-        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*)\s*((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex numberRegex = new Regex(@"^(?<sign>[+-])?\d+(?<hasdecimal>\.?\d+(e[+-]?\d+)?)?(?<type>ul|[fdulm])?", RegexOptions.IgnoreCase);
-        private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]");
-        private static readonly Regex internalCharRegex = new Regex(@"^['](\\[']|[^'])*[']");
-        private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[");
-        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^\s*((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
+        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        private const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
+        private string numberRegexPattern = null;
+
+        private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
+        private static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
+        private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
+        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
         private static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
-        private static readonly Regex genericsEndOnlyOneTrim = new Regex(@"\s+[>]\s+$");
+        private static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
-        private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]");
-        private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]");
-        private static readonly Regex endOfStringWithDollarWithAt = new Regex("^[^\"{]*[\"{]");
-        private static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]");
-        private static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]");
-        private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$");
-        private static readonly Regex lambdaExpressionRegex = new Regex($@"^\s*(?<args>(\s*[(]\s*([{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*\s*([,]\s*[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*\s*)*)?[)])|[{ diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern }0-9]*)\s*=>(?<expression>.*)$", RegexOptions.Singleline);
-        private static readonly Regex lambdaArgRegex = new Regex($@"[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9]*");
-        private static readonly Regex initInNewBeginningRegex = new Regex(@"^\s*{");
-        private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^\s*\[");
-
+        private static readonly Regex endOfStringWithDollar = new Regex("^([^\"{\\\\]|\\\\[\\\\\"0abfnrtv])*[\"{]", RegexOptions.Compiled);
+        private static readonly Regex endOfStringWithoutDollar = new Regex("^([^\"\\\\]|\\\\[\\\\\"0abfnrtv])*[\"]", RegexOptions.Compiled);
+        private static readonly Regex endOfStringWithDollarWithAt = new Regex("^[^\"{]*[\"{]", RegexOptions.Compiled);
+        private static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
+        private static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]", RegexOptions.Compiled);
+        private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
+        private static readonly Regex lambdaExpressionRegex = new Regex($@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)(?>\s*)([,](?>\s*)[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*(?>\s*))*)?[)])|[{ diactiticsKeywordsRegexPattern}](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex lambdaArgRegex = new Regex($@"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
+        private static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
+        private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^(?>\s*)\[", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new\s+(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)\s*(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?\s*((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
-        private Regex instanceCreationWithNewKeywordRegex = null;
-        private string CastRegexPattern { get { return $@"^\(\s*(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)\s*\)"; } }
-        private Regex castRegex = null;
+        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
+        private string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
 
-        private static readonly string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|void)(?=[^a-zA-Z_]|$)";
-        private Regex primaryTypesRegex = new Regex(primaryTypesRegexPattern);
+        private const string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
-        private static readonly string blockComments = @"/\*(.*?)\*/";
-        private static readonly string lineComments = @"//[^\r\n]*";
-        private static readonly string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
-        private static readonly string verbatimStringsIgnore = @"@(""[^""]*"")+";
-        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline);
-        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n");
+        private const string blockComments = @"/\*(.*?)\*/";
+        private const string lineComments = @"//[^\r\n]*";
+        private const string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
+        private const string verbatimStringsIgnore = @"@(""[^""]*"")+";
+        private static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
 
         // For script only
-        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^\s*(?<keyword>while|for|foreach|if|else\s+if|catch)\s*[(]", RegexOptions.IgnoreCase);
-        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^\s*(?<variableName>[" + diactiticsKeywordsRegexPattern + @"][" + diactiticsKeywordsRegexPattern + @"0-9]*)\s+(?<in>in)\s+(?<collection>.*)", RegexOptions.IgnoreCase);
-        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^\s*(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + @"0-9])", RegexOptions.IgnoreCase);
-        private static readonly Regex blockBeginningRegex = new Regex(@"^\s*[{]");
-        private static readonly Regex returnKeywordRegex = new Regex(@"^return(\s+|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-        private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^\s*[;]");
+        private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + @"](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase| RegexOptions.Compiled);
+        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + @"0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
+        private static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
 
         #endregion
 
@@ -97,6 +98,7 @@ namespace CodingSeb.ExpressionEvaluator
             Is,
             NotEqual,
             LogicalNegation,
+            BitwiseComplement,
             ConditionalAnd,
             ConditionalOr,
             LogicalAnd,
@@ -161,14 +163,14 @@ namespace CodingSeb.ExpressionEvaluator
             { "void", typeof(void) }
         };
 
-        private static Dictionary<string, Func<string, object>> numberSuffixToParse = new Dictionary<string, Func<string, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
+        private static Dictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
         {
-            { "f", number => float.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "d", number => double.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "u", number => uint.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "l", number => long.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "ul", number => ulong.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) },
-            { "m", number => decimal.Parse(number, NumberStyles.Any, CultureInfo.InvariantCulture) }
+            { "f", (number, culture) => float.Parse(number, NumberStyles.Any, culture) },
+            { "d", (number, culture) => double.Parse(number, NumberStyles.Any, culture) },
+            { "u", (number, culture) => uint.Parse(number, NumberStyles.Any, culture) },
+            { "l", (number, culture) => long.Parse(number, NumberStyles.Any, culture) },
+            { "ul", (number, culture) => ulong.Parse(number, NumberStyles.Any, culture) },
+            { "m", (number, culture) => decimal.Parse(number, NumberStyles.Any, culture) }
         };
 
         private static Dictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
@@ -216,6 +218,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "&&", ExpressionOperator.ConditionalAnd },
             { "||", ExpressionOperator.ConditionalOr },
             { "!", ExpressionOperator.LogicalNegation },
+            { "~", ExpressionOperator.BitwiseComplement },
             { "&", ExpressionOperator.LogicalAnd },
             { "|", ExpressionOperator.LogicalOr },
             { "^", ExpressionOperator.LogicalXor },
@@ -231,6 +234,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
         {
             {ExpressionOperator.LogicalNegation, true },
+            {ExpressionOperator.BitwiseComplement, true },
             {ExpressionOperator.UnaryPlus, true },
             {ExpressionOperator.UnaryMinus, true }
         };
@@ -262,6 +266,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.UnaryPlus, (dynamic left, dynamic right) => +right },
                 {ExpressionOperator.UnaryMinus, (dynamic left, dynamic right) => -right },
                 {ExpressionOperator.LogicalNegation, (dynamic left, dynamic right) => !right },
+                {ExpressionOperator.BitwiseComplement, (dynamic left, dynamic right) => ~right },
                 {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
@@ -427,6 +432,18 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             },
             { "Sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
+            { "sizeof", (self, args) =>
+                {
+                    Type type = ((ClassOrTypeName)self.Evaluate(args[0])).Type;
+
+                    if(type == typeof(bool))
+                        return 1;
+                    else if(type == typeof(char))
+                        return 2;
+                    else
+                        return Marshal.SizeOf(type);
+                }
+            },
             { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
         };
 
@@ -499,8 +516,6 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                primaryTypesRegex = new Regex(primaryTypesRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 
@@ -511,6 +526,97 @@ namespace CodingSeb.ExpressionEvaluator
                 return OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
             }
         }
+
+        private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
+
+        /// <summary>
+        /// The culture used to evaluate numbers
+        /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.
+        /// So always set a full CultureInfo object and do not change CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator and CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator properties directly.
+        /// Warning if using comma in separators change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts
+        /// </summary>
+        public CultureInfo CultureInfoForNumberParsing
+        {
+            get
+            {
+                return cultureInfoForNumberParsing;
+            }
+
+            set
+            {
+                cultureInfoForNumberParsing = value;
+                
+                OptionNumberParsingDecimalSeparator = cultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator;
+                OptionNumberParsingThousandSeparator = cultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator;
+            }
+        }
+
+        private string optionNumberParsingDecimalSeparator = ".";
+
+        /// <summary>
+        /// Allow to change the decimal separator of numbers when parsing expressions.
+        /// By default "."
+        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
+        /// Modify CultureInfoForNumberParsing.
+        /// </summary>
+        public string OptionNumberParsingDecimalSeparator
+        {
+
+            get
+            {
+                return optionNumberParsingDecimalSeparator;
+            }
+
+            set
+            {
+                optionNumberParsingDecimalSeparator = value ?? ".";
+                CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = optionNumberParsingDecimalSeparator;
+
+                numberRegexPattern = string.Format(numberRegexOrigPattern,
+                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
+                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
+            }
+        }
+
+        private string optionNumberParsingThousandSeparator = string.Empty;
+
+        /// <summary>
+        /// Allow to change the thousand separator of numbers when parsing expressions.
+        /// By default string.Empty
+        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
+        /// Modify CultureInfoForNumberParsing.
+        /// </summary>
+        public string OptionNumberParsingThousandSeparator
+        {
+            get
+            {
+                return optionNumberParsingThousandSeparator;
+            }
+
+            set
+            {
+                optionNumberParsingThousandSeparator = value ?? string.Empty;
+                CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
+                
+                numberRegexPattern = string.Format(numberRegexOrigPattern,
+                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
+                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
+            }
+        }
+
+        /// <summary>
+        /// Allow to change the separator of functions arguments.
+        /// By default ","
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// </summary>
+        public string OptionFunctionArgumentsSeparator { get; set; } = ",";
+
+        /// <summary>
+        /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.
+        /// By default ","
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// </summary>
+        public string OptionInitializersSeparator { get; set; } = ",";
 
         /// <summary>
         /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
@@ -532,8 +638,6 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 optionInlineNamespacesEvaluationActive = value;
-                instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
-                castRegex = new Regex(CastRegexPattern, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
             }
         }
 
@@ -728,8 +832,10 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator()
         {
             Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
-            instanceCreationWithNewKeywordRegex = new Regex(InstanceCreationWithNewKeywordRegexPattern);
-            castRegex = new Regex(CastRegexPattern);
+
+            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
+
+            CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
         }
 
         /// <summary>
@@ -805,7 +911,6 @@ namespace CodingSeb.ExpressionEvaluator
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
-                string baseExpression = expression;
                 object result = null;
 
                 expression = expression.Trim();
@@ -1344,7 +1449,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
         {
-            Match castMatch = castRegex.Match(restOfExpression);
+            Match castMatch = Regex.Match(restOfExpression, CastRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
             if (castMatch.Success)
             {
@@ -1366,9 +1471,30 @@ namespace CodingSeb.ExpressionEvaluator
 
         private bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
         {
-            Match numberMatch = numberRegex.Match(restOfExpression);
+            Match numberMatch = Regex.Match(restOfExpression, numberRegexPattern, RegexOptions.IgnoreCase);
+            Match otherBaseMatch = otherBasesNumberRegex.Match(restOfExpression);
 
-            if (numberMatch.Success
+            if (otherBaseMatch.Success
+                && (!otherBaseMatch.Groups["sign"].Success
+                || stack.Count == 0
+                || stack.Peek() is ExpressionOperator))
+            {
+                i += otherBaseMatch.Length;
+                i--;
+
+                int baseValue = otherBaseMatch.Groups["type"].Value.Equals("b") ? 2 : 16;
+
+                if (otherBaseMatch.Groups["sign"].Success)
+                {
+                    string value = otherBaseMatch.Groups["value"].Value.Replace("_", "").Substring(2);
+                    stack.Push(otherBaseMatch.Groups["sign"].Value.Equals("-") ? -Convert.ToInt32(value, baseValue) : Convert.ToInt32(value, baseValue));
+                }
+                else
+                    stack.Push(Convert.ToInt32(otherBaseMatch.Value.Replace("_", "").Substring(2), baseValue));
+
+                return true;
+            }
+            else if (numberMatch.Success
                 && (!numberMatch.Groups["sign"].Success
             || stack.Count == 0
             || stack.Peek() is ExpressionOperator))
@@ -1379,22 +1505,22 @@ namespace CodingSeb.ExpressionEvaluator
                 if (numberMatch.Groups["type"].Success)
                 {
                     string type = numberMatch.Groups["type"].Value;
-                    string numberNoType = numberMatch.Value.Replace(type, string.Empty);
+                    string numberNoType = numberMatch.Value.Replace(type, string.Empty).Replace("_", "");
 
-                    if (numberSuffixToParse.TryGetValue(type, out Func<string, object> parseFunc))
+                    if (numberSuffixToParse.TryGetValue(type, out Func<string, CultureInfo, object> parseFunc))
                     {
-                        stack.Push(parseFunc(numberNoType));
+                        stack.Push(parseFunc(numberNoType, CultureInfoForNumberParsing));
                     }
                 }
                 else
                 {
                     if (numberMatch.Groups["hasdecimal"].Success)
                     {
-                        stack.Push(double.Parse(numberMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                     else
                     {
-                        stack.Push(int.Parse(numberMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture));
+                        stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                 }
 
@@ -1411,7 +1537,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!OptionNewKeywordEvaluationActive)
                 return false;
 
-            Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(restOfExpression);
+            Match instanceCreationMatch = Regex.Match(restOfExpression, InstanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
             if (instanceCreationMatch.Success &&
                 (stack.Count == 0
@@ -1440,7 +1566,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             int subIndex = subExpr.IndexOf("{") + 1;
 
-                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, ",", "{", "}");
+                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
 
                             if(subArgs.Count == 2)
                             {
@@ -1476,7 +1602,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (instanceCreationMatch.Groups["isfunction"].Success)
                 { 
-                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
+                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
                     i++;
 
                     List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
@@ -1489,7 +1615,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         i += blockBeginningMatch.Length;
 
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                         Init(element, initArgs);
                     }
@@ -1502,7 +1628,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object element = Activator.CreateInstance(type, new object[0]);
 
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                     Init(element, initArgs);
 
@@ -1510,7 +1636,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else if(instanceCreationMatch.Groups["isArray"].Success)
                 {
-                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "[", "]");
+                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "[", "]");
                     i++;
                     Array array = null;
 
@@ -1525,8 +1651,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         i += initInNewBeginningMatch.Length;
 
-                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, ",", "{", "}");
-                        i++;
+                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                         if (array == null)
                             array = Array.CreateInstance(type, arrayElements.Count);
@@ -1564,7 +1689,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true);
+                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
                     if (varFuncMatch.Groups["inObject"].Success)
                     {
                         if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
@@ -1746,6 +1871,12 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else if (varFuncMatch.Groups["postfixOperator"].Success)
                                 cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                            else if (varFuncMatch.Groups["prefixOperator"].Success)
+                            {
+                                stack.Pop();
+                                cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                                stack.Push(cusVarValueToPush);
+                            }
                             else
                                 assign = false;
 
@@ -2657,13 +2788,13 @@ namespace CodingSeb.ExpressionEvaluator
                 Match internalStringMatch = stringBeginningRegex.Match(subExpr);
                 Match internalCharMatch = internalCharRegex.Match(subExpr);
 
-                if (internalStringMatch.Success)
+                if (OptionStringEvaluationActive && internalStringMatch.Success)
                 {
                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expr.Substring(i + internalStringMatch.Length), internalStringMatch);
                     currentExpression += innerString;
                     i += innerString.Length - 1;
                 }
-                else if (internalCharMatch.Success)
+                else if (OptionCharEvaluationActive && internalCharMatch.Success)
                 {
                     currentExpression += internalCharMatch.Value;
                     i += internalCharMatch.Length - 1;
@@ -2754,10 +2885,10 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    typeName = primaryTypesRegex.Replace(typeName, delegate (Match match)
+                    typeName = Regex.Replace(typeName, primaryTypesRegexPattern, delegate (Match match)
                     {
                         return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
-                    });
+                    }, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
 
                     result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
