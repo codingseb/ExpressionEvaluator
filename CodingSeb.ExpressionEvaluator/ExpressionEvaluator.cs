@@ -532,7 +532,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// The culture used to evaluate numbers
         /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.
-        /// So always set a full CultureInfo object and do not change NumberFormat.NumberDecimalSeparator and NumberFormat.NumberGroupSeparator properties directly.
+        /// So always set a full CultureInfo object and do not change CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator and CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator properties directly.
         /// Warning if using comma in separators change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts
         /// </summary>
         public CultureInfo CultureInfoForNumberParsing
