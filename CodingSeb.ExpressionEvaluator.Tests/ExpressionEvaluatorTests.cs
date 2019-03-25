@@ -384,7 +384,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("5 + 10 * 2", TestOf = typeof(int), ExpectedResult = 25, Category = "DivAndMultiplyPriorityOverSubAndAdd")]
         #endregion
 
-        #region ParenthesisPriority
+        #region Parenthesis Priority
         [TestCase("(5d - 10) / 2", TestOf = typeof(double), ExpectedResult = -2.5, Category = "ParenthesisPriority")]
         [TestCase("(5d + 10) / 2", TestOf = typeof(double), ExpectedResult = 7.5, Category = "ParenthesisPriority")]
         [TestCase("(5 - 10) * 2", TestOf = typeof(double), ExpectedResult = -10, Category = "ParenthesisPriority")]
@@ -971,6 +971,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("$\"https://www.google.com/search?q={System.Net.WebUtility.UrlEncode(\"test of request with url encode() ?\")}\"", ExpectedResult = "https://www.google.com/search?q=test+of+request+with+url+encode()+%3F", Category = "Complex expression,Inline namespace")]
         [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").SelectSingleNode(\"//element[@id='MyElement']\").InnerXml", ExpectedResult = "Xml Content", Category = "Complex expression,Inline namespace,Fluid")]
         [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").ChildNodes[0].Name", ExpectedResult = "root", Category = "Complex expression,Inline namespace,Fluid,Custom Indexer")]
+        [TestCase("string.Join(\" - \", new string[]{\"Hello\", \"Bye\", \"Other\"})", ExpectedResult = "Hello - Bye - Other", Category = "Complex expression, Different brackets imbrication")]
 
         #endregion
 
