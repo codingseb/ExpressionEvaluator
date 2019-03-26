@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.4.1 
+    Version : 1.3.4.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -527,6 +527,13 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        /// <summary>
+        /// If <c>true</c> all numbers evaluations will be done as double without suffixes
+        /// If <c>false</c> Integers values without suffixes will be evaluate as real int as in C# (Warning some operation can round values)
+        /// By default = false
+        /// </summary>
+        public bool OptionForceIntegerNumbersEvaluationsAsDoubleByDefault { get; set; } = false;
+
         private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
 
         /// <summary>
@@ -625,21 +632,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
-        private bool optionInlineNamespacesEvaluationActive = true;
-
         /// <summary>
         /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
         /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
         /// By default : true
         /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive
-        {
-            get { return optionInlineNamespacesEvaluationActive; }
-            set
-            {
-                optionInlineNamespacesEvaluationActive = value;
-            }
-        }
+        public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -1514,12 +1512,13 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (numberMatch.Groups["hasdecimal"].Success)
+                    if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault || numberMatch.Groups["hasdecimal"].Success)
                     {
                         stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                     else
                     {
+
                         stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                 }

@@ -1474,10 +1474,39 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .SetCategory("Numbers Culture");
 
                 #endregion
+
+                #region Force Integer numbers default type
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                , "(130-120)/(2*250)")
+                .Returns(0)
+                .SetCategory("Options")
+                .SetCategory("Integer Numbers default types");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
+                }
+                , "(130-120)/(2*250)")
+                .Returns(0)
+                .SetCategory("Options")
+                .SetCategory("Integer Numbers default types");
+
+                yield return new TestCaseData(new ExpressionEvaluator
+                {
+                    OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = true
+                }
+                , "(130-120)/(2*250)")
+                .Returns(0.02)
+                .SetCategory("Options")
+                .SetCategory("Integer Numbers default types");
+
+                #endregion
             }
         }
 
         #endregion
+
 
         [TestCaseSource(nameof(TestCasesEvaluateWithSpecificEvaluator))]
         public object EvaluateWithSpecificEvaluator(ExpressionEvaluator evaluator, string expression)
