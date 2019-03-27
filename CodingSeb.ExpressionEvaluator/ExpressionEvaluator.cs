@@ -528,8 +528,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// If <c>true</c> all numbers evaluations will be done as double without suffixes
-        /// If <c>false</c> Integers values without suffixes will be evaluate as real int as in C# (Warning some operation can round values)
+        /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
+        /// If <c>false</c> Integers values without decimal and suffixes will be evaluate as int as in C# (Warning some operation can round values)
         /// By default = false
         /// </summary>
         public bool OptionForceIntegerNumbersEvaluationsAsDoubleByDefault { get; set; } = false;
