@@ -1273,6 +1273,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("[6,4,10,6,10,4]");
 
                 #endregion
+
+                #region For Bug correction (no regression)
+
+                yield return new TestCaseData(Resources.Script0049, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("variable assignation")
+                    .SetCategory("Bug")
+                    .SetCategory("#26")
+                    .Returns(false);
+
+                #endregion
             }
         }
 
