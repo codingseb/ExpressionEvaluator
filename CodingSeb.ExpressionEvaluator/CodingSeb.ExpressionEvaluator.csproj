@@ -3,11 +3,11 @@
     <AssemblyTitle>CodingSeb.ExpressionEvaluator</AssemblyTitle>
     <Company>Coding Seb</Company>
     <Product>CodingSeb.ExpressionEvaluator</Product>
-    <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. And from version 1.2.0 can execute small C# like scripts</Description>
+    <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.3.4.0</Version>
-    <AssemblyVersion>1.3.4.0</AssemblyVersion>
-    <FileVersion>1.3.4.0</FileVersion>
+    <Version>1.3.5.0</Version>
+    <AssemblyVersion>1.3.5.0</AssemblyVersion>
+    <FileVersion>1.3.5.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -18,19 +18,9 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Support ++ and -- as prefix operators
-* Support ~ as bitwise complement operator
-* Support of the sizeof keyword
-* Add hexadecimal and binary notations for int values with 0x and 0b prefixes
-* Add the _ (underscore) as digit separator in numbers (all notations)
-* Add the following options to have a culture dependant way to evaluate numbers
-    * CultureInfoForNumberParsing
-    * OptionNumberParsingDecimalSeparator
-    * OptionNumberParsingThousandSeparator
-    * OptionFunctionArgumentsSeparator
-    * OptionInitializersSeparator
-* Some memory management and performance improvement
-* Some bugs corrections</PackageReleaseNotes>
+    <PackageReleaseNotes>* Add OptionForceIntegerNumbersEvaluationsAsDoubleByDefault (if true 1/2 = 0.5 otherwise 1/2 = 0)
+* Correction of a conflict between &lt;&gt; operators and &lt;&gt; used for generics
+* Correction of a bug when imbricate different brackets with comma separators</PackageReleaseNotes>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>

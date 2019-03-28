@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.4.0 
+    Version : 1.3.5.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -31,7 +31,7 @@ namespace CodingSeb.ExpressionEvaluator
         private const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
         private const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
-        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         private string numberRegexPattern = null;
@@ -527,6 +527,13 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        /// <summary>
+        /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
+        /// If <c>false</c> Integers values without decimal and suffixes will be evaluate as int as in C# (Warning some operation can round values)
+        /// By default = false
+        /// </summary>
+        public bool OptionForceIntegerNumbersEvaluationsAsDoubleByDefault { get; set; } = false;
+
         private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
 
         /// <summary>
@@ -625,21 +632,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
-        private bool optionInlineNamespacesEvaluationActive = true;
-
         /// <summary>
         /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
         /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
         /// By default : true
         /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive
-        {
-            get { return optionInlineNamespacesEvaluationActive; }
-            set
-            {
-                optionInlineNamespacesEvaluationActive = value;
-            }
-        }
+        public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -1514,12 +1512,13 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (numberMatch.Groups["hasdecimal"].Success)
+                    if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault || numberMatch.Groups["hasdecimal"].Success)
                     {
                         stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                     else
                     {
+
                         stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                 }
@@ -2804,6 +2803,24 @@ namespace CodingSeb.ExpressionEvaluator
                     s = expr.Substring(i, 1);
 
                     if (s.Equals(startChar)) bracketCount++;
+                    else if (s.Equals("("))
+                    {
+                        i++;
+                        currentExpression += "(" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, false, ",", "(", ")").SingleOrDefault() + ")";
+                        continue;
+                    }
+                    else if (s.Equals("{"))
+                    {
+                        i++;
+                        currentExpression += "{" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, false, ",", "{", "}").SingleOrDefault() + "}";
+                        continue;
+                    }
+                    else if (s.Equals("["))
+                    {
+                        i++;
+                        currentExpression += "[" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, false, ",", "[", "]").SingleOrDefault() + "]";
+                        continue;
+                    }
 
                     if (s.Equals(endChar))
                     {
