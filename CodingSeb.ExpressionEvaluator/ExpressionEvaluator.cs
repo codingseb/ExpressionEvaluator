@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.5.0 
+    Version : 1.3.5.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -797,15 +797,15 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Custom and on the fly variables and methods
 
-        private Dictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
+        private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
         /// The Values of the variable use in the expressions
         /// </summary>
-        public Dictionary<string, object> Variables
+        public IDictionary<string, object> Variables
         {
             get { return variables; }
-            set { variables = value == null ? new Dictionary<string, object>() : new Dictionary<string, object>(value, StringComparerForCasing); }
+            set { variables = value == null ? new Dictionary<string, object>(StringComparerForCasing) : new Dictionary<string, object>(value, StringComparerForCasing); }
         }
 
         /// <summary>
@@ -840,7 +840,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor with variable initialize
         /// </summary>
         /// <param name="variables">The Values of the variable use in the expressions</param>
-        public ExpressionEvaluator(Dictionary<string, object> variables) : this()
+        public ExpressionEvaluator(IDictionary<string, object> variables) : this()
         {
             Variables = variables;
         }
