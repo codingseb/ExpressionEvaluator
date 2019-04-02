@@ -894,5 +894,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0049", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0050 */
+        ///Json = &quot;hye&quot;;
+        ///
+        ///x = new ExpandoObject();
+        ///x.Hello = 3;
+        ///x.No = &quot;Yes&quot;;
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0050 {
+            get {
+                return ResourceManager.GetString("Script0050", resourceCulture);
+            }
+        }
     }
 }

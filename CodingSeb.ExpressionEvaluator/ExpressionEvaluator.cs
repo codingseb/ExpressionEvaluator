@@ -1830,8 +1830,8 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush)
-                            || (!varFuncMatch.Groups["inObject"].Success && varFuncMatch.Groups["assignationOperator"].Success))
+                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
+                        && !varFuncMatch.Groups["inObject"].Success
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
                         stack.Push(cusVarValueToPush);

@@ -1283,6 +1283,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("#26")
                     .Returns(false);
 
+                yield return new TestCaseData(Resources.Script0050, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("conflict variable assignation vs on the fly in object with same name")
+                    .SetCategory("Bug")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
                 #endregion
             }
         }
