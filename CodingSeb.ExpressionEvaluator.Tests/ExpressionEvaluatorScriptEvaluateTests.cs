@@ -1181,6 +1181,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("return")
                     .Returns("The result is : 7");
 
+                yield return new TestCaseData(Resources.Script0051, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Init of ExpandoObject")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                yield return new TestCaseData(Resources.Script0052, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Using already define vars in inits")
+                    .SetCategory("Init of ExpandoObject")
+                    .SetCategory("conflict variable assignation vs on the fly in object with same name")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                yield return new TestCaseData(Resources.Script0053, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Using already define vars in inits")
+                    .SetCategory("Anonymous type init as ExpandoObject")
+                    .SetCategory("Init of ExpandoObject")
+                    .SetCategory("conflict variable assignation vs on the fly in object with same name")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
                 #endregion
 
                 #region Diactitics
@@ -1278,6 +1298,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData(Resources.Script0049, null, null, null)
                     .SetCategory("Script")
+                    .SetCategory("Conflict between generics and <> operators")
                     .SetCategory("variable assignation")
                     .SetCategory("Bug")
                     .SetCategory("#26")

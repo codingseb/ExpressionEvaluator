@@ -910,5 +910,57 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0050", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0051 */
+        ///x = new ExpandoObject()
+        ///{
+        ///	Hello = 3,
+        ///	No = &quot;Yes&quot;
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0051 {
+            get {
+                return ResourceManager.GetString("Script0051", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0052 */
+        ///
+        ///Json = &quot;Yes&quot;;
+        ///y = 3;
+        ///
+        ///x = new ExpandoObject()
+        ///{
+        ///	Hello = y,
+        ///	No = Json
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0052 {
+            get {
+                return ResourceManager.GetString("Script0052", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0051 */
+        ///x = new 
+        ///{
+        ///	Hello = 3,
+        ///	No = &quot;Yes&quot;
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0053 {
+            get {
+                return ResourceManager.GetString("Script0053", resourceCulture);
+            }
+        }
     }
 }

@@ -1,0 +1,8 @@
+﻿/* Script0051 */
+x = new ExpandoObject()
+{
+	Hello = 3,
+	No = "Yes"
+};
+
+x.Json;

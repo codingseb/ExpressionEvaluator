@@ -56,7 +56,7 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^(?>\s*)\[", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)(?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?"; } }
+        private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
         private string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         private const string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
@@ -1542,134 +1542,150 @@ namespace CodingSeb.ExpressionEvaluator
                 (stack.Count == 0
                 || stack.Peek() is ExpressionOperator))
             {
-                string completeName = instanceCreationMatch.Groups["name"].Value;
-                string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
-                Type type = GetTypeByFriendlyName(completeName, genericTypes);
+                void InitSimpleObjet(object element, List<string> initArgs)
+                {
+                    string variable = "V" + Guid.NewGuid().ToString().Replace("-", "");
+
+                    Variables[variable] = element;
+
+                    initArgs.ForEach(subExpr =>
+                    {
+                        if (subExpr.Contains("="))
+                        {
+                            string trimmedSubExpr = subExpr.TrimStart();
+
+                            Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                        }
+                        else
+                            throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                    });
+
+                    Variables.Remove(variable);
+                }
 
                 i += instanceCreationMatch.Length;
 
-                if (type == null)
-                    throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
-
-                void Init(object element, List<string> initArgs)
+                if (instanceCreationMatch.Groups["isAnonymous"].Success)
                 {
-                    if (typeof(IEnumerable).IsAssignableFrom(type) 
-                        && !typeof(IDictionary).IsAssignableFrom(type) 
-                        && !typeof(ExpandoObject).IsAssignableFrom(type))
-                    {
-                        MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
+                    object element = new ExpandoObject();
 
-                        initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
-                    }
-                    else if(typeof(IDictionary).IsAssignableFrom(type) 
-                        && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")) 
-                        && !typeof(ExpandoObject).IsAssignableFrom(type))
-                    {
-                        initArgs.ForEach(subExpr =>
-                        {
-                            int subIndex = subExpr.IndexOf("{") + 1;
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
-                            List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
+                    InitSimpleObjet(element, initArgs);
 
-                            if(subArgs.Count == 2)
-                            {
-                                dynamic indexedObject = element;
-                                dynamic index = Evaluate(subArgs[0]);
-                                dynamic value = Evaluate(subArgs[1]);
-
-                                indexedObject[index] = value;
-                            }
-                            else
-                            {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Bad Number of args in initialization of [{subExpr}]");
-                            }
-                        });
-                    }
-                    else
-                    {
-                        string variable = "V" + Guid.NewGuid().ToString().Replace("-", "");
-
-                        Variables[variable] = element;
-
-                        initArgs.ForEach(subExpr =>
-                        {
-                            if (subExpr.Contains("="))
-                            {
-                                string trimmedSubExpr = subExpr.TrimStart();
-
-                                Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
-                            }
-                            else
-                                throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
-                        });
-
-                        Variables.Remove(variable);
-                    }
+                    stack.Push(element);
                 }
+                else
+                {
+                    string completeName = instanceCreationMatch.Groups["name"].Value;
+                    string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
+                    Type type = GetTypeByFriendlyName(completeName, genericTypes);
 
-                if (instanceCreationMatch.Groups["isfunction"].Success)
-                { 
-                    List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
-                    i++;
+                    if (type == null)
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
-                    List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
-
-                    object element = Activator.CreateInstance(type, cArgs.ToArray());
-
-                    Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
-
-                    if (blockBeginningMatch.Success)
+                    void Init(object element, List<string> initArgs)
                     {
-                        i += blockBeginningMatch.Length;
+                        if (typeof(IEnumerable).IsAssignableFrom(type)
+                            && !typeof(IDictionary).IsAssignableFrom(type)
+                            && !typeof(ExpandoObject).IsAssignableFrom(type))
+                        {
+                            MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
+
+                            initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
+                        }
+                        else if (typeof(IDictionary).IsAssignableFrom(type)
+                            && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{"))
+                            && !typeof(ExpandoObject).IsAssignableFrom(type))
+                        {
+                            initArgs.ForEach(subExpr =>
+                            {
+                                int subIndex = subExpr.IndexOf("{") + 1;
+
+                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
+
+                                if (subArgs.Count == 2)
+                                {
+                                    dynamic indexedObject = element;
+                                    dynamic index = Evaluate(subArgs[0]);
+                                    dynamic value = Evaluate(subArgs[1]);
+
+                                    indexedObject[index] = value;
+                                }
+                                else
+                                {
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Bad Number of args in initialization of [{subExpr}]");
+                                }
+                            });
+                        }
+                        else
+                            InitSimpleObjet(element, initArgs);
+                    }
+
+                    if (instanceCreationMatch.Groups["isfunction"].Success)
+                    {
+                        List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionFunctionArgumentsSeparator);
+                        i++;
+
+                        List<object> cArgs = constructorArgs.ConvertAll(arg => Evaluate(arg));
+
+                        object element = Activator.CreateInstance(type, cArgs.ToArray());
+
+                        Match blockBeginningMatch = blockBeginningRegex.Match(expr.Substring(i));
+
+                        if (blockBeginningMatch.Success)
+                        {
+                            i += blockBeginningMatch.Length;
+
+                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
+
+                            Init(element, initArgs);
+                        }
+                        else
+                            i--;
+
+                        stack.Push(element);
+                    }
+                    else if (instanceCreationMatch.Groups["isInit"].Success)
+                    {
+                        object element = Activator.CreateInstance(type, new object[0]);
 
                         List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
 
                         Init(element, initArgs);
+
+                        stack.Push(element);
+                    }
+                    else if (instanceCreationMatch.Groups["isArray"].Success)
+                    {
+                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "[", "]");
+                        i++;
+                        Array array = null;
+
+                        if (arrayArgs.Count > 0)
+                        {
+                            array = Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray());
+                        }
+
+                        Match initInNewBeginningMatch = initInNewBeginningRegex.Match(expr.Substring(i));
+
+                        if (initInNewBeginningMatch.Success)
+                        {
+                            i += initInNewBeginningMatch.Length;
+
+                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
+
+                            if (array == null)
+                                array = Array.CreateInstance(type, arrayElements.Count);
+
+                            Array.Copy(arrayElements.ConvertAll(subExpression => Evaluate(subExpression)).ToArray(), array, arrayElements.Count);
+                        }
+
+                        stack.Push(array);
                     }
                     else
-                        i--;
-
-                    stack.Push(element);
+                        throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
                 }
-                else if(instanceCreationMatch.Groups["isInit"].Success)
-                {
-                    object element = Activator.CreateInstance(type, new object[0]);
-
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
-
-                    Init(element, initArgs);
-
-                    stack.Push(element);
-                }
-                else if(instanceCreationMatch.Groups["isArray"].Success)
-                {
-                    List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "[", "]");
-                    i++;
-                    Array array = null;
-
-                    if(arrayArgs.Count > 0)
-                    {
-                        array = Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray());
-                    }
-
-                    Match initInNewBeginningMatch = initInNewBeginningRegex.Match(expr.Substring(i));
-
-                    if (initInNewBeginningMatch.Success)
-                    {
-                        i += initInNewBeginningMatch.Length;
-
-                        List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expr, ref i, true, OptionInitializersSeparator, "{", "}");
-
-                        if (array == null)
-                            array = Array.CreateInstance(type, arrayElements.Count);
-
-                        Array.Copy(arrayElements.ConvertAll(subExpression => Evaluate(subExpression)).ToArray(), array, arrayElements.Count);
-                    }
-
-                    stack.Push(array);
-                }
-                else
-                    throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
 
                 return true;
             }
@@ -1677,7 +1693,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return false;
             }
-        }
+                    }
 
         private bool EvaluateVarOrFunc(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
