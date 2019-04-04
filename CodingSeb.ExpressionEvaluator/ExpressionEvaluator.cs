@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.6.0 
+    Version : 1.3.6.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1553,13 +1553,17 @@ namespace CodingSeb.ExpressionEvaluator
 
                 void Init(object element, List<string> initArgs)
                 {
-                    if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type))
+                    if (typeof(IEnumerable).IsAssignableFrom(type) 
+                        && !typeof(IDictionary).IsAssignableFrom(type) 
+                        && !typeof(ExpandoObject).IsAssignableFrom(type))
                     {
                         MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
                         initArgs.ForEach(subExpr => methodInfo.Invoke(element, new object[] { Evaluate(subExpr) }));
                     }
-                    else if(typeof(IDictionary).IsAssignableFrom(type) && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")))
+                    else if(typeof(IDictionary).IsAssignableFrom(type) 
+                        && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")) 
+                        && !typeof(ExpandoObject).IsAssignableFrom(type))
                     {
                         initArgs.ForEach(subExpr =>
                         {
@@ -1583,7 +1587,9 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        ExpressionEvaluator initEvaluator = new ExpressionEvaluator(new Dictionary<string, object>() { { "this", element } });
+                        string variable = "V" + Guid.NewGuid().ToString().Replace("-", "");
+
+                        Variables[variable] = element;
 
                         initArgs.ForEach(subExpr =>
                         {
@@ -1591,11 +1597,13 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 string trimmedSubExpr = subExpr.TrimStart();
 
-                                initEvaluator.Evaluate($"this{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                                Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
                             }
                             else
                                 throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
                         });
+
+                        Variables.Remove(variable);
                     }
                 }
 
