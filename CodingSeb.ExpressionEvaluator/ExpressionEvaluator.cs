@@ -501,6 +501,7 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 optionCaseSensitiveEvaluationActive = value;
+                StringComparisonForCasing = optionCaseSensitiveEvaluationActive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 Variables = Variables;
                 operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
                 defaultVariables = new Dictionary<string, object>(defaultVariables, StringComparerForCasing);
@@ -509,6 +510,8 @@ namespace CodingSeb.ExpressionEvaluator
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
             }
         }
+
+        private StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
 
         private StringComparer StringComparerForCasing
         {
@@ -903,23 +906,21 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 expression = expression.Trim();
 
-                string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
-
-                if (expressionToTest.Equals("break"))
+                if (expression.Equals("break", StringComparisonForCasing))
                 {
                     isBreak = true;
                     return lastResult;
                 }
 
-                if (expressionToTest.Equals("continue"))
+                if (expression.Equals("continue", StringComparisonForCasing))
                 {
                     isContinue = true;
                     return lastResult;
                 }
 
-                if(expressionToTest.StartsWith("throw "))
+                if(expression.StartsWith("throw ", StringComparisonForCasing))
                 {
-                    throw Evaluate(expressionToTest.Remove(0, 6)) as Exception;
+                    throw Evaluate(expression.Remove(0, 6)) as Exception;
                 }
 
                 expression = returnKeywordRegex.Replace(expression, match =>
@@ -1071,9 +1072,6 @@ namespace CodingSeb.ExpressionEvaluator
                     if (blockKeywordsBeginingMatch.Success)
                         i++;
 
-                    if (!OptionCaseSensitiveEvaluationActive)
-                        keyword = keyword.ToLower();
-
                     Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
 
                     string subScript = string.Empty;
@@ -1111,7 +1109,7 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
                     }
 
-                    if (keyword.Equals("elseif"))
+                    if (keyword.Equals("elseif", StringComparisonForCasing))
                     {
                         if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
@@ -1123,7 +1121,7 @@ namespace CodingSeb.ExpressionEvaluator
                             ifBlockEvaluatedState = IfBlockEvaluatedState.ElseIf;
                         }
                     }
-                    else if (keyword.Equals("else"))
+                    else if (keyword.Equals("else", StringComparisonForCasing))
                     {
                         if (ifBlockEvaluatedState == IfBlockEvaluatedState.NoBlockEvaluated)
                         {
@@ -1135,7 +1133,7 @@ namespace CodingSeb.ExpressionEvaluator
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                         }
                     }
-                    else if (keyword.Equals("catch"))
+                    else if (keyword.Equals("catch", StringComparisonForCasing))
                     {
                         if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
                         {
@@ -1147,7 +1145,7 @@ namespace CodingSeb.ExpressionEvaluator
                             tryBlockEvaluatedState = TryBlockEvaluatedState.Catch;
                         }
                     }
-                    else if (keyword.Equals("finally"))
+                    else if (keyword.Equals("finally", StringComparisonForCasing))
                     {
                         if (tryBlockEvaluatedState == TryBlockEvaluatedState.NoBlockEvaluated)
                         {
@@ -1163,22 +1161,22 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         ExecuteBlocksStacks();
 
-                        if (keyword.Equals("if"))
+                        if (keyword.Equals("if", StringComparisonForCasing))
                         {
                             ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
                             tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
-                        else if(keyword.Equals("try"))
+                        else if(keyword.Equals("try", StringComparisonForCasing))
                         {
                             tryStatementsList.Add(new List<string>() { subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                             tryBlockEvaluatedState = TryBlockEvaluatedState.Try;
                         }
-                        else if (keyword.Equals("do"))
+                        else if (keyword.Equals("do", StringComparisonForCasing))
                         {
                             if ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
-                                && blockKeywordsBeginingMatch.Groups["keyword"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("while"))
+                                && blockKeywordsBeginingMatch.Groups["keyword"].Value.Equals("while", StringComparisonForCasing))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
                                 keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";");
@@ -1218,7 +1216,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword afte the [do] keyword and block");
                             }
                         }
-                        else if (keyword.Equals("while"))
+                        else if (keyword.Equals("while", StringComparisonForCasing))
                         {
                             while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]))
                             {
@@ -1236,7 +1234,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                             }
                         }
-                        else if (keyword.Equals("for"))
+                        else if (keyword.Equals("for", StringComparisonForCasing))
                         {
                             void forAction(int index)
                             {
@@ -1260,7 +1258,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                             }
                         }
-                        else if (keyword.Equals("foreach"))
+                        else if (keyword.Equals("foreach", StringComparisonForCasing))
                         {
                             Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordAttributes[0]);
 
@@ -1268,7 +1266,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("wrong foreach syntax");
                             }
-                            else if (!foreachParenthisEvaluationMatch.Groups["in"].Value.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("in"))
+                            else if (!foreachParenthisEvaluationMatch.Groups["in"].Value.Equals("in", StringComparisonForCasing))
                             {
                                 throw new ExpressionEvaluatorSyntaxErrorException("no [in] keyword found in foreach");
                             }
@@ -2621,10 +2619,10 @@ namespace CodingSeb.ExpressionEvaluator
             List<object> modifiedArgs = new List<object>(args);
 
             if (OptionFluidPrefixingActive
-                && (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
-                    || func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluent".ManageCasing(OptionCaseSensitiveEvaluationActive))))
+                && (func.StartsWith("Fluid", StringComparisonForCasing)
+                    || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs, genericsTypes);
+                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -2643,11 +2641,11 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (args.Contains(null))
             {
-                methodInfo = type.GetMethod(func.ManageCasing(OptionCaseSensitiveEvaluationActive), flag);
+                methodInfo = type.GetMethod(func, flag);
             }
             else
             {
-                methodInfo = type.GetMethod(func.ManageCasing(OptionCaseSensitiveEvaluationActive), flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+                methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
             }
 
             if (methodInfo != null)
@@ -2657,7 +2655,7 @@ namespace CodingSeb.ExpressionEvaluator
             else
             {
                 List<MethodInfo> methodInfos = type.GetMethods(flag)
-                .Where(m => m.Name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals(func.ManageCasing(OptionCaseSensitiveEvaluationActive)) && m.GetParameters().Length == modifiedArgs.Count)
+                .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
                 .ToList();
 
                 for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
@@ -2762,7 +2760,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        string GetScriptBetweenCurlyBrackets(string parentScript, ref int index)
+        private string GetScriptBetweenCurlyBrackets(string parentScript, ref int index)
         {
             string s;
             string currentScript = string.Empty;
@@ -2908,11 +2906,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 result = complexFunc(this, args);
             }
-            else if (OptionEvaluateFunctionActive && name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("Evaluate".ManageCasing(OptionCaseSensitiveEvaluationActive)))
+            else if (OptionEvaluateFunctionActive && name.Equals("Evaluate", StringComparisonForCasing))
             {
                 result = Evaluate((string)Evaluate(args[0]));
             }
-            else if (OptionScriptEvaluateFunctionActive && name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals("ScriptEvaluate".ManageCasing(OptionCaseSensitiveEvaluationActive)))
+            else if (OptionScriptEvaluateFunctionActive && name.Equals("ScriptEvaluate", StringComparisonForCasing))
             {
                 result = ScriptEvaluate((string)Evaluate(args[0]));
             }
@@ -2943,14 +2941,14 @@ namespace CodingSeb.ExpressionEvaluator
                 if (result == null)
                 {
                     typeName = Regex.Replace(typeName, primaryTypesRegexPattern,
-                        (Match match) => primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString(), optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+                        (Match match) => primaryTypesDict[OptionCaseSensitiveEvaluationActive ? match.Value : match.Value.ToLower()].ToString(), optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
                     result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
 
                 if (result == null)
                 {
-                    result = Types.Find(type => type.Name.ManageCasing(OptionCaseSensitiveEvaluationActive).Equals(typeName.ManageCasing(OptionCaseSensitiveEvaluationActive)));
+                    result = Types.Find(type => type.Name.Equals(typeName, StringComparisonForCasing));
                 }
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
@@ -3178,18 +3176,6 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
     }
-
-    #region Internal extentions methods
-
-    internal static class StringCaseManagementForExpressionEvaluatorExtension
-    {
-        public static string ManageCasing(this string text, bool isCaseSensitive)
-        {
-            return isCaseSensitive ? text : text.ToLower();
-        }
-    }
-
-    #endregion
 
     #region linked enums
 
