@@ -36,11 +36,11 @@ namespace CodingSeb.ExpressionEvaluator
         private const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         private string numberRegexPattern = null;
 
-        private static readonly Regex otherBasesNumberRegex = new Regex(@"^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex otherBasesNumberRegex = new Regex("^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         private static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         private static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
-        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + @"0-9])))");
+        private static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + "0-9])))");
         private static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         private static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
@@ -51,15 +51,14 @@ namespace CodingSeb.ExpressionEvaluator
         private static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]", RegexOptions.Compiled);
         private static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
         private static readonly Regex lambdaExpressionRegex = new Regex($@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)(?>\s*)([,](?>\s*)[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*(?>\s*))*)?[)])|[{ diactiticsKeywordsRegexPattern}](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
-        private static readonly Regex lambdaArgRegex = new Regex($@"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
+        private static readonly Regex lambdaArgRegex = new Regex($"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
         private static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
-        private static readonly Regex OtherDimentionArrayInNewBeginningRegex = new Regex(@"^(?>\s*)\[", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         private string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
         private string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
 
-        private const string primaryTypesRegexPattern = @"(?<=^|[^" + diactiticsKeywordsRegexPattern + @"])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
+        private const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         private const string blockComments = @"/\*(.*?)\*/";
@@ -71,8 +70,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + @"](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase| RegexOptions.Compiled);
-        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + @"0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase| RegexOptions.Compiled);
+        private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + "0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         private static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         private static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
@@ -163,7 +162,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "void", typeof(void) }
         };
 
-        private static Dictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
+        private static readonly Dictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
         {
             { "f", (number, culture) => float.Parse(number, NumberStyles.Any, culture) },
             { "d", (number, culture) => double.Parse(number, NumberStyles.Any, culture) },
@@ -173,7 +172,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "m", (number, culture) => decimal.Parse(number, NumberStyles.Any, culture) }
         };
 
-        private static Dictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
+        private static readonly Dictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
         {
             { '\\', @"\" },
             { '"', "\"" },
@@ -187,7 +186,7 @@ namespace CodingSeb.ExpressionEvaluator
             { 'v', "\v" }
         };
 
-        private static Dictionary<char, char> charEscapedCharDict = new Dictionary<char, char>()
+        private static readonly Dictionary<char, char> charEscapedCharDict = new Dictionary<char, char>()
         {
             { '\\', '\\' },
             { '\'', '\'' },
@@ -227,11 +226,9 @@ namespace CodingSeb.ExpressionEvaluator
             { "??", ExpressionOperator.NullCoalescing },
         };
 
-        private static Dictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
-        {
-        };
+        private static readonly Dictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>();
 
-        private static Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
+        private static readonly Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
         {
             {ExpressionOperator.LogicalNegation, true },
             {ExpressionOperator.BitwiseComplement, true },
@@ -239,22 +236,23 @@ namespace CodingSeb.ExpressionEvaluator
             {ExpressionOperator.UnaryMinus, true }
         };
 
-        private static List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
+        private static readonly List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
             new List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) => 
+                {ExpressionOperator.Indexing, (dynamic left, dynamic right) =>
                     {
                         Type type = ((object)left).GetType();
 
                         if(left is IDictionary<string, object> dictionaryLeft)
+                        {
                             return dictionaryLeft[right];
+                        }
                         else if(type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
                         {
                             return methodInfo.Invoke(left, new object[] { right });
                         }
-
 
                         return left[right];
                     }
@@ -263,10 +261,10 @@ namespace CodingSeb.ExpressionEvaluator
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.UnaryPlus, (dynamic left, dynamic right) => +right },
-                {ExpressionOperator.UnaryMinus, (dynamic left, dynamic right) => -right },
-                {ExpressionOperator.LogicalNegation, (dynamic left, dynamic right) => !right },
-                {ExpressionOperator.BitwiseComplement, (dynamic left, dynamic right) => ~right },
+                {ExpressionOperator.UnaryPlus, (dynamic _, dynamic right) => +right },
+                {ExpressionOperator.UnaryMinus, (dynamic _, dynamic right) => -right },
+                {ExpressionOperator.LogicalNegation, (dynamic _, dynamic right) => !right },
+                {ExpressionOperator.BitwiseComplement, (dynamic _, dynamic right) => ~right },
                 {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
@@ -413,9 +411,7 @@ namespace CodingSeb.ExpressionEvaluator
             },
             { "Round", (self, args) =>
                 {
-                    if(args.Count == 3)
-                        return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)(self.Evaluate(args[1])), (MidpointRounding)self.Evaluate(args[2]));
-                    else if(args.Count == 2)
+                    if(args.Count == 3) { return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1]), (MidpointRounding)self.Evaluate(args[2])); } else if(args.Count == 2)
                     {
                         object arg2 = self.Evaluate(args[1]);
 
@@ -424,12 +420,7 @@ namespace CodingSeb.ExpressionEvaluator
                         else
                             return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)arg2);
                     }
-                    else if(args.Count == 1)
-                        return Math.Round(Convert.ToDouble(self.Evaluate(args[0])));
-                    else
-                        throw new ArgumentException();
-
-                }
+                    else if(args.Count == 1) { return Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } else { throw new ArgumentException(); } }
             },
             { "Sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
             { "sizeof", (self, args) =>
@@ -552,7 +543,7 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 cultureInfoForNumberParsing = value;
-                
+
                 OptionNumberParsingDecimalSeparator = cultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator;
                 OptionNumberParsingThousandSeparator = cultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator;
             }
@@ -568,7 +559,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionNumberParsingDecimalSeparator
         {
-
             get
             {
                 return optionNumberParsingDecimalSeparator;
@@ -604,7 +594,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 optionNumberParsingThousandSeparator = value ?? string.Empty;
                 CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
-                
+
                 numberRegexPattern = string.Format(numberRegexOrigPattern,
                     optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
                     optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
@@ -655,7 +645,9 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 if (value && !complexStandardFuncsDictionary.ContainsKey("new"))
+                {
                     complexStandardFuncsDictionary["new"] = newMethodMem;
+                }
                 else if (!value && complexStandardFuncsDictionary.ContainsKey("new"))
                 {
                     newMethodMem = complexStandardFuncsDictionary["new"];
@@ -909,8 +901,6 @@ namespace CodingSeb.ExpressionEvaluator
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
-                object result = null;
-
                 expression = expression.Trim();
 
                 string expressionToTest = OptionCaseSensitiveEvaluationActive ? expression : expression.ToLower();
@@ -941,9 +931,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return match.Value.Contains("(") ? "(" : string.Empty;
                 });
 
-                result = Evaluate(expression);
-
-                return result;
+                return Evaluate(expression);
             }
 
             object ScriptExpressionEvaluate(ref int index)
@@ -1022,7 +1010,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             if (catchStatement[1] != null)
                             {
-                                string[] exceptionVariable = catchStatement[1].ToString().Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                                string[] exceptionVariable = catchStatement[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
                                 string exceptionName = exceptionVariable[0];
 
@@ -1044,7 +1032,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if(!atLeasOneCatch)
                         {
-                            throw exception;
+                            throw;
                         }
                     }
                     finally
@@ -1433,7 +1421,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (!s.Trim().Equals(string.Empty))
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{((int)s[0])}:{s}]");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
                     }
                 }
             }
@@ -1488,7 +1476,9 @@ namespace CodingSeb.ExpressionEvaluator
                     stack.Push(otherBaseMatch.Groups["sign"].Value.Equals("-") ? -Convert.ToInt32(value, baseValue) : Convert.ToInt32(value, baseValue));
                 }
                 else
+                {
                     stack.Push(Convert.ToInt32(otherBaseMatch.Value.Replace("_", "").Substring(2), baseValue));
+                }
 
                 return true;
             }
@@ -1518,7 +1508,6 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-
                         stack.Push(int.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                 }
@@ -1538,8 +1527,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             Match instanceCreationMatch = Regex.Match(restOfExpression, InstanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
-            if (instanceCreationMatch.Success &&
-                (stack.Count == 0
+            if (instanceCreationMatch.Success
+                && (stack.Count == 0
                 || stack.Peek() is ExpressionOperator))
             {
                 void InitSimpleObjet(object element, List<string> initArgs)
@@ -1557,7 +1546,9 @@ namespace CodingSeb.ExpressionEvaluator
                             Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
                         }
                         else
+                        {
                             throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                        }
                     });
 
                     Variables.Remove(variable);
@@ -1619,7 +1610,9 @@ namespace CodingSeb.ExpressionEvaluator
                             });
                         }
                         else
+                        {
                             InitSimpleObjet(element, initArgs);
+                        }
                     }
 
                     if (instanceCreationMatch.Groups["isfunction"].Success)
@@ -1642,7 +1635,9 @@ namespace CodingSeb.ExpressionEvaluator
                             Init(element, initArgs);
                         }
                         else
+                        {
                             i--;
+                        }
 
                         stack.Push(element);
                     }
@@ -1684,7 +1679,9 @@ namespace CodingSeb.ExpressionEvaluator
                         stack.Push(array);
                     }
                     else
+                    {
                         throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
+                    }
                 }
 
                 return true;
@@ -1752,10 +1749,10 @@ namespace CodingSeb.ExpressionEvaluator
                                         List<object> oArgs = funcArgs.ConvertAll(arg => Evaluate(arg));
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                        if (!OptionStaticMethodsCallActive && flag.HasFlag(BindingFlags.Static))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
-                                        if (!OptionInstanceMethodsCallActive && flag.HasFlag(BindingFlags.Instance))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                        if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+                                        if (!OptionInstanceMethodsCallActive && (flag & BindingFlags.Instance) != 0)
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
@@ -1768,8 +1765,8 @@ namespace CodingSeb.ExpressionEvaluator
                                             else
                                                 stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
-                                        else if(objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo && 
-                                            (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
+                                        else if(objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
+                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
                                         {
                                             stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
@@ -1792,19 +1789,18 @@ namespace CodingSeb.ExpressionEvaluator
                                             {
                                                 stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
                                             }
-                                            else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo &&
-                                            (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
+                                            else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
+                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
                                             {
                                                 stack.Push((staticPropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
                                             }
                                             else
                                             {
-                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no Method named \"{varFuncName}\".");
+                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
                                             }
                                         }
                                     }
                                 }
-
                             }
                             catch (ExpressionEvaluatorSecurityException)
                             {
@@ -1816,7 +1812,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             catch (Exception ex)
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType.ToString()}] generate this error : {(ex.InnerException?.Message ?? ex.Message)}", ex);
+                                throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
                             }
                         }
                     }
@@ -1893,7 +1889,9 @@ namespace CodingSeb.ExpressionEvaluator
                                 stack.Push(cusVarValueToPush);
                             }
                             else if (varFuncMatch.Groups["postfixOperator"].Success)
+                            {
                                 cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                            }
                             else if (varFuncMatch.Groups["prefixOperator"].Success)
                             {
                                 stack.Pop();
@@ -1901,16 +1899,21 @@ namespace CodingSeb.ExpressionEvaluator
                                 stack.Push(cusVarValueToPush);
                             }
                             else
+                            {
                                 assign = false;
+                            }
 
                             if (assign)
                                 Variables[varFuncName] = cusVarValueToPush;
                         }
                         else if (varFuncMatch.Groups["assignationOperator"].Success)
+                        {
                             i -= varFuncMatch.Groups["assignationOperator"].Length;
+                        }
                         else if (varFuncMatch.Groups["postfixOperator"].Success)
+                        {
                             i -= varFuncMatch.Groups["postfixOperator"].Length;
-
+                        }
                     }
                     else
                     {
@@ -1949,13 +1952,12 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
 
-                                        if (!OptionStaticProperiesGetActive && flag.HasFlag(BindingFlags.Static))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
-                                        if (!OptionInstanceProperiesGetActive && flag.HasFlag(BindingFlags.Instance))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Field named \"{varFuncName}\".");
+                                        if (!OptionStaticProperiesGetActive && (flag & BindingFlags.Static) != 0)
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
+                                        if (!OptionInstanceProperiesGetActive && (flag & BindingFlags.Instance) != 0)
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
 
-
-                                        bool isDynamic = flag.HasFlag(BindingFlags.Instance) && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
+                                        bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
                                         IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
 
                                         dynamic member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
@@ -1975,9 +1977,11 @@ namespace CodingSeb.ExpressionEvaluator
                                                 pushVarValue = false;
                                         }
                                         else
+                                        {
                                             varValue = member.GetValue(obj);
+                                        }
 
-                                        if(pushVarValue)
+                                        if (pushVarValue)
                                             stack.Push(varValue);
 
                                         if (OptionPropertyOrFieldSetActive)
@@ -2008,9 +2012,13 @@ namespace CodingSeb.ExpressionEvaluator
                                                 stack.Push(varValue);
                                             }
                                             else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                            {
                                                 varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
+                                            }
                                             else
+                                            {
                                                 assign = false;
+                                            }
 
                                             if (assign)
                                             {
@@ -2021,9 +2029,13 @@ namespace CodingSeb.ExpressionEvaluator
                                             }
                                         }
                                         else if (varFuncMatch.Groups["assignationOperator"].Success)
+                                        {
                                             i -= varFuncMatch.Groups["assignationOperator"].Length;
+                                        }
                                         else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                        {
                                             i -= varFuncMatch.Groups["postfixOperator"].Length;
+                                        }
                                     }
                                 }
                             }
@@ -2037,7 +2049,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             catch (Exception ex)
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType.ToString()}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
                             }
                         }
                         else
@@ -2059,16 +2071,15 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     int subIndex = 0;
                                     Match namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
-                                    
-                                    while (staticType == null && 
-                                        namespaceMatch.Success && 
-                                        !namespaceMatch.Groups["sign"].Success && 
-                                        !namespaceMatch.Groups["assignationOperator"].Success && 
-                                        !namespaceMatch.Groups["postfixOperator"].Success && 
-                                        !namespaceMatch.Groups["postfixOperator"].Success && 
-                                        !namespaceMatch.Groups["isfunction"].Success && 
-                                        i + subIndex < expr.Length && 
-                                        !typeName.EndsWith("?"))
+
+                                    while (staticType == null
+                                        && namespaceMatch.Success
+                                        && !namespaceMatch.Groups["sign"].Success
+                                        && !namespaceMatch.Groups["assignationOperator"].Success
+                                        && !namespaceMatch.Groups["postfixOperator"].Success
+                                        && !namespaceMatch.Groups["isfunction"].Success
+                                        && i + subIndex < expr.Length
+                                        && !typeName.EndsWith("?"))
                                     {
                                         subIndex += namespaceMatch.Length;
                                         typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
@@ -2141,7 +2152,6 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         throw new ExpressionEvaluatorSyntaxErrorException("Not known escape sequence in literal character");
                     }
-
                 }
                 else if (expr.Substring(i, 1).Equals("'"))
                 {
@@ -2163,7 +2173,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
             else
+            {
                 return false;
+            }
         }
 
         private bool EvaluateTwoCharsOperators(string expr, Stack<object> stack, ref int i)
@@ -2339,7 +2351,6 @@ namespace CodingSeb.ExpressionEvaluator
                 stack.Push(valueToPush);
 
                 return true;
-
             }
 
             return false;
@@ -2479,7 +2490,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             List<object> list = stack.ToList();
 
-            operatorsEvaluations.ForEach(delegate (Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict)
+            operatorsEvaluations.ForEach((Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
             {
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
@@ -2609,8 +2620,8 @@ namespace CodingSeb.ExpressionEvaluator
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
 
-            if (OptionFluidPrefixingActive &&
-                (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
+            if (OptionFluidPrefixingActive
+                && (func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive))
                     || func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluent".ManageCasing(OptionCaseSensitiveEvaluationActive))))
             {
                 methodInfo = GetRealMethod(ref type, ref obj, func.ManageCasing(OptionCaseSensitiveEvaluationActive).Substring(func.ManageCasing(OptionCaseSensitiveEvaluationActive).StartsWith("Fluid".ManageCasing(OptionCaseSensitiveEvaluationActive)) ? 5 : 6), flag, modifiedArgs, genericsTypes);
@@ -2719,7 +2730,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (methodInfo.IsGenericMethod)
             {
                 if (genericsTypes.Equals(string.Empty))
-                    return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Count()).ToArray());
+                    return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Length).ToArray());
                 else
                     return methodInfo.MakeGenericMethod(GetConcreteTypes(genericsTypes));
             }
@@ -2826,7 +2837,10 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     s = expr.Substring(i, 1);
 
-                    if (s.Equals(startChar)) bracketCount++;
+                    if (s.Equals(startChar))
+                    {
+                        bracketCount++;
+                    }
                     else if (s.Equals("("))
                     {
                         i++;
@@ -2863,7 +2877,9 @@ namespace CodingSeb.ExpressionEvaluator
                         currentExpression = string.Empty;
                     }
                     else
+                    {
                         currentExpression += s;
+                    }
                 }
             }
 
@@ -2926,10 +2942,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    typeName = Regex.Replace(typeName, primaryTypesRegexPattern, delegate (Match match)
-                    {
-                        return primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString();
-                    }, (optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase));
+                    typeName = Regex.Replace(typeName, primaryTypesRegexPattern,
+                        (Match match) => primaryTypesDict[match.Value.ManageCasing(OptionCaseSensitiveEvaluationActive)].ToString(), optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
                     result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
@@ -2941,8 +2955,10 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
                 {
-                    if(typeName.Contains("."))
+                    if (typeName.Contains("."))
+                    {
                         result = Type.GetType($"{typeName}{formatedGenericTypes},{Assemblies[a].FullName}", false, !OptionCaseSensitiveEvaluationActive);
+                    }
                     else
                     {
                         for (int i = 0; i < Namespaces.Count && result == null; i++)
@@ -2971,7 +2987,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             if (conversionType == null)
             {
-                throw new ArgumentNullException("conversionType");
+                throw new ArgumentNullException(nameof(conversionType));
             }
             if (conversionType.IsGenericType && conversionType.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
@@ -2996,7 +3012,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private void GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch, ref StringBuilder stringBuilder)
         {
-            Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ? 
+            Match codeUntilEndOfStringMatch = stringBeginningMatch.Value.Contains("$") ?
                 (stringBeginningMatch.Value.Contains("@") ? endOfStringWithDollarWithAt.Match(subExpr) : endOfStringWithDollar.Match(subExpr)) :
                 (stringBeginningMatch.Value.Contains("@") ? endOfStringWithoutDollarWithAt.Match(subExpr) : endOfStringWithoutDollar.Match(subExpr));
 
@@ -3058,7 +3074,6 @@ namespace CodingSeb.ExpressionEvaluator
             return result;
         }
 
-
         #endregion
 
         #region Utils private sub classes for parsing and interpretation
@@ -3072,7 +3087,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             private readonly InternalDelegate lambda;
 
-            private MethodInfo methodInfo;
+            private readonly MethodInfo methodInfo;
             private readonly object target;
 
             public DelegateEncaps(InternalDelegate lambda)
@@ -3227,7 +3242,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// The name of the variable to Evaluate
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         private object varValue;
 
@@ -3253,12 +3268,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// In the case of on the fly instance property definition the instance of the object on which this Function is called.
         /// Otherwise is set to null.
         /// </summary>
-        public object This { get; private set; } = null;
+        public object This { get; } = null;
 
         /// <summary>
         /// A reference on the current expression evaluator.
         /// </summary>
-        public ExpressionEvaluator Evaluator { get; private set; }
+        public ExpressionEvaluator Evaluator { get; }
     }
 
     public class FunctionEvaluationEventArg : EventArgs
@@ -3277,7 +3292,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// The not evaluated args of the function
         /// </summary>
-        public List<string> Args { get; private set; } = new List<string>();
+        public List<string> Args { get; } = new List<string>();
 
         /// <summary>
         /// Get the values of the function's args.
@@ -3312,7 +3327,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// The name of the variable to Evaluate
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; }
 
         private object returnValue = null;
 
@@ -3338,12 +3353,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// In the case of on the fly instance method definition the instance of the object on which this Function is called.
         /// Otherwise is set to null.
         /// </summary>
-        public object This { get; private set; } = null;
+        public object This { get; } = null;
 
         /// <summary>
         /// A reference on the current expression evaluator.
         /// </summary>
-        public ExpressionEvaluator Evaluator { get; private set; }
+        public ExpressionEvaluator Evaluator { get; }
     }
 
     #endregion
