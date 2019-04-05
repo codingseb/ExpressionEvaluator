@@ -44,7 +44,7 @@ namespace TryWindow
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
 
             Stopwatch stopWatch = new Stopwatch();
-            
+
 
             try
             {
@@ -53,7 +53,7 @@ namespace TryWindow
                 Exception exception = null;
                 cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                string result = await Task.Run<string>(() => 
+                string result = await Task.Run<string>(() =>
                 {
                     if (!int.TryParse(sIteration, out int iterations))
                         iterations = 1;
@@ -67,13 +67,13 @@ namespace TryWindow
                         {
                             string innerResult = "null or void";
 
-                            for(int i = 0; i < iterations; i++)
+                            for (int i = 0; i < iterations; i++)
                                 innerResult = evaluator.ScriptEvaluate(script)?.ToString() ?? "null or void";
 
                             return innerResult;
                         }
                     }
-                    catch(Exception innerException)
+                    catch (Exception innerException)
                     {
                         exception = innerException;
                         return null;
@@ -89,7 +89,7 @@ namespace TryWindow
                 else
                     throw exception;
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 ResultTextBlock.Text = exception.Message;
             }

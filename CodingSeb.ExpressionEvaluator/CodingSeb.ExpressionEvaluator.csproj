@@ -11,7 +11,7 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
-    <PackageLicenseUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/codingseb/ExpressionEvaluator</PackageProjectUrl>
     <PackageTags>evaluation math expression-evaluator expression parser eval evaluate fluid C# calculation execute script</PackageTags>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
@@ -20,6 +20,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>* Change Variables In IDictionary&lt;string,object&gt;
 * Correction of a conflict when variable assignation vs on the fly in object with the same name</PackageReleaseNotes>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -33,5 +34,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>
