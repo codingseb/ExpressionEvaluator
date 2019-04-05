@@ -1830,7 +1830,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Push(varValueToPush);
                     }
-                    else if ((Variables.TryGetValue(varFuncName, out dynamic cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
+                    else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
                         && !varFuncMatch.Groups["inObject"].Success
                         && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                     {
@@ -1869,11 +1869,11 @@ namespace CodingSeb.ExpressionEvaluator
                                 stack.Push(cusVarValueToPush);
                             }
                             else if (varFuncMatch.Groups["postfixOperator"].Success)
-                                cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                                cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
                             else if (varFuncMatch.Groups["prefixOperator"].Success)
                             {
                                 stack.Pop();
-                                cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? cusVarValueToPush + 1 : cusVarValueToPush - 1;
+                                cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
                                 stack.Push(cusVarValueToPush);
                             }
                             else
