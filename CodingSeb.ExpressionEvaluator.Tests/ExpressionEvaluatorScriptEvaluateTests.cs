@@ -1293,7 +1293,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("[6,4,10,6,10,4]");
 
                 #endregion
-
+                
                 #region For Bug correction (no regression)
 
                 yield return new TestCaseData(Resources.Script0049, null, null, null)
@@ -1309,6 +1309,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("conflict variable assignation vs on the fly in object with same name")
                     .SetCategory("Bug")
                     .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                StructForTest1 structForTest1 = new StructForTest1();
+                ExpressionEvaluator evaluatorForStructs = new ExpressionEvaluator(
+                    new Dictionary<string, object>
+                    {
+                        { "myStruct", structForTest1 }
+                    });
+
+                yield return new TestCaseData("return myStruct.myIntvalue;", evaluatorForStructs, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct value")
+                    .SetCategory("Bug")
+                    .Returns(0);               
+
+                yield return new TestCaseData("myStruct.myIntvalue = 3;\r\nmyStruct.myStringValue = \"Test\";"
+                        , new ExpressionEvaluator(new Dictionary<string, object> { { "myStruct", new StructForTest1() } }), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct value assignation")
+                    .SetCategory("Bug")
+                    .Returns(0);
 
                 #endregion
             }

@@ -18,6 +18,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="TestsUtils\StructForTest1.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CodingSeb.ExpressionEvaluator\CodingSeb.ExpressionEvaluator.csproj" />
