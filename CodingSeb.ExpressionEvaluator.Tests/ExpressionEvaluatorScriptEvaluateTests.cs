@@ -1319,16 +1319,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData("return myStruct.myIntvalue;", evaluatorForStructs, null, null)
                     .SetCategory("Script")
-                    .SetCategory("struct value")
+                    .SetCategory("struct tests")
                     .SetCategory("Bug")
                     .Returns(0);               
 
-                yield return new TestCaseData("myStruct.myIntvalue = 3;\r\nmyStruct.myStringValue = \"Test\";"
-                        , new ExpressionEvaluator(new Dictionary<string, object> { { "myStruct", new StructForTest1() } }), null, null)
+                yield return new TestCaseData(Resources.Script0054, evaluatorForStructs, null, null)
                     .SetCategory("Script")
-                    .SetCategory("struct value assignation")
+                    .SetCategory("struct tests")
                     .SetCategory("Bug")
-                    .Returns(0);
+                    .Returns("Result Test 3");
+
+                evaluatorForStructs.Variables["otherStruct"] = new StructForTest2();
+
+                yield return new TestCaseData(Resources.Script0055, evaluatorForStructs, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9, 5");
 
                 #endregion
             }

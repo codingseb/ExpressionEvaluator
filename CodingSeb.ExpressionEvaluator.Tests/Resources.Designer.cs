@@ -19,7 +19,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
     // à l'aide d'un outil, tel que ResGen ou Visual Studio.
     // Pour ajouter ou supprimer un membre, modifiez votre fichier .ResX, puis réexécutez ResGen
     // avec l'option /str ou régénérez votre projet VS.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -948,7 +948,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0051 */
+        ///   Recherche une chaîne localisée semblable à /* Script0053 */
         ///x = new 
         ///{
         ///	Hello = 3,
@@ -960,6 +960,35 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         public static string Script0053 {
             get {
                 return ResourceManager.GetString("Script0053", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0054 */
+        ///myStruct.myIntvalue = 3;
+        ///myStruct.myStringValue = &quot;Test&quot;;
+        ///
+        ///return $&quot;Result {myStruct.myStringValue} {myStruct.myIntvalue}&quot;;.
+        /// </summary>
+        public static string Script0054 {
+            get {
+                return ResourceManager.GetString("Script0054", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0055 */
+        ///otherStruct.AnOtherIntValue = 5;
+        ///otherStruct.struct1 = new StructForTest2();
+        ///otherStruct.struct1.myIntvalue = 9
+        ///otherStruct.struct1.myStringValue =  &quot;Hey&quot;;&quot;
+        ///
+        ///
+        ///return $&quot;Result {otherStruct.struct1.myStringValue} {otherStruct.struct1.myIntvalue}, {otherStruct.AnOtherIntValue}&quot;;.
+        /// </summary>
+        public static string Script0055 {
+            get {
+                return ResourceManager.GetString("Script0055", resourceCulture);
             }
         }
     }

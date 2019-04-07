@@ -1,0 +1,5 @@
+﻿/* Script0054 */
+myStruct.myIntvalue = 3;
+myStruct.myStringValue = "Test";
+
+return $"Result {myStruct.myStringValue} {myStruct.myIntvalue}";

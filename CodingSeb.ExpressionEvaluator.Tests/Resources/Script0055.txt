@@ -1,0 +1,11 @@
+﻿/* Script0055 */
+otherStruct.AnOtherIntValue = 5;
+otherStruct.struct1 = new StructForTest1()
+{ 
+	myIntvalue = 8, 
+	myStringValue = "Hey"
+};
+
+otherStruct.struct1.myIntvalue = 9;
+
+return $"Result {otherStruct.struct1.myStringValue} {otherStruct.struct1.myIntvalue}, {otherStruct.AnOtherIntValue}";
