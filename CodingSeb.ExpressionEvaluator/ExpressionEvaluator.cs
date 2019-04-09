@@ -1719,6 +1719,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             object obj = stack.Pop();
                             Type objType = null;
+                            ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
@@ -1746,7 +1747,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     else
                                     {
                                         List<object> oArgs = funcArgs.ConvertAll(arg => Evaluate(arg));
-                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
+                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
                                         if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
@@ -1923,6 +1924,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                             object obj = stack.Pop();
                             Type objType = null;
+                            ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
@@ -1949,7 +1951,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
                                     else
                                     {
-                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj);
+                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
                                         if (!OptionStaticProperiesGetActive && (flag & BindingFlags.Static) != 0)
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
@@ -1978,10 +1980,22 @@ namespace CodingSeb.ExpressionEvaluator
                                         else
                                         {
                                             varValue = ((dynamic)member).GetValue(obj);
+
+                                            if (varValue is ValueType valueType && member is FieldInfo fieldInfo)
+                                            {
+                                                varValue = valueTypeNestingTrace = new ValueTypeNestingTrace
+                                                {
+                                                    Container = valueTypeNestingTrace ?? obj,
+                                                    Field = fieldInfo,
+                                                    Value = valueType
+                                                };
+                                            }
                                         }
 
                                         if (pushVarValue)
+                                        {
                                             stack.Push(varValue);
+                                        }
 
                                         if (OptionPropertyOrFieldSetActive)
                                         {
@@ -2027,16 +2041,15 @@ namespace CodingSeb.ExpressionEvaluator
                                                 }
                                                 else
                                                 {
-                                                    //if (objType.IsValueType && member is FieldInfo fieldInfo)
-                                                    //{
-                                                    //    Action<object, object> setter = GetDelegateForStruct(objType, fieldInfo);
-                                                    //    ValueType valueType = obj as ValueType;
-                                                    //    setter(valueType, varValue);
-                                                    //}
-                                                    //else
-                                                    //{
+                                                    if (valueTypeNestingTrace != null)
+                                                    {
+                                                        valueTypeNestingTrace.Value = varValue;
+                                                        valueTypeNestingTrace.AssignValue();
+                                                    }
+                                                    else
+                                                    {
                                                         ((dynamic)member).SetValue(obj, varValue);
-                                                    //}
+                                                    }
                                                 }
                                             }
                                         }
@@ -2500,7 +2513,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private object ProcessStack(Stack<object> stack)
         {
-            List<object> list = stack.ToList();
+            List<object> list = stack
+                .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
+                .ToList();
 
             operatorsEvaluations.ForEach((Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
             {
@@ -2759,8 +2774,15 @@ namespace CodingSeb.ExpressionEvaluator
                 .ToArray();
         }
 
-        private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj)
+        private BindingFlags DetermineInstanceOrStatic(ref Type objType, ref object obj, ref ValueTypeNestingTrace valueTypeNestingTrace)
         {
+            valueTypeNestingTrace = obj as ValueTypeNestingTrace;
+
+            if(valueTypeNestingTrace != null)
+            {
+                obj = valueTypeNestingTrace.Value;
+            }
+
             if (obj is ClassOrTypeName classOrTypeName)
             {
                 objType = classOrTypeName.Type;
@@ -3093,6 +3115,29 @@ namespace CodingSeb.ExpressionEvaluator
         private class ClassOrTypeName
         {
             public Type Type { get; set; }
+        }
+
+        private class ValueTypeNestingTrace
+        {
+            public object Container { get; set; }
+
+            public FieldInfo Field { get; set; }
+
+            public object Value { get; set; }
+
+            public void AssignValue()
+            {
+                if(Container is ValueTypeNestingTrace valueTypeNestingTrace)
+                {
+                    Field.SetValue(valueTypeNestingTrace.Value, Value);
+                    valueTypeNestingTrace.AssignValue();
+                }
+                else
+                {
+                    Field.SetValue(Container, Value);
+                }
+
+            }
         }
 
         private class DelegateEncaps
