@@ -979,16 +979,63 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         /// <summary>
         ///   Recherche une chaîne localisée semblable à /* Script0055 */
         ///otherStruct.AnOtherIntValue = 5;
-        ///otherStruct.struct1 = new StructForTest2();
-        ///otherStruct.struct1.myIntvalue = 9
-        ///otherStruct.struct1.myStringValue =  &quot;Hey&quot;;&quot;
         ///
+        ///otherStruct.nestedStruct = new StructForTest1()
+        ///{ 
+        ///	myIntvalue = 8, 
+        ///	myStringValue = &quot;Hey&quot;
+        ///};
         ///
-        ///return $&quot;Result {otherStruct.struct1.myStringValue} {otherStruct.struct1.myIntvalue}, {otherStruct.AnOtherIntValue}&quot;;.
+        ///otherStruct.nestedStruct.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {otherStruct.nestedStruct.myStringValue} {otherStruct.nestedStruct.myIntvalue}, {otherStruct.AnOtherIntValue}&quot;;.
         /// </summary>
         public static string Script0055 {
             get {
                 return ResourceManager.GetString("Script0055", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0056 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    nestedStructField = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///classStructContainer.nestedStructField.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.nestedStructField.myStringValue} {classStructContainer.nestedStructField.myIntvalue}&quot;;.
+        /// </summary>
+        public static string Script0056 {
+            get {
+                return ResourceManager.GetString("Script0056", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0057 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    nestedStructField2 = new StructForTest3()
+        ///    {
+        ///        MyIntvalue = 8,
+        ///        MyStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///classStructContainer.nestedStructField2.MyIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.nestedStructField2.MyStringValue} {classStructContainer.nestedStructField2.MyIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0057 {
+            get {
+                return ResourceManager.GetString("Script0057", resourceCulture);
             }
         }
     }

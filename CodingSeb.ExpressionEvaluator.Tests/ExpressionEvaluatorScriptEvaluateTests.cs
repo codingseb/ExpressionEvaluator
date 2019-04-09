@@ -1337,6 +1337,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug")
                     .Returns("Result Hey 9, 5");
 
+                yield return new TestCaseData(Resources.Script0056,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9");
+
+                yield return new TestCaseData(Resources.Script0057,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9");
+
                 #endregion
             }
         }

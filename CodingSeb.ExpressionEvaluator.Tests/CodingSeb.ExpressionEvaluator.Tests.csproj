@@ -21,6 +21,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="TestsUtils\ClassStructContainer.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="TestsUtils\StructForTest3.cs">
       <SubType>Code</SubType>
     </Compile>
