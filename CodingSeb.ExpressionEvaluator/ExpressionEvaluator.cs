@@ -1202,7 +1202,6 @@ namespace CodingSeb.ExpressionEvaluator
                                         if (isContinue)
                                         {
                                             isContinue = false;
-                                            continue;
                                         }
                                     }
                                     while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]));
@@ -1231,7 +1230,6 @@ namespace CodingSeb.ExpressionEvaluator
                                 if (isContinue)
                                 {
                                     isContinue = false;
-                                    continue;
                                 }
                             }
                         }
@@ -1289,7 +1287,6 @@ namespace CodingSeb.ExpressionEvaluator
                                     if (isContinue)
                                     {
                                         isContinue = false;
-                                        continue;
                                     }
                                 }
                             }
@@ -1981,14 +1978,16 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             varValue = ((dynamic)member).GetValue(obj);
 
-                                            if (varValue is ValueType valueType && member is FieldInfo fieldInfo)
+                                            if (varValue is ValueType)
                                             {
-                                                varValue = valueTypeNestingTrace = new ValueTypeNestingTrace
+                                                stack.Push(valueTypeNestingTrace = new ValueTypeNestingTrace
                                                 {
                                                     Container = valueTypeNestingTrace ?? obj,
-                                                    Field = fieldInfo,
-                                                    Value = valueType
-                                                };
+                                                    Member = member,
+                                                    Value = varValue
+                                                });
+
+                                                pushVarValue = false;
                                             }
                                         }
 
@@ -3121,7 +3120,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             public object Container { get; set; }
 
-            public FieldInfo Field { get; set; }
+            public MemberInfo Member { get; set; }
 
             public object Value { get; set; }
 
@@ -3129,14 +3128,13 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if(Container is ValueTypeNestingTrace valueTypeNestingTrace)
                 {
-                    Field.SetValue(valueTypeNestingTrace.Value, Value);
+                    ((dynamic)Member).SetValue(valueTypeNestingTrace.Value, Value);
                     valueTypeNestingTrace.AssignValue();
                 }
                 else
                 {
-                    Field.SetValue(Container, Value);
+                    ((dynamic)Member).SetValue(Container, Value);
                 }
-
             }
         }
 
