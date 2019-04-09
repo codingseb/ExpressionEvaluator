@@ -15,6 +15,7 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1958,7 +1959,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
                                         IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
 
-                                        dynamic member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
+                                        MemberInfo member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
                                         dynamic varValue = null;
                                         bool assign = true;
 
@@ -1976,7 +1977,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                         else
                                         {
-                                            varValue = member.GetValue(obj);
+                                            varValue = ((dynamic)member).GetValue(obj);
                                         }
 
                                         if (pushVarValue)
@@ -2021,9 +2022,22 @@ namespace CodingSeb.ExpressionEvaluator
                                             if (assign)
                                             {
                                                 if (isDynamic)
+                                                {
                                                     dictionaryObject[varFuncName] = varValue;
+                                                }
                                                 else
-                                                    member.SetValue(obj, varValue);
+                                                {
+                                                    //if (objType.IsValueType && member is FieldInfo fieldInfo)
+                                                    //{
+                                                    //    Action<object, object> setter = GetDelegateForStruct(objType, fieldInfo);
+                                                    //    ValueType valueType = obj as ValueType;
+                                                    //    setter(valueType, varValue);
+                                                    //}
+                                                    //else
+                                                    //{
+                                                        ((dynamic)member).SetValue(obj, varValue);
+                                                    //}
+                                                }
                                             }
                                         }
                                         else if (varFuncMatch.Groups["assignationOperator"].Success)

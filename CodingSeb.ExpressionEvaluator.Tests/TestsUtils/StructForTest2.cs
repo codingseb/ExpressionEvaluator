@@ -3,6 +3,6 @@
     public struct StructForTest2
     {
         public int AnOtherIntValue;
-        public StructForTest1 struct1;
+        public StructForTest1 nestedStruct;
     }
 }
