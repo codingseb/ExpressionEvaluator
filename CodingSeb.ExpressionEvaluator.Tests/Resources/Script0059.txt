@@ -1,0 +1,14 @@
+﻿/* Script0059 */
+otherStruct = new StructForTest4();
+
+otherStruct.AnOtherIntValue = 5;
+otherStruct.NestedStruct = new StructForTest3()
+{
+    MyIntvalue = 8,
+    MyStringValue = "Hey"
+};
+
+// Do not compile 
+otherStruct.NestedStruct.MyIntvalue = 9;
+
+return $"Result {otherStruct.NestedStruct.MyStringValue} {otherStruct.NestedStruct.MyIntvalue}, {otherStruct.AnOtherIntValue}";

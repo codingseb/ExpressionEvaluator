@@ -1,0 +1,12 @@
+﻿/* Script0055 */
+otherStruct.AnOtherIntValue = 5;
+
+otherStruct.nestedStruct = new StructForTest1()
+{ 
+	myIntvalue = 8, 
+	myStringValue = "Hey"
+};
+
+otherStruct.nestedStruct.myIntvalue = 9;
+
+return $"Result {otherStruct.nestedStruct.myStringValue} {otherStruct.nestedStruct.myIntvalue}, {otherStruct.AnOtherIntValue}";

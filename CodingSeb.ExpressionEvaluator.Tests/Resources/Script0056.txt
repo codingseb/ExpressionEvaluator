@@ -1,0 +1,13 @@
+﻿/* Script0056 */
+classStructContainer = new ClassStructContainer()
+{
+    nestedStructField = new StructForTest1()
+    {
+        myIntvalue = 8,
+        myStringValue = "Hey"
+    }
+};
+
+classStructContainer.nestedStructField.myIntvalue = 9;
+
+return $"Result {classStructContainer.nestedStructField.myStringValue} {classStructContainer.nestedStructField.myIntvalue}";

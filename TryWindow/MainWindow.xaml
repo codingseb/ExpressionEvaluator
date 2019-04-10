@@ -40,6 +40,7 @@
                            HorizontalScrollBarVisibility="Auto"
                            VerticalScrollBarVisibility="Auto"/>
         </Border>
-        
+
     </DockPanel>
 </Window>
+

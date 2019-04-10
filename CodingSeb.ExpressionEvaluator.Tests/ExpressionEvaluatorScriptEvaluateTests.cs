@@ -1181,6 +1181,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("return")
                     .Returns("The result is : 7");
 
+                yield return new TestCaseData(Resources.Script0051, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Init of ExpandoObject")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                yield return new TestCaseData(Resources.Script0052, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Using already define vars in inits")
+                    .SetCategory("Init of ExpandoObject")
+                    .SetCategory("conflict variable assignation vs on the fly in object with same name")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                yield return new TestCaseData(Resources.Script0053, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Using already define vars in inits")
+                    .SetCategory("Anonymous type init as ExpandoObject")
+                    .SetCategory("Init of ExpandoObject")
+                    .SetCategory("conflict variable assignation vs on the fly in object with same name")
+                    .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
                 #endregion
 
                 #region Diactitics
@@ -1273,11 +1293,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("[6,4,10,6,10,4]");
 
                 #endregion
-
+                
                 #region For Bug correction (no regression)
 
                 yield return new TestCaseData(Resources.Script0049, null, null, null)
                     .SetCategory("Script")
+                    .SetCategory("Conflict between generics and <> operators")
                     .SetCategory("variable assignation")
                     .SetCategory("Bug")
                     .SetCategory("#26")
@@ -1288,6 +1309,59 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("conflict variable assignation vs on the fly in object with same name")
                     .SetCategory("Bug")
                     .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
+
+                StructForTest1 structForTest1 = new StructForTest1();
+                ExpressionEvaluator evaluatorForStructs = new ExpressionEvaluator(
+                    new Dictionary<string, object>
+                    {
+                        { "myStruct", structForTest1 }
+                    });
+
+                yield return new TestCaseData("return myStruct.myIntvalue;", evaluatorForStructs, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns(0);               
+
+                yield return new TestCaseData(Resources.Script0054, evaluatorForStructs, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Test 3");
+
+                evaluatorForStructs.Variables["otherStruct"] = new StructForTest2();
+
+                yield return new TestCaseData(Resources.Script0055, evaluatorForStructs, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9, 5");
+
+                yield return new TestCaseData(Resources.Script0056,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9");
+
+                yield return new TestCaseData(Resources.Script0057,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .Returns("Result Hey 9");
+
+                yield return new TestCaseData(Resources.Script0058,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .SetCategory("Better Than C#")
+                    .Returns("Result Hey 9");
+
+                yield return new TestCaseData(Resources.Script0059,null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("struct tests")
+                    .SetCategory("Bug")
+                    .SetCategory("Better Than C#")
+                    .Returns("Result Hey 9, 5");
 
                 #endregion
             }

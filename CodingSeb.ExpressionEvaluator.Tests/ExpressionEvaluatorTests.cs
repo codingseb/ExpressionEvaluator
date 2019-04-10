@@ -1478,28 +1478,59 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 #region Force Integer numbers default type
 
                 yield return new TestCaseData(new ExpressionEvaluator()
-                , "(130-120)/(2*250)")
-                .Returns(0)
-                .SetCategory("Options")
-                .SetCategory("Integer Numbers default types");
+                    , "(130-120)/(2*250)")
+                    .Returns(0)
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
 
                 yield return new TestCaseData(new ExpressionEvaluator
-                {
-                    OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
-                }
-                , "(130-120)/(2*250)")
-                .Returns(0)
-                .SetCategory("Options")
-                .SetCategory("Integer Numbers default types");
+                    {
+                        OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
+                    }
+                    , "(130-120)/(2*250)")
+                    .Returns(0)
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
 
-                yield return new TestCaseData(new ExpressionEvaluator
+                ExpressionEvaluator evaluatorWithIntForceToDouble = new ExpressionEvaluator
                 {
                     OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = true
-                }
-                , "(130-120)/(2*250)")
-                .Returns(0.02)
-                .SetCategory("Options")
-                .SetCategory("Integer Numbers default types");
+                };
+
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "(130-120)/(2*250)")
+                    .Returns(0.02)
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "Round(5.54,1)")
+                    .Returns(5.5)
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+                
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "Round(5.54,1, MidpointRounding.ToEven)")
+                    .Returns(5.5)
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "Round(5.54,1, MidpointRounding.AwayFromZero)")
+                    .Returns(5.5)
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "(new string[2]).Length")
+                    .Returns(2)
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
 
                 #endregion
             }

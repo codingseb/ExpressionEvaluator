@@ -19,7 +19,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
     // à l'aide d'un outil, tel que ResGen ou Visual Studio.
     // Pour ajouter ou supprimer un membre, modifiez votre fichier .ResX, puis réexécutez ResGen
     // avec l'option /str ou régénérez votre projet VS.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -908,6 +908,180 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         public static string Script0050 {
             get {
                 return ResourceManager.GetString("Script0050", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0051 */
+        ///x = new ExpandoObject()
+        ///{
+        ///	Hello = 3,
+        ///	No = &quot;Yes&quot;
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0051 {
+            get {
+                return ResourceManager.GetString("Script0051", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0052 */
+        ///
+        ///Json = &quot;Yes&quot;;
+        ///y = 3;
+        ///
+        ///x = new ExpandoObject()
+        ///{
+        ///	Hello = y,
+        ///	No = Json
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0052 {
+            get {
+                return ResourceManager.GetString("Script0052", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0053 */
+        ///x = new 
+        ///{
+        ///	Hello = 3,
+        ///	No = &quot;Yes&quot;
+        ///};
+        ///
+        ///x.Json;.
+        /// </summary>
+        public static string Script0053 {
+            get {
+                return ResourceManager.GetString("Script0053", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0054 */
+        ///myStruct.myIntvalue = 3;
+        ///myStruct.myStringValue = &quot;Test&quot;;
+        ///
+        ///return $&quot;Result {myStruct.myStringValue} {myStruct.myIntvalue}&quot;;.
+        /// </summary>
+        public static string Script0054 {
+            get {
+                return ResourceManager.GetString("Script0054", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0055 */
+        ///otherStruct.AnOtherIntValue = 5;
+        ///
+        ///otherStruct.nestedStruct = new StructForTest1()
+        ///{ 
+        ///	myIntvalue = 8, 
+        ///	myStringValue = &quot;Hey&quot;
+        ///};
+        ///
+        ///otherStruct.nestedStruct.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {otherStruct.nestedStruct.myStringValue} {otherStruct.nestedStruct.myIntvalue}, {otherStruct.AnOtherIntValue}&quot;;.
+        /// </summary>
+        public static string Script0055 {
+            get {
+                return ResourceManager.GetString("Script0055", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0056 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    nestedStructField = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///classStructContainer.nestedStructField.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.nestedStructField.myStringValue} {classStructContainer.nestedStructField.myIntvalue}&quot;;.
+        /// </summary>
+        public static string Script0056 {
+            get {
+                return ResourceManager.GetString("Script0056", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0057 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    nestedStructField2 = new StructForTest3()
+        ///    {
+        ///        MyIntvalue = 8,
+        ///        MyStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///classStructContainer.nestedStructField2.MyIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.nestedStructField2.MyStringValue} {classStructContainer.nestedStructField2.MyIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0057 {
+            get {
+                return ResourceManager.GetString("Script0057", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0058 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    NestedStructProperty = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///// Do not compile 
+        ///classStructContainer.NestedStructProperty.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0058 {
+            get {
+                return ResourceManager.GetString("Script0058", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0058 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    NestedStructProperty = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///// Do not compile 
+        ///classStructContainer.NestedStructProperty.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0059 {
+            get {
+                return ResourceManager.GetString("Script0059", resourceCulture);
             }
         }
     }

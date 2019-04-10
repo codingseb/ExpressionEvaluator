@@ -5,21 +5,25 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.3.6.0</Version>
-    <AssemblyVersion>1.3.6.0</AssemblyVersion>
-    <FileVersion>1.3.6.0</FileVersion>
+    <Version>1.3.7.0</Version>
+    <AssemblyVersion>1.3.7.0</AssemblyVersion>
+    <FileVersion>1.3.7.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
-    <PackageLicenseUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/codingseb/ExpressionEvaluator</PackageProjectUrl>
     <PackageTags>evaluation math expression-evaluator expression parser eval evaluate fluid C# calculation execute script</PackageTags>
     <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Change Variables In IDictionary&lt;string,object&gt;
-* Correction of a conflict when variable assignation vs on the fly in object with the same name</PackageReleaseNotes>
+    <PackageReleaseNotes>* Initialisation of ExpandoObjects
+* Create Anonymous (as ExpandoObjects)
+* Better management of struct assignation
+* Less memory impact when compare string ignoring case
+* Correction of some bugs when using OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = true</PackageReleaseNotes>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -33,5 +37,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>
