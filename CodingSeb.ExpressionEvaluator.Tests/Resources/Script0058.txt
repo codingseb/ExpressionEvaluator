@@ -1,0 +1,14 @@
+﻿/* Script0058 */
+classStructContainer = new ClassStructContainer()
+{
+    NestedStructProperty = new StructForTest1()
+    {
+        myIntvalue = 8,
+        myStringValue = "Hey"
+    }
+};
+
+// Do not compile 
+classStructContainer.NestedStructProperty.myIntvalue = 9;
+
+return $"Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}";

@@ -1525,6 +1525,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("Integer Numbers default types");
 
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "(new string[2]).Length")
+                    .Returns(2)
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
                 #endregion
             }
         }

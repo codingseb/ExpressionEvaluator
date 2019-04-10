@@ -1038,5 +1038,51 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0057", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0058 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    NestedStructProperty = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///// Do not compile 
+        ///classStructContainer.NestedStructProperty.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0058 {
+            get {
+                return ResourceManager.GetString("Script0058", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0058 */
+        ///classStructContainer = new ClassStructContainer()
+        ///{
+        ///    NestedStructProperty = new StructForTest1()
+        ///    {
+        ///        myIntvalue = 8,
+        ///        myStringValue = &quot;Hey&quot;
+        ///    }
+        ///};
+        ///
+        ///// Do not compile 
+        ///classStructContainer.NestedStructProperty.myIntvalue = 9;
+        ///
+        ///return $&quot;Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}&quot;;
+        ///.
+        /// </summary>
+        public static string Script0059 {
+            get {
+                return ResourceManager.GetString("Script0059", resourceCulture);
+            }
+        }
     }
 }
