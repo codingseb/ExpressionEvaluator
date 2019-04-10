@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.6.1 
+    Version : 1.3.6.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -70,7 +70,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         private static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase| RegexOptions.Compiled);
+        private static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + "0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         private static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
@@ -411,16 +411,25 @@ namespace CodingSeb.ExpressionEvaluator
             },
             { "Round", (self, args) =>
                 {
-                    if(args.Count == 3) { return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)self.Evaluate(args[1]), (MidpointRounding)self.Evaluate(args[2])); } else if(args.Count == 2)
+                    if(args.Count == 3)
+                    {
+                        return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), Convert.ToInt32(self.Evaluate(args[1])), (MidpointRounding)self.Evaluate(args[2]));
+                    }
+                    else if(args.Count == 2)
                     {
                         object arg2 = self.Evaluate(args[1]);
 
                         if(arg2 is MidpointRounding midpointRounding)
                             return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), midpointRounding);
                         else
-                            return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), (int)arg2);
+                            return Math.Round(Convert.ToDouble(self.Evaluate(args[0])), Convert.ToInt32(arg2));
                     }
-                    else if(args.Count == 1) { return Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); } else { throw new ArgumentException(); } }
+                    else if(args.Count == 1) { return Math.Round(Convert.ToDouble(self.Evaluate(args[0]))); }
+                    else
+                    {
+                        throw new ArgumentException();
+                    }
+                }
             },
             { "Sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
             { "sizeof", (self, args) =>
@@ -918,7 +927,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return lastResult;
                 }
 
-                if(expression.StartsWith("throw ", StringComparisonForCasing))
+                if (expression.StartsWith("throw ", StringComparisonForCasing))
                 {
                     throw Evaluate(expression.Remove(0, 6)) as Exception;
                 }
@@ -992,9 +1001,9 @@ namespace CodingSeb.ExpressionEvaluator
 
             void ExecuteTryList()
             {
-                if(tryStatementsList.Count > 0)
+                if (tryStatementsList.Count > 0)
                 {
-                    if(tryStatementsList.Count == 1)
+                    if (tryStatementsList.Count == 1)
                     {
                         throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
                     }
@@ -1003,7 +1012,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         lastResult = ScriptEvaluate(tryStatementsList[0][0], ref isReturn, ref isBreak, ref isContinue);
                     }
-                    catch(Exception exception)
+                    catch (Exception exception)
                     {
                         bool atLeasOneCatch = false;
 
@@ -1031,14 +1040,14 @@ namespace CodingSeb.ExpressionEvaluator
                             break;
                         }
 
-                        if(!atLeasOneCatch)
+                        if (!atLeasOneCatch)
                         {
                             throw;
                         }
                     }
                     finally
                     {
-                        if(tryStatementsList.Last()[0].Equals("finally"))
+                        if (tryStatementsList.Last()[0].Equals("finally"))
                         {
                             lastResult = ScriptEvaluate(tryStatementsList.Last()[1], ref isReturn, ref isBreak, ref isContinue);
                         }
@@ -1167,7 +1176,7 @@ namespace CodingSeb.ExpressionEvaluator
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
                             tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
-                        else if(keyword.Equals("try", StringComparisonForCasing))
+                        else if (keyword.Equals("try", StringComparisonForCasing))
                         {
                             tryStatementsList.Add(new List<string>() { subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
@@ -1499,7 +1508,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault || numberMatch.Groups["hasdecimal"].Success)
                     {
-                        stack.Push(double.Parse(numberMatch.Value.Replace("_",""), NumberStyles.Any, CultureInfoForNumberParsing));
+                        stack.Push(double.Parse(numberMatch.Value.Replace("_", ""), NumberStyles.Any, CultureInfoForNumberParsing));
                     }
                     else
                     {
@@ -1654,7 +1663,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (arrayArgs.Count > 0)
                         {
-                            array = Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => (int)Evaluate(subExpression)).ToArray());
+                            array = Array.CreateInstance(type, arrayArgs.ConvertAll(subExpression => Convert.ToInt32(Evaluate(subExpression))).ToArray());
                         }
 
                         Match initInNewBeginningMatch = initInNewBeginningRegex.Match(expr.Substring(i));
@@ -1685,7 +1694,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return false;
             }
-                    }
+        }
 
         private bool EvaluateVarOrFunc(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
@@ -1761,7 +1770,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             else
                                                 stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
                                         }
-                                        else if(objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
+                                        else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
                                             && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
                                         {
                                             stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
@@ -2090,7 +2099,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
                                 Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
-                                if(staticType == null && OptionInlineNamespacesEvaluationActive)
+                                if (staticType == null && OptionInlineNamespacesEvaluationActive)
                                 {
                                     int subIndex = 0;
                                     Match namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
@@ -2109,7 +2118,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
 
-                                        if(staticType != null)
+                                        if (staticType != null)
                                         {
                                             i += subIndex;
                                             break;
@@ -2776,7 +2785,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             valueTypeNestingTrace = obj as ValueTypeNestingTrace;
 
-            if(valueTypeNestingTrace != null)
+            if (valueTypeNestingTrace != null)
             {
                 obj = valueTypeNestingTrace.Value;
             }
@@ -3000,7 +3009,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                 }
             }
-            catch(ExpressionEvaluatorSyntaxErrorException)
+            catch (ExpressionEvaluatorSyntaxErrorException)
             {
                 throw;
             }
@@ -3125,7 +3134,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             public void AssignValue()
             {
-                if(Container is ValueTypeNestingTrace valueTypeNestingTrace)
+                if (Container is ValueTypeNestingTrace valueTypeNestingTrace)
                 {
                     ((dynamic)Member).SetValue(valueTypeNestingTrace.Value, Value);
                     valueTypeNestingTrace.AssignValue();
