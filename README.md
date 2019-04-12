@@ -42,7 +42,7 @@ It is largely based on and inspired by the following resources [this post on st
 * [Documentation on the wiki](https://github.com/codingseb/ExpressionEvaluator/wiki)
 
 ## And more is coming
-[The Todo List](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpressionEvaluator-Todo-List)
+* [The Todo List](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpressionEvaluator-Todo-List)
 
 ## Similar projects
 ### Free
