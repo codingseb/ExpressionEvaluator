@@ -41,6 +41,9 @@ It is largely based on and inspired by the following resources [this post on st
 * [Getting Started](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started)
 * [Documentation on the wiki](https://github.com/codingseb/ExpressionEvaluator/wiki)
 
+## And more is coming
+[The Todo List](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpressionEvaluator-Todo-List)
+
 ## Similar projects
 ### Free
 * [NCalc](https://github.com/pitermarx/NCalc-Edge)
