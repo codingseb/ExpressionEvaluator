@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.7.0 
+    Version : 1.3.7.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1741,7 +1741,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj);
+                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
 
                                     EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1835,7 +1835,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this);
+                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
 
                         EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1946,7 +1946,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj);
+                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
 
                                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -2086,7 +2086,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this);
+                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
 
                             EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -3283,11 +3283,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
-        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null)
+        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, List<Type> genericTypes = null)
         {
             Name = name;
             This = onInstance;
             Evaluator = evaluator;
+            GenericTypes = genericTypes ?? new List<Type>();
         }
 
         /// <summary>
@@ -3316,7 +3317,7 @@ namespace CodingSeb.ExpressionEvaluator
         public bool HasValue { get; set; } = false;
 
         /// <summary>
-        /// In the case of on the fly instance property definition the instance of the object on which this Function is called.
+        /// In the case of on the fly instance property definition the instance of the object on which this Property is called.
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; } = null;
@@ -3325,19 +3326,26 @@ namespace CodingSeb.ExpressionEvaluator
         /// A reference on the current expression evaluator.
         /// </summary>
         public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// In the case where generic types are specified with &lt;&gt;
+        /// This list contains all specified Types.
+        /// </summary>
+        public List<Type> GenericTypes { get; }
     }
 
     public class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null)
+        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, List<Type> genericTypes = null)
         {
             Name = name;
             Args = args ?? new List<string>();
             this.evaluateFunc = evaluateFunc;
             This = onInstance;
             Evaluator = evaluator;
+            GenericTypes = genericTypes ?? new List<Type>();
         }
 
         /// <summary>
@@ -3401,7 +3409,7 @@ namespace CodingSeb.ExpressionEvaluator
         public bool FunctionReturnedValue { get; set; } = false;
 
         /// <summary>
-        /// In the case of on the fly instance method definition the instance of the object on which this Function is called.
+        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; } = null;
@@ -3410,6 +3418,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// A reference on the current expression evaluator.
         /// </summary>
         public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// In the case where generic types are specified with &lt;&gt;
+        /// This list contains all specified Types.
+        /// </summary>
+        public List<Type> GenericTypes { get; }
     }
 
     #endregion
