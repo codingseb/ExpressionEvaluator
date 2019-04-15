@@ -453,6 +453,11 @@ namespace CodingSeb.ExpressionEvaluator
 
         public static IDictionary<string, Type> TypesResolutionCaching { get; set; } = new Dictionary<string, Type>();
 
+        public static void ClearAllCaches()
+        {
+            TypesResolutionCaching.Clear();
+        }
+
         #endregion
 
         #region Assemblies, Namespaces and types lists
