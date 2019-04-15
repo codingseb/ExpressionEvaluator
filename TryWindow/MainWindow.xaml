@@ -15,9 +15,16 @@
                 <Label DockPanel.Dock="Left" 
                        Content="Iterations"
                        Padding="2,0"/>
+                <CheckBox x:Name="UseCachesCheckbox" 
+                          Content="Use Caches" 
+                          DockPanel.Dock="Right"
+                          VerticalAlignment="Center"
+                          Margin="5,0"/>
                 <TextBox x:Name="IterationsTextBox"
                          Text="1" />
+                
             </DockPanel>
+            
             <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
             <Button x:Name="CancelButton" 
                     Content="_Cancel" 

@@ -38,13 +38,15 @@ namespace TryWindow
 
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
 
+            if (UseCachesCheckbox.IsChecked ?? false)
+                evaluator.CacheTypesResolutions = true;
+
             evaluator.Namespaces.Add("System.Windows");
             evaluator.Namespaces.Add("System.Diagnostics");
 
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
 
             Stopwatch stopWatch = new Stopwatch();
-
 
             try
             {

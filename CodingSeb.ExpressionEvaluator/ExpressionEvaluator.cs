@@ -451,8 +451,22 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Caching
 
+        /// <summary>
+        /// if set to <c>true</c> use a cache for types that were resolved to resolve faster next time.
+        /// if set to <c>false</c> the cach of types resolution is not use for this instance of ExpressionEvaluator.
+        /// Default : false
+        /// the cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
+        /// </summary>
+        public bool CacheTypesResolutions { get; set; } = false;
+
+        /// <summary>
+        /// A shared cache for types resolution.
+        /// </summary>
         public static IDictionary<string, Type> TypesResolutionCaching { get; set; } = new Dictionary<string, Type>();
 
+        /// <summary>
+        /// Clear all ExpressionEvaluator caches
+        /// </summary>
         public static void ClearAllCaches()
         {
             TypesResolutionCaching.Clear();
@@ -2980,20 +2994,29 @@ namespace CodingSeb.ExpressionEvaluator
         private Type GetTypeByFriendlyName(string typeName, string genericTypes = "", bool throwExceptionIfNotFound = false)
         {
             Type result = null;
+            string formatedGenericTypes = string.Empty;
+            bool isCached = false;
             try
             {
                 typeName = typeName.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
                 genericTypes = genericTypes.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
 
-                string formatedGenericTypes = string.Empty;
-
-                if (!genericTypes.Equals(string.Empty))
+                if (CacheTypesResolutions && (TypesResolutionCaching?.ContainsKey(typeName + genericTypes) ?? false))
                 {
-                    Type[] types = GetConcreteTypes(genericTypes);
-                    formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => type.FullName))}]";
+                    result = TypesResolutionCaching[typeName + genericTypes];
+                    isCached = true;
                 }
 
-                result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
+                if (result == null)
+                {
+                    if (!genericTypes.Equals(string.Empty))
+                    {
+                        Type[] types = GetConcreteTypes(genericTypes);
+                        formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => type.FullName))}]";
+                    }
+
+                    result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
+                }
 
                 if (result == null)
                 {
@@ -3034,6 +3057,9 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (result == null && throwExceptionIfNotFound)
                 throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {typeName}{genericTypes} is unknown");
+
+            if (CacheTypesResolutions && (result != null) && !isCached)
+                TypesResolutionCaching[typeName + genericTypes] = result;
 
             return result;
         }
