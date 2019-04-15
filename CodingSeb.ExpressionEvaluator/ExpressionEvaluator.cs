@@ -1741,7 +1741,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
+                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
 
                                     EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1835,7 +1835,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
+                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
                         EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1946,7 +1946,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
+                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
 
                                     EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -2086,7 +2086,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: string.IsNullOrEmpty(genericsTypes) ? null : GetConcreteTypes(genericsTypes).ToList());
+                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
                             EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
@@ -2971,6 +2971,7 @@ namespace CodingSeb.ExpressionEvaluator
             Type result = null;
             try
             {
+                typeName = typeName.Trim();
                 string formatedGenericTypes = string.Empty;
 
                 if (!genericTypes.Equals(string.Empty))
@@ -3279,16 +3280,20 @@ namespace CodingSeb.ExpressionEvaluator
 
     public class VariableEvaluationEventArg : EventArgs
     {
+        private readonly Func<string, Type[]> evaluateGenericTypes = null;
+        private readonly string genericTypes = null;
+
         /// <summary>
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
-        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, List<Type> genericTypes = null)
+        public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
             This = onInstance;
             Evaluator = evaluator;
-            GenericTypes = genericTypes ?? new List<Type>();
+            this.genericTypes = genericTypes;
+            this.evaluateGenericTypes = evaluateGenericTypes;
         }
 
         /// <summary>
@@ -3328,24 +3333,42 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
-        /// In the case where generic types are specified with &lt;&gt;
-        /// This list contains all specified Types.
+        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.
+        /// <c>false</c> otherwise
         /// </summary>
-        public List<Type> GenericTypes { get; }
+        public bool HasGenericTypes
+        {
+            get
+            {
+                return string.IsNullOrEmpty(genericTypes);
+            }
+        }
+
+        /// <summary>
+        /// In the case where generic types are specified with &lt;&gt;
+        /// Evaluate all types and return an array of types
+        /// </summary>
+        public Type[] EvaluateGenericTypes()
+        {
+            return evaluateGenericTypes?.Invoke(genericTypes) ?? new Type[0];
+        }
     }
 
     public class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
+        private readonly Func<string, Type[]> evaluateGenericTypes = null;
+        private readonly string genericTypes = null;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, List<Type> genericTypes = null)
+        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
             Args = args ?? new List<string>();
             this.evaluateFunc = evaluateFunc;
             This = onInstance;
             Evaluator = evaluator;
-            GenericTypes = genericTypes ?? new List<Type>();
+            this.genericTypes = genericTypes;
+            this.evaluateGenericTypes = evaluateGenericTypes;
         }
 
         /// <summary>
@@ -3420,10 +3443,25 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
-        /// In the case where generic types are specified with &lt;&gt;
-        /// This list contains all specified Types.
+        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.
+        /// <c>false</c> otherwise
         /// </summary>
-        public List<Type> GenericTypes { get; }
+        public bool HasGenericTypes
+        {
+            get
+            {
+                return string.IsNullOrEmpty(genericTypes);
+            }
+        }
+
+        /// <summary>
+        /// In the case where generic types are specified with &lt;&gt;
+        /// Evaluate all types and return an array of types
+        /// </summary>
+        public Type[] EvaluateGenericTypes()
+        {
+            return evaluateGenericTypes?.Invoke(genericTypes) ?? new Type[0];
+        }
     }
 
     #endregion

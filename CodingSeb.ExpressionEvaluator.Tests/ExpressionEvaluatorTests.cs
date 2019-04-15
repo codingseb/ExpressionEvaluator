@@ -125,7 +125,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("\"\\n\"", TestOf = typeof(string), ExpectedResult = "\n", Category = "StringEscape")]
         [TestCase("\"\\r\"", TestOf = typeof(string), ExpectedResult = "\r", Category = "StringEscape")]
         [TestCase("\"\\t\"", TestOf = typeof(string), ExpectedResult = "\t", Category = "StringEscape")]
-        [TestCase("\""+ @"\\" + "\"", TestOf = typeof(string), ExpectedResult = @"\", Category = "StringEscape")]
+        [TestCase("\"" + @"\\" + "\"", TestOf = typeof(string), ExpectedResult = @"\", Category = "StringEscape")]
         [TestCase("\"" + @"\\\n" + "\"", TestOf = typeof(string), ExpectedResult = "\\\n", Category = "StringEscape")]
         [TestCase("@\"" + @"\\n" + "\"", TestOf = typeof(string), ExpectedResult = @"\\n", Category = "StringEscape")]
 
@@ -135,7 +135,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("$\"{{\"", TestOf = typeof(string), ExpectedResult = "{", Category = "StringInterpolation")]
         [TestCase("$\"{ \"{\" }\"", TestOf = typeof(string), ExpectedResult = "{", Category = "StringInterpolation")]
         [TestCase("$\"Test { 5+5 } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test", Category = "StringInterpolation")]
-        [TestCase("$\"Test { 5+5 + \" Test\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test Test", Category = "StringInterpolation")]      
+        [TestCase("$\"Test { 5+5 + \" Test\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test Test", Category = "StringInterpolation")]
         [TestCase("$\"Test { 5+5 + \" Test{\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test{ Test", Category = "StringInterpolation")]
         [TestCase("$\"Test { 5+5 + \" Test{{ }\" } Test\"", TestOf = typeof(string), ExpectedResult = "Test 10 Test{{ } Test", Category = "StringInterpolation")]
 
@@ -505,7 +505,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("default(bool)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values")]
         [TestCase("default(System.Boolean)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values, Inline namespaces")]
         #endregion
-        
+
         #region typeof keyword
         [TestCase("typeof(int)", ExpectedResult = typeof(int), Category = "typeof keyword")]
         [TestCase("typeof(float)", ExpectedResult = typeof(float), Category = "typeof keyword")]
@@ -953,9 +953,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #region Generic types Management
 
-        [TestCase("List(\"Hello\", \"Test\").Cast<string>().ToList<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "List function, Generics")]
-        [TestCase("new List<string>().GetType()", ExpectedResult = typeof(List<string>) , Category = "new Keyword, Generics")]
-        [TestCase("new Dictionary<string,List<int>>().GetType()", ExpectedResult = typeof(Dictionary<string, List<int>>) , Category = "new Keyword, Generics")]
+        [TestCase("List(\"Hello\", \"Test\").Cast<string>().ToList<string>().GetType()", ExpectedResult = typeof(List<string>), Category = "List function, Generics")]
+        [TestCase("new List<string>().GetType()", ExpectedResult = typeof(List<string>), Category = "new Keyword, Generics")]
+        [TestCase("new Dictionary<string,List<int>>().GetType()", ExpectedResult = typeof(Dictionary<string, List<int>>), Category = "new Keyword, Generics")]
 
         #endregion
 
@@ -1136,7 +1136,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 #endregion
 
                 #region Delegates as Property of object
-                
+
                 yield return new TestCaseData("customObject.AddAsDelegate(6, 10)", onInstanceVariables, true).SetCategory("Delegate as a instance Property").Returns(16);
                 yield return new TestCaseData("ClassForTest1.AddAsStaticDelegate(6, 10)", onInstanceVariables, true).SetCategory("Delegate as a static Property").Returns(16);
 
@@ -1167,7 +1167,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("3.Add(2)", ExpectedResult = 5, Category = "On the fly method")]
         [TestCase("3.MultipliedBy2", ExpectedResult = 6, Category = "On the fly property")]
         [TestCase("myVar + 2", ExpectedResult = 10, Category = "On the fly variable")]
-        [TestCase("SayHello(\"Bob\")", ExpectedResult = "Hello Bob", Category = "On the fly variable")]
+        [TestCase("SayHello(\"Bob\")", ExpectedResult = "Hello Bob", Category = "On the fly func")]
         #endregion
         public object OnTheFlyEvaluation(string expression)
         {
@@ -1192,6 +1192,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             {
                 e.Value = $"Hello {e.EvaluateArg(0)}";
             }
+            else if (e.Name.Equals("GetSpecifiedGenericTypesFunc"))
+            {
+                e.Value = e.EvaluateGenericTypes();
+            }
         }
 
         private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
@@ -1207,6 +1211,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             else if (e.This != null && e.Name.Equals("Json"))
             {
                 e.Value = JsonConvert.SerializeObject(e.This);
+            }
+            else if (e.Name.Equals("GetSpecifiedGenericTypesProp"))
+            {
+                e.Value = e.EvaluateGenericTypes();
             }
         }
 
@@ -1462,16 +1470,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .SetCategory("Options")
                 .SetCategory("Numbers Culture");
 
-               yield return new TestCaseData(new ExpressionEvaluator
+                yield return new TestCaseData(new ExpressionEvaluator
                 {
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionNumberParsingThousandSeparator = "'",
                     OptionInitializersSeparator = ";"
                 }
-                , "new double[]{1'200,5; 1'111'000,7}.Max()")
-                .Returns(1111000.7)
-                .SetCategory("Options")
-                .SetCategory("Numbers Culture");
+                 , "new double[]{1'200,5; 1'111'000,7}.Max()")
+                 .Returns(1111000.7)
+                 .SetCategory("Options")
+                 .SetCategory("Numbers Culture");
 
                 #endregion
 
@@ -1485,9 +1493,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
 
                 yield return new TestCaseData(new ExpressionEvaluator
-                    {
-                        OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
-                    }
+                {
+                    OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
+                }
                     , "(130-120)/(2*250)")
                     .Returns(0)
                     .SetCategory("Options")
@@ -1510,7 +1518,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug")
                     .SetCategory("Options")
                     .SetCategory("Integer Numbers default types");
-                
+
                 yield return new TestCaseData(evaluatorWithIntForceToDouble
                     , "Round(5.54,1, MidpointRounding.ToEven)")
                     .Returns(5.5)
@@ -1531,6 +1539,49 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug")
                     .SetCategory("Options")
                     .SetCategory("Integer Numbers default types");
+
+                #endregion
+
+                #region GenericTypes in onthefly events
+
+                ExpressionEvaluator evaluatorOnTheFlyGenericTypes = new ExpressionEvaluator();
+
+                void VariableEval(object sender, VariableEvaluationEventArg e)
+                {
+                    e.Value = e.EvaluateGenericTypes();
+                }
+
+                void FunctionEval(object sender, FunctionEvaluationEventArg e)
+                {
+                    e.Value = e.EvaluateGenericTypes();
+                }
+
+                evaluatorOnTheFlyGenericTypes.EvaluateVariable += VariableEval;
+                evaluatorOnTheFlyGenericTypes.EvaluateFunction += FunctionEval;
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GetSpecifiedGenericTypesFunc<string>()[0]")
+                        .Returns(typeof(string))
+                        .SetCategory("On the fly func")
+                        .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GetSpecifiedGenericTypesVar<string>[0]")
+                        .Returns(typeof(string))
+                        .SetCategory("On the fly var")
+                        .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GetSpecifiedGenericTypesFunc<string, List<int>>()[1]")
+                        .Returns(typeof(List<int>))
+                        .SetCategory("On the fly func")
+                        .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GetSpecifiedGenericTypesFunc<string, List<int>>[1]")
+                        .Returns(typeof(List<int>))
+                        .SetCategory("On the fly var")
+                        .SetCategory("GenericTypes");
 
                 #endregion
             }
