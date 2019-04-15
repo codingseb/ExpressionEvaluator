@@ -24,7 +24,7 @@ namespace CodingSeb.ExpressionEvaluator
     /// <summary>
     /// This class allow to evaluate a string math or pseudo C# expression 
     /// </summary>
-    public class ExpressionEvaluator
+    public partial class ExpressionEvaluator
     {
         #region Regex declarations
 
@@ -446,6 +446,12 @@ namespace CodingSeb.ExpressionEvaluator
             },
             { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
         };
+
+        #endregion
+
+        #region Caching
+
+        public static IDictionary<string, Type> TypesResolutionCaching { get; set; } = new Dictionary<string, Type>();
 
         #endregion
 
@@ -2971,7 +2977,9 @@ namespace CodingSeb.ExpressionEvaluator
             Type result = null;
             try
             {
-                typeName = typeName.Trim();
+                typeName = typeName.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
+                genericTypes = genericTypes.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
+
                 string formatedGenericTypes = string.Empty;
 
                 if (!genericTypes.Equals(string.Empty))
@@ -3256,7 +3264,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
 
-    public class ExpressionEvaluatorSyntaxErrorException : Exception
+    public partial class ExpressionEvaluatorSyntaxErrorException : Exception
     {
         public ExpressionEvaluatorSyntaxErrorException() : base()
         { }
@@ -3267,7 +3275,7 @@ namespace CodingSeb.ExpressionEvaluator
         { }
     }
 
-    public class ExpressionEvaluatorSecurityException : Exception
+    public partial class ExpressionEvaluatorSecurityException : Exception
     {
         public ExpressionEvaluatorSecurityException() : base()
         { }
@@ -3278,7 +3286,7 @@ namespace CodingSeb.ExpressionEvaluator
         { }
     }
 
-    public class VariableEvaluationEventArg : EventArgs
+    public partial class VariableEvaluationEventArg : EventArgs
     {
         private readonly Func<string, Type[]> evaluateGenericTypes = null;
         private readonly string genericTypes = null;
@@ -3354,7 +3362,7 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
-    public class FunctionEvaluationEventArg : EventArgs
+    public partial class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
         private readonly Func<string, Type[]> evaluateGenericTypes = null;
