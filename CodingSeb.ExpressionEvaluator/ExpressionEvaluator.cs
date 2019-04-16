@@ -838,14 +838,28 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Is Fired when no internal variable is found for a variable name.
+        /// Is Fired before a variable, field or property resolution.
+        /// Allow to define a variable and the corresponding value on the fly.
+        /// Allow also to cancel the evaluation of this variable (consider it does'nt exists)
+        /// </summary>
+        public event EventHandler<VariablePreEvaluationEventArg> PreEvaluateVariable;
+
+        /// <summary>
+        /// Is Fired before a function or method resolution.
+        /// Allow to define a function or method and the corresponding value on the fly.
+        /// Allow also to cancel the evaluation of this function (consider it does'nt exists)
+        /// </summary>
+        public event EventHandler<FunctionPreEvaluationEventArg> PreEvaluateFunction;
+
+        /// <summary>
+        /// Is Fired if no variable, field or property were found
         /// Allow to define a variable and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
 
         /// <summary>
-        /// Is Fired when no internal function is found for a variable name.
-        /// Allow to define a function and the corresponding value on the fly.
+        /// Is Fired if no function or method when were found.
+        /// Allow to define a function or method and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
@@ -1766,13 +1780,17 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+                                    FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
 
-                                    EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
+                                    PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
-                                    if (functionEvaluationEventArg.FunctionReturnedValue)
+                                    if (functionPreEvaluationEventArg.CancelEvaluation)
                                     {
-                                        stack.Push(functionEvaluationEventArg.Value);
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+                                    }
+                                    else if (functionPreEvaluationEventArg.FunctionReturnedValue)
+                                    {
+                                        stack.Push(functionPreEvaluationEventArg.Value);
                                     }
                                     else
                                     {
@@ -1802,22 +1820,26 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                         else
                                         {
+                                            bool isExtention = false;
+
                                             // if not found try to Find extension methods.
                                             if (methodInfo == null && obj != null)
                                             {
                                                 oArgs.Insert(0, obj);
                                                 objType = obj.GetType();
-                                                obj = null;
+                                                //obj = null;
+                                                object extentionObj = null;
                                                 for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                                 {
                                                     Type type = StaticTypesForExtensionsMethods[e];
-                                                    methodInfo = GetRealMethod(ref type, ref obj, varFuncName, StaticBindingFlag, oArgs, genericsTypes);
+                                                    methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes);
+                                                    isExtention = methodInfo != null;
                                                 }
                                             }
 
                                             if (methodInfo != null)
                                             {
-                                                stack.Push(methodInfo.Invoke(obj, oArgs.ToArray()));
+                                                stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
                                             }
                                             else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                             && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
@@ -1826,7 +1848,16 @@ namespace CodingSeb.ExpressionEvaluator
                                             }
                                             else
                                             {
-                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+                                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+
+                                                EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
+
+                                                if (functionEvaluationEventArg.FunctionReturnedValue)
+                                                {
+                                                    stack.Push(functionEvaluationEventArg.Value);
+                                                }
+                                                else
+                                                    throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
                                             }
                                         }
                                     }
@@ -1846,31 +1877,46 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                         }
                     }
-                    else if (DefaultFunctions(varFuncName, funcArgs, out object funcResult))
-                    {
-                        stack.Push(funcResult);
-                    }
-                    else if (Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
-                    {
-                        stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
-                    }
-                    else if (Variables.TryGetValue(varFuncName, out o) && o is Delegate delegateVar)
-                    {
-                        stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
-                    }
                     else
                     {
-                        FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+                        FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, null, genericsTypes, GetConcreteTypes);
 
-                        EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
+                        PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
-                        if (functionEvaluationEventArg.FunctionReturnedValue)
+                        if (functionPreEvaluationEventArg.CancelEvaluation)
                         {
-                            stack.Push(functionEvaluationEventArg.Value);
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr.Replace("\r", "").Replace("\n", "")}]");
+                        }
+                        else if (functionPreEvaluationEventArg.FunctionReturnedValue)
+                        {
+                            stack.Push(functionPreEvaluationEventArg.Value);
+                        }
+                        else if (DefaultFunctions(varFuncName, funcArgs, out object funcResult))
+                        {
+                            stack.Push(funcResult);
+                        }
+                        else if (Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
+                        {
+                            stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
+                        }
+                        else if (Variables.TryGetValue(varFuncName, out o) && o is Delegate delegateVar)
+                        {
+                            stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
                         }
                         else
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr.Replace("\r", "").Replace("\n", "")}]");
+                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+
+                            EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
+
+                            if (functionEvaluationEventArg.FunctionReturnedValue)
+                            {
+                                stack.Push(functionEvaluationEventArg.Value);
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expr.Replace("\r", "").Replace("\n", "")}]");
+                            }
                         }
                     }
                 }
@@ -1971,13 +2017,17 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
+                                    VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
 
-                                    EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+                                    PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
 
-                                    if (variableEvaluationEventArg.HasValue)
+                                    if(variablePreEvaluationEventArg.CancelEvaluation)
                                     {
-                                        stack.Push(variableEvaluationEventArg.Value);
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", new Exception("Variable evaluation canceled"));
+                                    }
+                                    else if (variablePreEvaluationEventArg.HasValue)
+                                    {
+                                        stack.Push(variablePreEvaluationEventArg.Value);
                                     }
                                     else
                                     {
@@ -2003,11 +2053,24 @@ namespace CodingSeb.ExpressionEvaluator
                                         if (isDynamic)
                                         {
                                             if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
-                                                varValue = dictionaryObject[varFuncName];
+                                                varValue = dictionaryObject.ContainsKey(varFuncName) ? dictionaryObject[varFuncName] : null;
                                             else
                                                 pushVarValue = false;
                                         }
-                                        else
+
+                                        if (member == null && pushVarValue)
+                                        {
+                                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
+
+                                            EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+
+                                            if (variableEvaluationEventArg.HasValue)
+                                            {
+                                                varValue = variableEvaluationEventArg.Value;
+                                            }
+                                        }
+
+                                        if (varValue == null && pushVarValue)
                                         {
                                             varValue = ((dynamic)member).GetValue(obj);
 
@@ -2111,13 +2174,17 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+                            VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
-                            EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+                            PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
 
-                            if (variableEvaluationEventArg.HasValue)
+                            if (variablePreEvaluationEventArg.CancelEvaluation)
                             {
-                                stack.Push(variableEvaluationEventArg.Value);
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
+                            }
+                            else if (variablePreEvaluationEventArg.HasValue)
+                            {
+                                stack.Push(variablePreEvaluationEventArg.Value);
                             }
                             else
                             {
@@ -2162,7 +2229,18 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
+                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+
+                                    EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+
+                                    if (variableEvaluationEventArg.HasValue)
+                                    {
+                                        stack.Push(variableEvaluationEventArg.Value);
+                                    }
+                                    else
+                                    {
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
+                                    }
                                 }
                             }
                         }
@@ -3393,6 +3471,18 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    public class VariablePreEvaluationEventArg : VariableEvaluationEventArg
+    {
+        public VariablePreEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+            : base(name, evaluator, onInstance, genericTypes, evaluateGenericTypes)
+        { }
+
+        /// <summary>
+        /// If set to true cancel the evaluation of the current variable, field or property and throw an exception it does not exists
+        /// </summary>
+        public bool CancelEvaluation { get; set; } = false;
+    }
+
     public partial class FunctionEvaluationEventArg : EventArgs
     {
         private readonly Func<string, object> evaluateFunc = null;
@@ -3501,6 +3591,18 @@ namespace CodingSeb.ExpressionEvaluator
         {
             return evaluateGenericTypes?.Invoke(genericTypes) ?? new Type[0];
         }
+    }
+
+    public class FunctionPreEvaluationEventArg : FunctionEvaluationEventArg
+    {
+        public FunctionPreEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+            : base(name, evaluateFunc, args, evaluator, onInstance, genericTypes, evaluateGenericTypes)
+        { }
+
+        /// <summary>
+        /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
+        /// </summary>
+        public bool CancelEvaluation { get; set; } = false;
     }
 
     #endregion
