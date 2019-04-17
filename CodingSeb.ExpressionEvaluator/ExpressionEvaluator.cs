@@ -2425,6 +2425,9 @@ namespace CodingSeb.ExpressionEvaluator
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
                 dynamic left = stack.Pop();
 
+                if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
+                    right = (int)right;
+
                 Match assignationOrPostFixOperatorMatch = null;
 
                 dynamic valueToPush = null;

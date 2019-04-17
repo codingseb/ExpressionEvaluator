@@ -1540,6 +1540,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("Integer Numbers default types");
 
+                yield return new TestCaseData(evaluatorWithIntForceToDouble
+                    , "(new string[] { \"Test\", \"Other\", \"Youhouhou\" })[1]")
+                    .Returns("Other")
+                    .SetCategory("Bug")
+                    .SetCategory("Options")
+                    .SetCategory("Integer Numbers default types");
+
                 #endregion
 
                 #region GenericTypes in onthefly events
