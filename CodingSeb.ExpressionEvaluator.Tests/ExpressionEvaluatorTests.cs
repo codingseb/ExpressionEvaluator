@@ -1399,6 +1399,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(evaluator, "new Regex(@\"\\d+\").IsMatch(\"sdajflk32748safd\")", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("TypesToBlock");
 
                 #endregion
+
+                #region On the fly pre events cancel
+
+                evaluator = new ExpressionEvaluator();
+
+                evaluator.PreEvaluateVariable += (sender, e) =>
+                {
+                    if (e.Name.StartsWith("P"))
+                        e.CancelEvaluation = true;
+                };
+
+                yield return new TestCaseData(evaluator, "Pi", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
+
+                #endregion
             }
         }
 
@@ -1555,12 +1569,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 void VariableEval(object sender, VariableEvaluationEventArg e)
                 {
-                    e.Value = e.EvaluateGenericTypes();
+                    if(e.Name.Equals("GetSpecifiedGenericTypesVar"))
+                        e.Value = e.EvaluateGenericTypes();
                 }
 
                 void FunctionEval(object sender, FunctionEvaluationEventArg e)
                 {
-                    e.Value = e.EvaluateGenericTypes();
+                    if (e.Name.Equals("GetSpecifiedGenericTypesFunc"))
+                        e.Value = e.EvaluateGenericTypes();
                 }
 
                 void Evaluator_PreEvaluateFunction(object sender, FunctionPreEvaluationEventArg e)
@@ -1585,7 +1601,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     else if (e.Name.Equals("GenericAssembly") && e.HasGenericTypes)
                     {
                         // e.EvaluateGenericTypes() return a Type[]
-                        e.Value = e.EvaluateGenericTypes()[0].Assembly;
+                        e.Value = e.EvaluateGenericTypes()[0].Assembly.GetName().Name;
                     }
                 }
 
@@ -1614,7 +1630,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("GenericTypes");
 
                 yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
-                        , "GetSpecifiedGenericTypesFunc<string, List<int>>[1]")
+                        , "GetSpecifiedGenericTypesVar<string, List<int>>[1]")
                         .Returns(typeof(List<int>))
                         .SetCategory("On the fly var")
                         .SetCategory("GenericTypes");
@@ -1627,8 +1643,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
                         , "GenericAssembly<string>")
-                        .Returns("System.Collections.Generic")
-                        .SetCategory("On the fly func")
+                        .Returns("mscorlib")
+                        .SetCategory("On the fly var")
                         .SetCategory("GenericTypes");
 
                 #endregion

@@ -1922,325 +1922,322 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (defaultVariables.TryGetValue(varFuncName, out object varValueToPush))
+                    if (varFuncMatch.Groups["inObject"].Success)
                     {
-                        stack.Push(varValueToPush);
-                    }
-                    else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
-                        && !varFuncMatch.Groups["inObject"].Success
-                        && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
-                    {
-                        stack.Push(cusVarValueToPush);
+                        if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value}] must follow an object.");
 
-                        if (OptionVariableAssignationActive)
+                        object obj = stack.Pop();
+                        Type objType = null;
+                        ValueTypeNestingTrace valueTypeNestingTrace = null;
+
+                        if (obj != null && TypesToBlock.Contains(obj.GetType()))
+                            throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
+                        else if (obj is Type staticType && TypesToBlock.Contains(staticType))
+                            throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                        else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                            throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+
+                        try
                         {
-                            bool assign = true;
-
-                            if (varFuncMatch.Groups["assignationOperator"].Success)
+                            if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
                             {
-                                if (stack.Count > 1)
-                                    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                string rightExpression = expr.Substring(i);
-                                i = expr.Length;
-
-                                if (rightExpression.Trim().Equals(string.Empty))
-                                    throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                {
-                                    if (!Variables.ContainsKey(varFuncName))
-                                        throw new ExpressionEvaluatorSyntaxErrorException($"The variable[{varFuncName}] do not exists.");
-
-                                    ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                    cusVarValueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
-                                }
-                                else
-                                {
-                                    cusVarValueToPush = Evaluate(rightExpression);
-                                }
-
-                                stack.Clear();
-                                stack.Push(cusVarValueToPush);
-                            }
-                            else if (varFuncMatch.Groups["postfixOperator"].Success)
-                            {
-                                cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
-                            }
-                            else if (varFuncMatch.Groups["prefixOperator"].Success)
-                            {
-                                stack.Pop();
-                                cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
-                                stack.Push(cusVarValueToPush);
+                                stack.Push(null);
                             }
                             else
                             {
-                                assign = false;
-                            }
+                                VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
 
-                            if (assign)
-                                Variables[varFuncName] = cusVarValueToPush;
+                                PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
+
+                                if (variablePreEvaluationEventArg.CancelEvaluation)
+                                {
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", new Exception("Variable evaluation canceled"));
+                                }
+                                else if (variablePreEvaluationEventArg.HasValue)
+                                {
+                                    stack.Push(variablePreEvaluationEventArg.Value);
+                                }
+                                else
+                                {
+                                    BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
+
+                                    if (!OptionStaticProperiesGetActive && (flag & BindingFlags.Static) != 0)
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
+                                    if (!OptionInstanceProperiesGetActive && (flag & BindingFlags.Instance) != 0)
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
+
+                                    bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
+                                    IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
+
+                                    MemberInfo member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
+                                    dynamic varValue = null;
+                                    bool assign = true;
+
+                                    if (member == null && !isDynamic)
+                                        member = objType.GetField(varFuncName, flag);
+
+                                    bool pushVarValue = true;
+
+                                    if (isDynamic)
+                                    {
+                                        if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
+                                            varValue = dictionaryObject.ContainsKey(varFuncName) ? dictionaryObject[varFuncName] : null;
+                                        else
+                                            pushVarValue = false;
+                                    }
+
+                                    if (member == null && pushVarValue)
+                                    {
+                                        VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
+
+                                        EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+
+                                        if (variableEvaluationEventArg.HasValue)
+                                        {
+                                            varValue = variableEvaluationEventArg.Value;
+                                        }
+                                    }
+
+                                    if (varValue == null && pushVarValue)
+                                    {
+                                        varValue = ((dynamic)member).GetValue(obj);
+
+                                        if (varValue is ValueType)
+                                        {
+                                            stack.Push(valueTypeNestingTrace = new ValueTypeNestingTrace
+                                            {
+                                                Container = valueTypeNestingTrace ?? obj,
+                                                Member = member,
+                                                Value = varValue
+                                            });
+
+                                            pushVarValue = false;
+                                        }
+                                    }
+
+                                    if (pushVarValue)
+                                    {
+                                        stack.Push(varValue);
+                                    }
+
+                                    if (OptionPropertyOrFieldSetActive)
+                                    {
+                                        if (varFuncMatch.Groups["assignationOperator"].Success)
+                                        {
+                                            if (stack.Count > 1)
+                                                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+
+                                            string rightExpression = expr.Substring(i);
+                                            i = expr.Length;
+
+                                            if (rightExpression.Trim().Equals(string.Empty))
+                                                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                                            if (varFuncMatch.Groups["assignmentPrefix"].Success)
+                                            {
+                                                ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
+
+                                                varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                            }
+                                            else
+                                            {
+                                                varValue = Evaluate(rightExpression);
+                                            }
+
+                                            stack.Clear();
+                                            stack.Push(varValue);
+                                        }
+                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                        {
+                                            varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
+                                        }
+                                        else
+                                        {
+                                            assign = false;
+                                        }
+
+                                        if (assign)
+                                        {
+                                            if (isDynamic)
+                                            {
+                                                dictionaryObject[varFuncName] = varValue;
+                                            }
+                                            else
+                                            {
+                                                if (valueTypeNestingTrace != null)
+                                                {
+                                                    valueTypeNestingTrace.Value = varValue;
+                                                    valueTypeNestingTrace.AssignValue();
+                                                }
+                                                else
+                                                {
+                                                    ((dynamic)member).SetValue(obj, varValue);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (varFuncMatch.Groups["assignationOperator"].Success)
+                                    {
+                                        i -= varFuncMatch.Groups["assignationOperator"].Length;
+                                    }
+                                    else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                    {
+                                        i -= varFuncMatch.Groups["postfixOperator"].Length;
+                                    }
+                                }
+                            }
                         }
-                        else if (varFuncMatch.Groups["assignationOperator"].Success)
+                        catch (ExpressionEvaluatorSecurityException)
                         {
-                            i -= varFuncMatch.Groups["assignationOperator"].Length;
+                            throw;
                         }
-                        else if (varFuncMatch.Groups["postfixOperator"].Success)
+                        catch (ExpressionEvaluatorSyntaxErrorException)
                         {
-                            i -= varFuncMatch.Groups["postfixOperator"].Length;
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
                         }
                     }
                     else
                     {
-                        if (varFuncMatch.Groups["inObject"].Success)
+                        VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+
+                        PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
+
+                        if (variablePreEvaluationEventArg.CancelEvaluation)
                         {
-                            if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
-                                throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value}] must follow an object.");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
+                        }
+                        else if (variablePreEvaluationEventArg.HasValue)
+                        {
+                            stack.Push(variablePreEvaluationEventArg.Value);
+                        }
+                        else if (defaultVariables.TryGetValue(varFuncName, out object varValueToPush))
+                        {
+                            stack.Push(varValueToPush);
+                        }
+                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
+                            && !varFuncMatch.Groups["inObject"].Success
+                            && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
+                        {
+                            stack.Push(cusVarValueToPush);
 
-                            object obj = stack.Pop();
-                            Type objType = null;
-                            ValueTypeNestingTrace valueTypeNestingTrace = null;
-
-                            if (obj != null && TypesToBlock.Contains(obj.GetType()))
-                                throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
-
-                            try
+                            if (OptionVariableAssignationActive)
                             {
-                                if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
-                                {
-                                    stack.Push(null);
-                                }
-                                else
-                                {
-                                    VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
+                                bool assign = true;
 
-                                    PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
+                                if (varFuncMatch.Groups["assignationOperator"].Success)
+                                {
+                                    if (stack.Count > 1)
+                                        throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
 
-                                    if(variablePreEvaluationEventArg.CancelEvaluation)
+                                    string rightExpression = expr.Substring(i);
+                                    i = expr.Length;
+
+                                    if (rightExpression.Trim().Equals(string.Empty))
+                                        throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+                                    if (varFuncMatch.Groups["assignmentPrefix"].Success)
                                     {
-                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", new Exception("Variable evaluation canceled"));
-                                    }
-                                    else if (variablePreEvaluationEventArg.HasValue)
-                                    {
-                                        stack.Push(variablePreEvaluationEventArg.Value);
+                                        if (!Variables.ContainsKey(varFuncName))
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"The variable[{varFuncName}] do not exists.");
+
+                                        ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
+
+                                        cusVarValueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
                                     }
                                     else
                                     {
-                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
-
-                                        if (!OptionStaticProperiesGetActive && (flag & BindingFlags.Static) != 0)
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
-                                        if (!OptionInstanceProperiesGetActive && (flag & BindingFlags.Instance) != 0)
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
-
-                                        bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
-                                        IDictionary<string, object> dictionaryObject = obj as IDictionary<string, object>;
-
-                                        MemberInfo member = isDynamic ? null : objType?.GetProperty(varFuncName, flag);
-                                        dynamic varValue = null;
-                                        bool assign = true;
-
-                                        if (member == null && !isDynamic)
-                                            member = objType.GetField(varFuncName, flag);
-
-                                        bool pushVarValue = true;
-
-                                        if (isDynamic)
-                                        {
-                                            if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
-                                                varValue = dictionaryObject.ContainsKey(varFuncName) ? dictionaryObject[varFuncName] : null;
-                                            else
-                                                pushVarValue = false;
-                                        }
-
-                                        if (member == null && pushVarValue)
-                                        {
-                                            VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
-
-                                            EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
-
-                                            if (variableEvaluationEventArg.HasValue)
-                                            {
-                                                varValue = variableEvaluationEventArg.Value;
-                                            }
-                                        }
-
-                                        if (varValue == null && pushVarValue)
-                                        {
-                                            varValue = ((dynamic)member).GetValue(obj);
-
-                                            if (varValue is ValueType)
-                                            {
-                                                stack.Push(valueTypeNestingTrace = new ValueTypeNestingTrace
-                                                {
-                                                    Container = valueTypeNestingTrace ?? obj,
-                                                    Member = member,
-                                                    Value = varValue
-                                                });
-
-                                                pushVarValue = false;
-                                            }
-                                        }
-
-                                        if (pushVarValue)
-                                        {
-                                            stack.Push(varValue);
-                                        }
-
-                                        if (OptionPropertyOrFieldSetActive)
-                                        {
-                                            if (varFuncMatch.Groups["assignationOperator"].Success)
-                                            {
-                                                if (stack.Count > 1)
-                                                    throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                                string rightExpression = expr.Substring(i);
-                                                i = expr.Length;
-
-                                                if (rightExpression.Trim().Equals(string.Empty))
-                                                    throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                                if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                                {
-                                                    ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                                    varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
-                                                }
-                                                else
-                                                {
-                                                    varValue = Evaluate(rightExpression);
-                                                }
-
-                                                stack.Clear();
-                                                stack.Push(varValue);
-                                            }
-                                            else if (varFuncMatch.Groups["postfixOperator"].Success)
-                                            {
-                                                varValue = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? varValue + 1 : varValue - 1;
-                                            }
-                                            else
-                                            {
-                                                assign = false;
-                                            }
-
-                                            if (assign)
-                                            {
-                                                if (isDynamic)
-                                                {
-                                                    dictionaryObject[varFuncName] = varValue;
-                                                }
-                                                else
-                                                {
-                                                    if (valueTypeNestingTrace != null)
-                                                    {
-                                                        valueTypeNestingTrace.Value = varValue;
-                                                        valueTypeNestingTrace.AssignValue();
-                                                    }
-                                                    else
-                                                    {
-                                                        ((dynamic)member).SetValue(obj, varValue);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else if (varFuncMatch.Groups["assignationOperator"].Success)
-                                        {
-                                            i -= varFuncMatch.Groups["assignationOperator"].Length;
-                                        }
-                                        else if (varFuncMatch.Groups["postfixOperator"].Success)
-                                        {
-                                            i -= varFuncMatch.Groups["postfixOperator"].Length;
-                                        }
+                                        cusVarValueToPush = Evaluate(rightExpression);
                                     }
+
+                                    stack.Clear();
+                                    stack.Push(cusVarValueToPush);
                                 }
+                                else if (varFuncMatch.Groups["postfixOperator"].Success)
+                                {
+                                    cusVarValueToPush = varFuncMatch.Groups["postfixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
+                                }
+                                else if (varFuncMatch.Groups["prefixOperator"].Success)
+                                {
+                                    stack.Pop();
+                                    cusVarValueToPush = varFuncMatch.Groups["prefixOperator"].Value.Equals("++") ? (dynamic)cusVarValueToPush + 1 : (dynamic)cusVarValueToPush - 1;
+                                    stack.Push(cusVarValueToPush);
+                                }
+                                else
+                                {
+                                    assign = false;
+                                }
+
+                                if (assign)
+                                    Variables[varFuncName] = cusVarValueToPush;
                             }
-                            catch (ExpressionEvaluatorSecurityException)
+                            else if (varFuncMatch.Groups["assignationOperator"].Success)
                             {
-                                throw;
+                                i -= varFuncMatch.Groups["assignationOperator"].Length;
                             }
-                            catch (ExpressionEvaluatorSyntaxErrorException)
+                            else if (varFuncMatch.Groups["postfixOperator"].Success)
                             {
-                                throw;
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                                i -= varFuncMatch.Groups["postfixOperator"].Length;
                             }
                         }
                         else
                         {
-                            VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+                            string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
+                            Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
-                            PreEvaluateVariable?.Invoke(this, variablePreEvaluationEventArg);
-
-                            if (variablePreEvaluationEventArg.CancelEvaluation)
+                            if (staticType == null && OptionInlineNamespacesEvaluationActive)
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
+                                int subIndex = 0;
+                                Match namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
+
+                                while (staticType == null
+                                    && namespaceMatch.Success
+                                    && !namespaceMatch.Groups["sign"].Success
+                                    && !namespaceMatch.Groups["assignationOperator"].Success
+                                    && !namespaceMatch.Groups["postfixOperator"].Success
+                                    && !namespaceMatch.Groups["isfunction"].Success
+                                    && i + subIndex < expr.Length
+                                    && !typeName.EndsWith("?"))
+                                {
+                                    subIndex += namespaceMatch.Length;
+                                    typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
+
+                                    if (staticType != null)
+                                    {
+                                        i += subIndex;
+                                        break;
+                                    }
+
+                                    namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
+                                }
                             }
-                            else if (variablePreEvaluationEventArg.HasValue)
+
+                            if (typeName.EndsWith("?") && staticType != null)
+                                i++;
+
+                            if (staticType != null)
                             {
-                                stack.Push(variablePreEvaluationEventArg.Value);
+                                stack.Push(new ClassOrTypeName() { Type = staticType });
                             }
                             else
                             {
-                                string typeName = $"{varFuncName}{((i < expr.Length && expr.Substring(i)[0] == '?') ? "?" : "") }";
-                                Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
+                                VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
-                                if (staticType == null && OptionInlineNamespacesEvaluationActive)
+                                EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
+
+                                if (variableEvaluationEventArg.HasValue)
                                 {
-                                    int subIndex = 0;
-                                    Match namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
-
-                                    while (staticType == null
-                                        && namespaceMatch.Success
-                                        && !namespaceMatch.Groups["sign"].Success
-                                        && !namespaceMatch.Groups["assignationOperator"].Success
-                                        && !namespaceMatch.Groups["postfixOperator"].Success
-                                        && !namespaceMatch.Groups["isfunction"].Success
-                                        && i + subIndex < expr.Length
-                                        && !typeName.EndsWith("?"))
-                                    {
-                                        subIndex += namespaceMatch.Length;
-                                        typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expr.Length && expr.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-
-                                        staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
-
-                                        if (staticType != null)
-                                        {
-                                            i += subIndex;
-                                            break;
-                                        }
-
-                                        namespaceMatch = varOrFunctionRegEx.Match(expr.Substring(i + subIndex));
-                                    }
-                                }
-
-                                if (typeName.EndsWith("?") && staticType != null)
-                                    i++;
-
-                                if (staticType != null)
-                                {
-                                    stack.Push(new ClassOrTypeName() { Type = staticType });
+                                    stack.Push(variableEvaluationEventArg.Value);
                                 }
                                 else
                                 {
-                                    VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
-
-                                    EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
-
-                                    if (variableEvaluationEventArg.HasValue)
-                                    {
-                                        stack.Push(variableEvaluationEventArg.Value);
-                                    }
-                                    else
-                                    {
-                                        throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
-                                    }
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expr}]");
                                 }
                             }
                         }
