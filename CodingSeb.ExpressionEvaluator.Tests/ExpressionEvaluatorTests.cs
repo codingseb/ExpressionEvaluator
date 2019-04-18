@@ -1549,7 +1549,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region GenericTypes in onthefly events
+                #region Onthefly events (Pre events and/or Generics)
 
                 ExpressionEvaluator evaluatorOnTheFlyGenericTypes = new ExpressionEvaluator();
 
@@ -1563,8 +1563,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     e.Value = e.EvaluateGenericTypes();
                 }
 
+                void Evaluator_PreEvaluateFunction(object sender, FunctionPreEvaluationEventArg e)
+                {
+                    if (e.Name.Equals("Test"))
+                    {
+                        e.Value = $"It is a test for {e.EvaluateArg(0)}";
+                    }
+                    else if (e.Name.Equals("GenericNamespace") && e.HasGenericTypes)
+                    {
+                        // e.EvaluateGenericTypes() return a Type[]
+                        e.Value = e.EvaluateGenericTypes()[0].Namespace;
+                    }
+                }
+
+                void Evaluator_PreEvaluateVariable(object sender, VariablePreEvaluationEventArg e)
+                {
+                    if (e.Name.Equals("myvar1"))
+                    {
+                        e.Value = 5;
+                    }
+                    else if (e.Name.Equals("GenericAssembly") && e.HasGenericTypes)
+                    {
+                        // e.EvaluateGenericTypes() return a Type[]
+                        e.Value = e.EvaluateGenericTypes()[0].Assembly;
+                    }
+                }
+
                 evaluatorOnTheFlyGenericTypes.EvaluateVariable += VariableEval;
                 evaluatorOnTheFlyGenericTypes.EvaluateFunction += FunctionEval;
+
+                evaluatorOnTheFlyGenericTypes.PreEvaluateVariable += Evaluator_PreEvaluateVariable;
+                evaluatorOnTheFlyGenericTypes.PreEvaluateFunction += Evaluator_PreEvaluateFunction;
 
                 yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
                         , "GetSpecifiedGenericTypesFunc<string>()[0]")
@@ -1588,6 +1617,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         , "GetSpecifiedGenericTypesFunc<string, List<int>>[1]")
                         .Returns(typeof(List<int>))
                         .SetCategory("On the fly var")
+                        .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GenericNamespace<List<string>>()")
+                        .Returns("System.Collections.Generic")
+                        .SetCategory("On the fly func")
+                        .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "GenericAssembly<string>")
+                        .Returns("System.Collections.Generic")
+                        .SetCategory("On the fly func")
                         .SetCategory("GenericTypes");
 
                 #endregion

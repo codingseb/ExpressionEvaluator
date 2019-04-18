@@ -3460,7 +3460,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             get
             {
-                return string.IsNullOrEmpty(genericTypes);
+                return !string.IsNullOrEmpty(genericTypes);
             }
         }
 
@@ -3582,7 +3582,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             get
             {
-                return string.IsNullOrEmpty(genericTypes);
+                return !string.IsNullOrEmpty(genericTypes);
             }
         }
 
