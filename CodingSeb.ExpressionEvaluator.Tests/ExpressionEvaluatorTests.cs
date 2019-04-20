@@ -1678,6 +1678,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("var evaluation priority");
 
                 #endregion
+
+                #region bug resolution
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "(new List<Regex>()).GetType()")
+                    .Returns(typeof(List<Regex>))
+                    .SetCategory("Bug resolution");
+
+                #endregion
             }
         }
 
