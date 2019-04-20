@@ -2120,7 +2120,6 @@ namespace CodingSeb.ExpressionEvaluator
                             stack.Push(varValueToPush);
                         }
                         else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
-                            && !varFuncMatch.Groups["inObject"].Success
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
                             stack.Push(cusVarValueToPush);

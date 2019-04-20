@@ -1402,7 +1402,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region On the fly pre events cancel
 
-                evaluator = new ExpressionEvaluator();
+                evaluator = new ExpressionEvaluator(new Dictionary<string, object>
+                {
+                    { "P1var", "P1" },
+                    { "myObj", new ClassForTest1() },
+                });
 
                 evaluator.PreEvaluateVariable += (sender, e) =>
                 {
@@ -1410,7 +1414,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         e.CancelEvaluation = true;
                 };
 
+                evaluator.PreEvaluateFunction += (sender, e) =>
+                {
+                    if (e.Name.StartsWith("A"))
+                        e.CancelEvaluation = true;
+                };
+
                 yield return new TestCaseData(evaluator, "Pi", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
+                yield return new TestCaseData(evaluator, "P1var", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
+                yield return new TestCaseData(evaluator, "myObj.PropertyThatWillFailed", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
+                yield return new TestCaseData(evaluator, "myObj.Add3To(5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
+                yield return new TestCaseData(evaluator, "Abs(-5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
 
                 #endregion
             }
@@ -1563,14 +1577,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region Onthefly events (Pre events and/or Generics)
+                #region Onthefly events (Pre events custom vars and standard events priorities and/or Generics)
 
-                ExpressionEvaluator evaluatorOnTheFlyGenericTypes = new ExpressionEvaluator();
+                ExpressionEvaluator evaluatorOnTheFlyGenericTypes = new ExpressionEvaluator(new Dictionary<string, object>
+                {
+                    { "myvar1", 10 },
+                    { "myvar2", 3 },
+                });
 
                 void VariableEval(object sender, VariableEvaluationEventArg e)
                 {
-                    if(e.Name.Equals("GetSpecifiedGenericTypesVar"))
+                    if (e.Name.Equals("GetSpecifiedGenericTypesVar"))
                         e.Value = e.EvaluateGenericTypes();
+                    else if (e.Name.Equals("myvar2"))
+                        e.Value = 50;
                 }
 
                 void FunctionEval(object sender, FunctionEvaluationEventArg e)
@@ -1646,6 +1666,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .Returns("mscorlib")
                         .SetCategory("On the fly var")
                         .SetCategory("GenericTypes");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "myvar1")
+                        .Returns(5)
+                        .SetCategory("var evaluation priority");
+
+                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                        , "myvar2")
+                        .Returns(3)
+                        .SetCategory("var evaluation priority");
 
                 #endregion
             }
