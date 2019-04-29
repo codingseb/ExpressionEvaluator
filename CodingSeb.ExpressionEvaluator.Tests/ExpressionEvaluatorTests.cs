@@ -1620,7 +1620,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         // e.EvaluateGenericTypes() return a Type[]
                         e.Value = e.EvaluateGenericTypes()[0].Namespace;
                     }
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreVar"))
+                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreFunc"))
                     {
                         e.Value = 15;
                     }
@@ -1637,7 +1637,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         // e.EvaluateGenericTypes() return a Type[]
                         e.Value = e.EvaluateGenericTypes()[0].Assembly.GetName().Name;
                     }
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreFunc"))
+                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreVar"))
                     {
                         e.Value = 3;
                     }
@@ -1674,18 +1674,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("GenericTypes");
 
                 yield return new TestCaseData(evaluatorOnTheFlies
-                        , "ClassForTest1.OnTheFlyStaticFunc()")
-                        .Returns(5)
-                        .SetCategory("On the fly func")
-                        .SetCategory("Static Onthefly");
-
-                yield return new TestCaseData(evaluatorOnTheFlies
-                        , "ClassForTest1.OnTheFlyStaticVar")
-                        .Returns(5)
-                        .SetCategory("On the fly var")
-                        .SetCategory("Static Onthefly");
-
-                yield return new TestCaseData(evaluatorOnTheFlies
                         , "myvar1")
                         .Returns(5)
                         .SetCategory("var evaluation priority");
@@ -1696,14 +1684,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("var evaluation priority");
 
                 yield return new TestCaseData(evaluatorOnTheFlies
+                        , "ClassForTest1.OnTheFlyStaticFunc()")
+                        .Returns(8)
+                        .SetCategory("On the fly func")
+                        .SetCategory("Static Onthefly");
+
+                yield return new TestCaseData(evaluatorOnTheFlies
+                        , "ClassForTest1.OnTheFlyStaticVar")
+                        .Returns(10)
+                        .SetCategory("On the fly var")
+                        .SetCategory("Static Onthefly");
+
+                yield return new TestCaseData(evaluatorOnTheFlies
                         , "ClassForTest1.OnTheFlyStaticPreFunc()")
-                        .Returns(5)
+                        .Returns(15)
                         .SetCategory("On the fly func")
                         .SetCategory("Static Onthefly");
 
                 yield return new TestCaseData(evaluatorOnTheFlies
                         , "ClassForTest1.OnTheFlyStaticPreVar")
-                        .Returns(5)
+                        .Returns(3)
                         .SetCategory("On the fly var")
                         .SetCategory("Static Onthefly");
 

@@ -1762,6 +1762,7 @@ namespace CodingSeb.ExpressionEvaluator
                         else
                         {
                             object obj = stack.Pop();
+                            object keepObj = obj;
                             Type objType = null;
                             ValueTypeNestingTrace valueTypeNestingTrace = null;
 
@@ -1848,7 +1849,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             }
                                             else
                                             {
-                                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+                                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
 
                                                 EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -1928,6 +1929,7 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value}] must follow an object.");
 
                         object obj = stack.Pop();
+                        object keepObj = obj;
                         Type objType = null;
                         ValueTypeNestingTrace valueTypeNestingTrace = null;
 
@@ -1989,7 +1991,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     if (member == null && pushVarValue)
                                     {
-                                        VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
+                                        VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
 
                                         EvaluateVariable?.Invoke(this, variableEvaluationEventArg);
 
