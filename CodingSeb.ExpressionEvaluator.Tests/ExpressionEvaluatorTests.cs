@@ -1579,7 +1579,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Onthefly events (Pre events and/or Generics and/or Static)
 
-                ExpressionEvaluator evaluatorOnTheFlyGenericTypes = new ExpressionEvaluator(new Dictionary<string, object>
+                ExpressionEvaluator evaluatorOnTheFlies = new ExpressionEvaluator(new Dictionary<string, object>
                 {
                     { "myvar1", 10 },
                     { "myvar2", 3 },
@@ -1685,12 +1685,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("On the fly var")
                         .SetCategory("Static Onthefly");
 
-                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                yield return new TestCaseData(evaluatorOnTheFlies
                         , "myvar1")
                         .Returns(5)
                         .SetCategory("var evaluation priority");
 
-                yield return new TestCaseData(evaluatorOnTheFlyGenericTypes
+                yield return new TestCaseData(evaluatorOnTheFlies
                         , "myvar2")
                         .Returns(3)
                         .SetCategory("var evaluation priority");
