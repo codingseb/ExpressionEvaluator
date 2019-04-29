@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.7.1 
+    Version : 1.3.7.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -2120,7 +2120,6 @@ namespace CodingSeb.ExpressionEvaluator
                             stack.Push(varValueToPush);
                         }
                         else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
-                            && !varFuncMatch.Groups["inObject"].Success
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
                             stack.Push(cusVarValueToPush);
@@ -3090,7 +3089,7 @@ namespace CodingSeb.ExpressionEvaluator
                     if (!genericTypes.Equals(string.Empty))
                     {
                         Type[] types = GetConcreteTypes(genericTypes);
-                        formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => type.FullName))}]";
+                        formatedGenericTypes = $"`{types.Length}[{ string.Join(", ", types.Select(type => "[" + type.AssemblyQualifiedName + "]"))}]";
                     }
 
                     result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
