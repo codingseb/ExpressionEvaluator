@@ -3237,11 +3237,6 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils private sub classes for parsing and interpretation
 
-        private class ClassOrTypeName
-        {
-            public Type Type { get; set; }
-        }
-
         private class ValueTypeNestingTrace
         {
             public object Container { get; set; }
@@ -3372,6 +3367,11 @@ namespace CodingSeb.ExpressionEvaluator
     #endregion
 
     #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
+
+    public partial class ClassOrTypeName
+    {
+        public Type Type { get; set; }
+    }
 
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception
     {
