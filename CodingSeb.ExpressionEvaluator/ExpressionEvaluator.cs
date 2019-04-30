@@ -880,9 +880,9 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Constructor with variable initialize
+        /// Constructor with variables initialize
         /// </summary>
-        /// <param name="variables">The Values of the variable use in the expressions</param>
+        /// <param name="variables">The Values of variables use in the expressions</param>
         public ExpressionEvaluator(IDictionary<string, object> variables) : this()
         {
             Variables = variables;
