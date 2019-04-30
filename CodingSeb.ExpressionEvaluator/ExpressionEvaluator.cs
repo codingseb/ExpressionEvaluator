@@ -289,7 +289,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
                 {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
                 {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-                {ExpressionOperator.Is, (dynamic left, dynamic right) => left != null && (((ClassOrTypeName)right).Type).IsAssignableFrom(left.GetType()) },
+                {ExpressionOperator.Is, (dynamic left, dynamic right) => left != null && (((ClassOrEnumType)right).Type).IsAssignableFrom(left.GetType()) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -376,7 +376,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object argValue = self.Evaluate(args[0]);
 
-                    if (argValue is ClassOrTypeName classOrTypeName)
+                    if (argValue is ClassOrEnumType classOrTypeName)
                         return Activator.CreateInstance(classOrTypeName.Type);
                     else
                         return null;
@@ -406,7 +406,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "new", (self, args) =>
                 {
                     List<object> cArgs = args.ConvertAll(arg => self.Evaluate(arg));
-                    return Activator.CreateInstance((cArgs[0] as ClassOrTypeName).Type, cArgs.Skip(1).ToArray());
+                    return Activator.CreateInstance((cArgs[0] as ClassOrEnumType).Type, cArgs.Skip(1).ToArray());
                 }
             },
             { "Round", (self, args) =>
@@ -434,7 +434,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "Sign", (self, args) => Math.Sign(Convert.ToDouble(self.Evaluate(args[0]))) },
             { "sizeof", (self, args) =>
                 {
-                    Type type = ((ClassOrTypeName)self.Evaluate(args[0])).Type;
+                    Type type = ((ClassOrEnumType)self.Evaluate(args[0])).Type;
 
                     if(type == typeof(bool))
                         return 1;
@@ -444,7 +444,7 @@ namespace CodingSeb.ExpressionEvaluator
                         return Marshal.SizeOf(type);
                 }
             },
-            { "typeof", (self, args) => ((ClassOrTypeName)self.Evaluate(args[0])).Type },
+            { "typeof", (self, args) => ((ClassOrEnumType)self.Evaluate(args[0])).Type },
         };
 
         #endregion
@@ -1065,7 +1065,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                 if (exceptionVariable.Length >= 2)
                                 {
-                                    if (!((ClassOrTypeName)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
+                                    if (!((ClassOrEnumType)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
                                         continue;
 
                                     exceptionName = exceptionVariable[1];
@@ -1770,7 +1770,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                             else if (obj is Type staticType && TypesToBlock.Contains(staticType))
                                 throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                            else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
                                 throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                             try
@@ -1937,7 +1937,7 @@ namespace CodingSeb.ExpressionEvaluator
                             throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
                         else if (obj is Type staticType && TypesToBlock.Contains(staticType))
                             throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                        else if (obj is ClassOrTypeName classOrType && TypesToBlock.Contains(classOrType.Type))
+                        else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
                             throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
 
                         try
@@ -2224,7 +2224,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (staticType != null)
                             {
-                                stack.Push(new ClassOrTypeName() { Type = staticType });
+                                stack.Push(new ClassOrEnumType() { Type = staticType });
                             }
                             else
                             {
@@ -2894,7 +2894,7 @@ namespace CodingSeb.ExpressionEvaluator
                 obj = valueTypeNestingTrace.Value;
             }
 
-            if (obj is ClassOrTypeName classOrTypeName)
+            if (obj is ClassOrEnumType classOrTypeName)
             {
                 objType = classOrTypeName.Type;
                 obj = null;
@@ -3369,7 +3369,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
 
-    public partial class ClassOrTypeName
+    public partial class ClassOrEnumType
     {
         public Type Type { get; set; }
     }

@@ -1593,7 +1593,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         e.Value = e.EvaluateGenericTypes();
                     else if (e.Name.Equals("myvar2"))
                         e.Value = 50;
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticVar"))
+                    else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticVar"))
                     {
                         e.Value = 10;
                     }
@@ -1603,7 +1603,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     if (e.Name.Equals("GetSpecifiedGenericTypesFunc"))
                         e.Value = e.EvaluateGenericTypes();
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticFunc"))
+                    else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticFunc"))
                     {
                         e.Value = 8;
                     }
@@ -1620,7 +1620,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         // e.EvaluateGenericTypes() return a Type[]
                         e.Value = e.EvaluateGenericTypes()[0].Namespace;
                     }
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreFunc"))
+                    else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreFunc"))
                     {
                         e.Value = 15;
                     }
@@ -1637,7 +1637,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         // e.EvaluateGenericTypes() return a Type[]
                         e.Value = e.EvaluateGenericTypes()[0].Assembly.GetName().Name;
                     }
-                    else if (e.This is ClassOrTypeName classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreVar"))
+                    else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticPreVar"))
                     {
                         e.Value = 3;
                     }
