@@ -31,7 +31,7 @@ namespace CodingSeb.ExpressionEvaluator
         private const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
         private const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
 
-        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var\s+)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         private string numberRegexPattern = null;
@@ -1735,9 +1735,16 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+
         private bool EvaluateVarOrFunc(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
             Match varFuncMatch = varOrFunctionRegEx.Match(restOfExpression);
+
+            if (varFuncMatch.Groups["varKeyword"].Success
+                && !varFuncMatch.Groups["assignationOperator"].Success)
+            {
+                throw new ExpressionEvaluatorSyntaxErrorException("Implicit variables must be initialized");
+            }
 
             if (varFuncMatch.Success
             && (!varFuncMatch.Groups["sign"].Success

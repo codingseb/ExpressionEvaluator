@@ -1063,25 +1063,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Recherche une chaîne localisée semblable à /* Script0058 */
-        ///classStructContainer = new ClassStructContainer()
+        ///   Recherche une chaîne localisée semblable à /* Script0059 */
+        ///otherStruct = new StructForTest4();
+        ///
+        ///otherStruct.AnOtherIntValue = 5;
+        ///otherStruct.NestedStruct = new StructForTest3()
         ///{
-        ///    NestedStructProperty = new StructForTest1()
-        ///    {
-        ///        myIntvalue = 8,
-        ///        myStringValue = &quot;Hey&quot;
-        ///    }
+        ///    MyIntvalue = 8,
+        ///    MyStringValue = &quot;Hey&quot;
         ///};
         ///
         ///// Do not compile 
-        ///classStructContainer.NestedStructProperty.myIntvalue = 9;
+        ///otherStruct.NestedStruct.MyIntvalue = 9;
         ///
-        ///return $&quot;Result {classStructContainer.NestedStructProperty.myStringValue} {classStructContainer.NestedStructProperty.myIntvalue}&quot;;
-        ///.
+        ///return $&quot;Result {otherStruct.NestedStruct.MyStringValue} {otherStruct.NestedStruct.MyIntvalue}, {otherStruct.AnOtherIntValue}&quot;;.
         /// </summary>
         public static string Script0059 {
             get {
                 return ResourceManager.GetString("Script0059", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0060 */
+        ///var x = 4;
+        ///var textVar = &quot;a text for {0} test&quot;;
+        ///
+        ///return string.Format(textVar, x);.
+        /// </summary>
+        public static string Script0060 {
+            get {
+                return ResourceManager.GetString("Script0060", resourceCulture);
             }
         }
     }
