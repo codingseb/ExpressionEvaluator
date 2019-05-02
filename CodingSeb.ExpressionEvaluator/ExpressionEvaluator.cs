@@ -80,7 +80,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region enums (Operators, if else blocks states)
 
-        private enum ExpressionOperator
+        protected enum ExpressionOperator
         {
             Plus,
             Minus,
@@ -129,7 +129,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Dictionaries declarations (Primary types, number suffix, escaped chars, operators management, default vars and functions)
 
-        private static readonly Dictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
+        protected static readonly IDictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
         {
             { "object", typeof(object) },
             { "string", typeof(string) },
@@ -162,7 +162,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "void", typeof(void) }
         };
 
-        private static readonly Dictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
+        protected static readonly IDictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
         {
             { "f", (number, culture) => float.Parse(number, NumberStyles.Any, culture) },
             { "d", (number, culture) => double.Parse(number, NumberStyles.Any, culture) },
@@ -172,7 +172,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "m", (number, culture) => decimal.Parse(number, NumberStyles.Any, culture) }
         };
 
-        private static readonly Dictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
+        protected static readonly IDictionary<char, string> stringEscapedCharDict = new Dictionary<char, string>()
         {
             { '\\', @"\" },
             { '"', "\"" },
@@ -186,7 +186,7 @@ namespace CodingSeb.ExpressionEvaluator
             { 'v', "\v" }
         };
 
-        private static readonly Dictionary<char, char> charEscapedCharDict = new Dictionary<char, char>()
+        protected static readonly IDictionary<char, char> charEscapedCharDict = new Dictionary<char, char>()
         {
             { '\\', '\\' },
             { '\'', '\'' },
@@ -200,7 +200,7 @@ namespace CodingSeb.ExpressionEvaluator
             { 'v', '\v' }
         };
 
-        private Dictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.Ordinal)
+        protected IDictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.Ordinal)
         {
             { "+", ExpressionOperator.Plus },
             { "-", ExpressionOperator.Minus },
@@ -226,9 +226,9 @@ namespace CodingSeb.ExpressionEvaluator
             { "??", ExpressionOperator.NullCoalescing },
         };
 
-        private static readonly Dictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>();
+        protected static readonly IDictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>();
 
-        private static readonly Dictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
+        protected static readonly IDictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
         {
             {ExpressionOperator.LogicalNegation, true },
             {ExpressionOperator.BitwiseComplement, true },
@@ -236,8 +236,8 @@ namespace CodingSeb.ExpressionEvaluator
             {ExpressionOperator.UnaryMinus, true }
         };
 
-        private static readonly List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
-            new List<Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
+        protected static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
+            new List<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -322,7 +322,7 @@ namespace CodingSeb.ExpressionEvaluator
             },
         };
 
-        private Dictionary<string, object> defaultVariables = new Dictionary<string, object>(StringComparer.Ordinal)
+        protected IDictionary<string, object> defaultVariables = new Dictionary<string, object>(StringComparer.Ordinal)
         {
             { "Pi", Math.PI },
             { "E", Math.E },
@@ -331,7 +331,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "false", false },
         };
 
-        private Dictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.Ordinal)
+        protected IDictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.Ordinal)
         {
             { "Abs", Math.Abs },
             { "Acos", Math.Acos },
@@ -351,7 +351,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "Truncate", Math.Truncate },
         };
 
-        private Dictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(StringComparer.Ordinal)
+        protected IDictionary<string, Func<double, double, double>> doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(StringComparer.Ordinal)
         {
             { "Atan2", Math.Atan2 },
             { "IEEERemainder", Math.IEEERemainder },
@@ -359,7 +359,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "Pow", Math.Pow },
         };
 
-        private Dictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.Ordinal)
+        protected IDictionary<string, Func<ExpressionEvaluator, List<string>, object>> complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(StringComparer.Ordinal)
         {
             { "Array", (self, args) => args.ConvertAll(arg => self.Evaluate(arg)).ToArray() },
             { "ArrayOfType", (self, args) =>
@@ -480,12 +480,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// All assemblies needed to resolves Types
         /// by default all Assemblies loaded in the current AppDomain
         /// </summary>
-        public List<Assembly> Assemblies { get; set; } = new List<Assembly>();
+        public virtual IList<Assembly> Assemblies { get; set; } = new List<Assembly>();
 
         /// <summary>
         /// All Namespaces Where to find types
         /// </summary>
-        public List<string> Namespaces { get; set; } = new List<string>()
+        public virtual IList<string> Namespaces { get; set; } = new List<string>()
         {
             "System",
             "System.Linq",
@@ -503,17 +503,17 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// To add or remove specific types to manage in expression.
         /// </summary>
-        public List<Type> Types { get; set; } = new List<Type>();
+        public virtual IList<Type> Types { get; set; } = new List<Type>();
 
         /// <summary>
         /// A list of type to block an keep un usable in Expression Evaluation for security purpose
         /// </summary>
-        public List<Type> TypesToBlock { get; set; } = new List<Type>();
+        public virtual IList<Type> TypesToBlock { get; set; } = new List<Type>();
 
         /// <summary>
         /// A list of statics types where to find extensions methods
         /// </summary>
-        public List<Type> StaticTypesForExtensionsMethods { get; set; } = new List<Type>()
+        public virtual IList<Type> StaticTypesForExtensionsMethods { get; set; } = new List<Type>()
         {
             typeof(Enumerable) // For Linq extension methods
         };
@@ -872,7 +872,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public ExpressionEvaluator()
         {
-            Assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+            Assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
             numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
 
@@ -2047,7 +2047,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             {
                                                 ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
 
-                                                varValue = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                                varValue = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
                                             }
                                             else
                                             {
@@ -2155,7 +2155,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
 
-                                        cusVarValueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
+                                        cusVarValueToPush = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
                                     }
                                     else
                                     {
@@ -2471,7 +2471,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                             valueToPush = operatorsEvaluations[0][op](left, right);
 
-                            valueToPush = operatorsEvaluations.Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
+                            valueToPush = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
                         }
                         else
                         {
@@ -2635,7 +2635,7 @@ namespace CodingSeb.ExpressionEvaluator
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
                 .ToList();
 
-            operatorsEvaluations.ForEach((Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
+            operatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
             {
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
@@ -3114,7 +3114,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    result = Types.Find(type => type.Name.Equals(typeName, StringComparisonForCasing));
+                    result = Types.ToList().Find(type => type.Name.Equals(typeName, StringComparisonForCasing));
                 }
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)
