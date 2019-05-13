@@ -78,38 +78,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region enums (Operators, if else blocks states)
-
-        protected enum ExpressionOperator
-        {
-            Plus,
-            Minus,
-            UnaryPlus,
-            UnaryMinus,
-            Multiply,
-            Divide,
-            Modulo,
-            Lower,
-            Greater,
-            Equal,
-            LowerOrEqual,
-            GreaterOrEqual,
-            Is,
-            NotEqual,
-            LogicalNegation,
-            BitwiseComplement,
-            ConditionalAnd,
-            ConditionalOr,
-            LogicalAnd,
-            LogicalOr,
-            LogicalXor,
-            ShiftBitsLeft,
-            ShiftBitsRight,
-            NullCoalescing,
-            Cast,
-            Indexing,
-            IndexingWithNullConditional,
-        }
+        #region enums (if else blocks states)
 
         private enum IfBlockEvaluatedState
         {
@@ -2368,7 +2337,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private void CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(Stack<object> stack)
         {
-            if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || stack.Peek() is ExpressionOperator.Minus))
+            if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || op == ExpressionOperator.Minus))
             {
                 stack.Pop();
 
@@ -2643,7 +2612,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         ExpressionOperator eOp = operatorEvalutationsDict.Keys.ToList()[opi];
 
-                        if ((list[i] as ExpressionOperator?) == eOp)
+                        if ((list[i] as ExpressionOperator ) == eOp)
                         {
                             if (rightOperandOnlyOperatorsEvaluationDictionary.ContainsKey(eOp))
                             {
@@ -3374,7 +3343,72 @@ namespace CodingSeb.ExpressionEvaluator
 
     #endregion
 
-    #region ExpressionEvaluator linked public classes (specific Exceptions and EventArgs)
+    #region ExpressionEvaluator linked public classes (specific Exceptions, EventArgs and Operators)
+
+    public partial class ExpressionOperator : IEquatable<ExpressionOperator>
+    {
+        protected static uint indexer = 0;
+
+        protected ExpressionOperator()
+        {
+            indexer++;
+            OperatorValue = indexer;
+        }
+
+        protected ExpressionOperator(uint value)
+        {
+            OperatorValue = value;
+        }
+
+        protected uint OperatorValue { get; }
+
+        public static readonly ExpressionOperator Plus = new ExpressionOperator();
+        public static readonly ExpressionOperator Minus = new ExpressionOperator();
+        public static readonly ExpressionOperator UnaryPlus = new ExpressionOperator();
+        public static readonly ExpressionOperator UnaryMinus = new ExpressionOperator();
+        public static readonly ExpressionOperator Multiply = new ExpressionOperator();
+        public static readonly ExpressionOperator Divide = new ExpressionOperator();
+        public static readonly ExpressionOperator Modulo = new ExpressionOperator();
+        public static readonly ExpressionOperator Lower = new ExpressionOperator();
+        public static readonly ExpressionOperator Greater = new ExpressionOperator();
+        public static readonly ExpressionOperator Equal = new ExpressionOperator();
+        public static readonly ExpressionOperator LowerOrEqual = new ExpressionOperator();
+        public static readonly ExpressionOperator GreaterOrEqual = new ExpressionOperator();
+        public static readonly ExpressionOperator Is = new ExpressionOperator();
+        public static readonly ExpressionOperator NotEqual = new ExpressionOperator();
+        public static readonly ExpressionOperator LogicalNegation = new ExpressionOperator();
+        public static readonly ExpressionOperator BitwiseComplement = new ExpressionOperator();
+        public static readonly ExpressionOperator ConditionalAnd = new ExpressionOperator();
+        public static readonly ExpressionOperator ConditionalOr = new ExpressionOperator();
+        public static readonly ExpressionOperator LogicalAnd = new ExpressionOperator();
+        public static readonly ExpressionOperator LogicalOr = new ExpressionOperator();
+        public static readonly ExpressionOperator LogicalXor = new ExpressionOperator();
+        public static readonly ExpressionOperator ShiftBitsLeft = new ExpressionOperator();
+        public static readonly ExpressionOperator ShiftBitsRight = new ExpressionOperator();
+        public static readonly ExpressionOperator NullCoalescing = new ExpressionOperator();
+        public static readonly ExpressionOperator Cast = new ExpressionOperator();
+        public static readonly ExpressionOperator Indexing = new ExpressionOperator();
+        public static readonly ExpressionOperator IndexingWithNullConditional = new ExpressionOperator();
+
+        public override bool Equals(object obj)
+        {
+            if (obj is ExpressionOperator otherOperator)
+                return Equals(otherOperator);
+            else
+                return OperatorValue.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return OperatorValue.GetHashCode();
+        }
+
+        public bool Equals(ExpressionOperator otherOperator)
+        {
+           return otherOperator!= null && OperatorValue == otherOperator.OperatorValue;
+        }
+    }
+
 
     public partial class ClassOrEnumType
     {
@@ -3388,6 +3422,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         public ExpressionEvaluatorSyntaxErrorException(string message) : base(message)
         { }
+
         public ExpressionEvaluatorSyntaxErrorException(string message, Exception innerException) : base(message, innerException)
         { }
     }
@@ -3399,6 +3434,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         public ExpressionEvaluatorSecurityException(string message) : base(message)
         { }
+
         public ExpressionEvaluatorSecurityException(string message, Exception innerException) : base(message, innerException)
         { }
     }
