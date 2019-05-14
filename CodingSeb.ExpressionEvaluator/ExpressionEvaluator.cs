@@ -2629,7 +2629,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         ExpressionOperator eOp = operatorEvalutationsDict.Keys.ToList()[opi];
 
-                        if ((list[i] as ExpressionOperator ) == eOp)
+                        if ((list[i] as ExpressionOperator) == eOp)
                         {
                             if (rightOperandOnlyOperatorsEvaluationDictionary.ContainsKey(eOp))
                             {
@@ -2648,7 +2648,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
                                 list.RemoveAt(i + 1);
                                 list.RemoveAt(i - 1);
-                                i -= 1;
+                                i--;
                                 break;
                             }
                         }
@@ -3370,11 +3370,6 @@ namespace CodingSeb.ExpressionEvaluator
         {
             indexer++;
             OperatorValue = indexer;
-        }
-
-        protected ExpressionOperator(uint value)
-        {
-            OperatorValue = value;
         }
 
         protected uint OperatorValue { get; }
