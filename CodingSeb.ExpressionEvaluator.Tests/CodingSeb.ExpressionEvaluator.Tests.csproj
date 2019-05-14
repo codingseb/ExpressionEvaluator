@@ -36,6 +36,9 @@
     <Compile Update="TestsUtils\StructForTest2.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="TestsUtils\XExpressionEvaluator1.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CodingSeb.ExpressionEvaluator\CodingSeb.ExpressionEvaluator.csproj" />

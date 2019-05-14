@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.7.2 
+    Version : 1.3.7.3 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -169,6 +169,9 @@ namespace CodingSeb.ExpressionEvaluator
             { 'v', '\v' }
         };
 
+        /// <summary>
+        /// OperatorsDictionaryInit() for values
+        /// </summary>
         protected IDictionary<string, ExpressionOperator> operatorsDictionary = new Dictionary<string, ExpressionOperator>(StringComparer.Ordinal)
         {
             { "+", ExpressionOperator.Plus },
@@ -834,18 +837,18 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Constructors
+        #region Constructors and overridable Inits methods
 
         /// <summary>
         /// Default Constructor
         /// </summary>
         public ExpressionEvaluator()
         {
-            Assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            AssembliesInit();
 
-            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
+            DefaultDecimalSeparatorInit();
 
-            CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
+            Init();
         }
 
         /// <summary>
@@ -856,6 +859,21 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Variables = variables;
         }
+
+        protected virtual void AssembliesInit()
+        {
+            Assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+        }
+
+        protected virtual void DefaultDecimalSeparatorInit()
+        {
+            numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
+
+            CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
+        }
+
+        protected virtual void Init()
+        { }
 
         #endregion
 
@@ -1386,7 +1404,7 @@ namespace CodingSeb.ExpressionEvaluator
                     || EvaluateNumber(restOfExpression, stack, ref i)
                     || EvaluateInstanceCreationWithNewKeyword(expression, restOfExpression, stack, ref i)
                     || EvaluateVarOrFunc(expression, restOfExpression, stack, ref i)
-                    || EvaluateTwoCharsOperators(expression, stack, ref i)))
+                    || EvaluateOperators(expression, stack, ref i)))
                 {
                     string s = expression.Substring(i, 1);
 
@@ -1395,10 +1413,6 @@ namespace CodingSeb.ExpressionEvaluator
                         || EvaluateIndexing(expression, s, stack, ref i)
                         || EvaluateString(expression, s, restOfExpression, stack, ref i))
                     { }
-                    else if (operatorsDictionary.ContainsKey(s))
-                    {
-                        stack.Push(operatorsDictionary[s]);
-                    }
                     else if (s.Equals("?"))
                     {
                         bool condition = (bool)ProcessStack(stack);
@@ -1443,9 +1457,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Sub parts evaluate methods (private)
+        #region Sub parts evaluate methods (protected virtual)
 
-        private bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateCast(string restOfExpression, Stack<object> stack, ref int i)
         {
             Match castMatch = Regex.Match(restOfExpression, CastRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
@@ -1467,7 +1481,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        private bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateNumber(string restOfExpression, Stack<object> stack, ref int i)
         {
             Match numberMatch = Regex.Match(restOfExpression, numberRegexPattern, RegexOptions.IgnoreCase);
             Match otherBaseMatch = otherBasesNumberRegex.Match(restOfExpression);
@@ -1532,7 +1546,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private bool EvaluateInstanceCreationWithNewKeyword(string expr, string restOfExpression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateInstanceCreationWithNewKeyword(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
             if (!OptionNewKeywordEvaluationActive)
                 return false;
@@ -1704,8 +1718,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-
-        private bool EvaluateVarOrFunc(string expr, string restOfExpression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateVarOrFunc(string expr, string restOfExpression, Stack<object> stack, ref int i)
         {
             Match varFuncMatch = varOrFunctionRegEx.Match(restOfExpression);
 
@@ -2238,7 +2251,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private bool EvaluateChar(string expr, string s, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateChar(string expr, string s, Stack<object> stack, ref int i)
         {
             if (!OptionCharEvaluationActive)
                 return false;
@@ -2287,23 +2300,27 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private bool EvaluateTwoCharsOperators(string expr, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateOperators(string expr, Stack<object> stack, ref int i)
         {
-            if (i < expr.Length - 1)
+            string regexPattern = "^(" + string.Join("|", operatorsDictionary
+                .Keys
+                .OrderByDescending(key => key.Length)
+                .Select(Regex.Escape)) + ")";
+
+            Match match = Regex.Match(expr.Substring(i), regexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+
+            if(match.Success)
             {
-                string op = expr.Substring(i, 2);
-                if (operatorsDictionary.ContainsKey(op))
-                {
-                    stack.Push(operatorsDictionary[op]);
-                    i++;
-                    return true;
-                }
+                string op = match.Value;
+                stack.Push(operatorsDictionary[op]);
+                i+= op.Length - 1;
+                return true;
             }
 
             return false;
         }
 
-        private bool EvaluateParenthis(string expr, string s, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateParenthis(string expr, string s, Stack<object> stack, ref int i)
         {
             if (s.Equals(")"))
                 throw new Exception($"To much ')' characters are defined in expression : [{expr}] : no corresponding '(' fund.");
@@ -2335,7 +2352,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        private void CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(Stack<object> stack)
+        protected virtual void CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(Stack<object> stack)
         {
             if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || op == ExpressionOperator.Minus))
             {
@@ -2352,7 +2369,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private bool EvaluateIndexing(string expr, string s, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateIndexing(string expr, string s, Stack<object> stack, ref int i)
         {
             if (!OptionIndexingActive)
                 return false;
@@ -2468,7 +2485,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        private bool EvaluateString(string expr, string s, string restOfExpression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateString(string expr, string s, string restOfExpression, Stack<object> stack, ref int i)
         {
             if (!OptionStringEvaluationActive)
                 return false;
@@ -2598,7 +2615,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region ProcessStack
 
-        private object ProcessStack(Stack<object> stack)
+        protected virtual object ProcessStack(Stack<object> stack)
         {
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
@@ -2930,7 +2947,7 @@ namespace CodingSeb.ExpressionEvaluator
             return currentScript;
         }
 
-        private List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expr, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
+        protected List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expr, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
         {
             List<string> expressionsList = new List<string>();
 
