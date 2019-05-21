@@ -198,14 +198,14 @@ namespace CodingSeb.ExpressionEvaluator
             { "??", ExpressionOperator.NullCoalescing },
         };
 
-        protected static readonly IDictionary<ExpressionOperator, bool> leftOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>();
+        protected static readonly IList<ExpressionOperator> leftOperandOnlyOperatorsEvaluationDictionary = new List<ExpressionOperator>();
 
-        protected static readonly IDictionary<ExpressionOperator, bool> rightOperandOnlyOperatorsEvaluationDictionary = new Dictionary<ExpressionOperator, bool>()
+        protected static readonly IList<ExpressionOperator> rightOperandOnlyOperatorsEvaluationDictionary = new List<ExpressionOperator>()
         {
-            {ExpressionOperator.LogicalNegation, true },
-            {ExpressionOperator.BitwiseComplement, true },
-            {ExpressionOperator.UnaryPlus, true },
-            {ExpressionOperator.UnaryMinus, true }
+            ExpressionOperator.LogicalNegation,
+            ExpressionOperator.BitwiseComplement,
+            ExpressionOperator.UnaryPlus,
+            ExpressionOperator.UnaryMinus
         };
 
         protected static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
@@ -2631,13 +2631,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if ((list[i] as ExpressionOperator) == eOp)
                         {
-                            if (rightOperandOnlyOperatorsEvaluationDictionary.ContainsKey(eOp))
+                            if (rightOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
                                 list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
                                 list.RemoveAt(i - 1);
                                 break;
                             }
-                            else if (leftOperandOnlyOperatorsEvaluationDictionary.ContainsKey(eOp))
+                            else if (leftOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
                                 list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
                                 list.RemoveAt(i + 1);
@@ -3362,6 +3362,8 @@ namespace CodingSeb.ExpressionEvaluator
 
     #region ExpressionEvaluator linked public classes (specific Exceptions, EventArgs and Operators)
 
+    #region Operators Management
+
     public partial class ExpressionOperator : IEquatable<ExpressionOperator>
     {
         protected static uint indexer = 0;
@@ -3421,6 +3423,64 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    public static partial class OperatorsEvaluationsExtensions
+    {
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtLevelOf(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, ExpressionOperator levelOfThisOperator)
+        {
+            operatorsEvaluations
+                .First(dict => dict.ContainsKey(levelOfThisOperator))
+                .Add(operatorToAdd, evaluation);
+
+            return operatorsEvaluations;
+        }
+
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtLevel(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, int level)
+        {
+            operatorsEvaluations[level]
+                .Add(operatorToAdd, evaluation);
+
+            return operatorsEvaluations;
+        }
+
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtNewLevelAfter(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, ExpressionOperator levelOfThisOperator)
+        {
+            int level = operatorsEvaluations
+                .IndexOf(operatorsEvaluations.First(dict => dict.ContainsKey(levelOfThisOperator)));
+
+            operatorsEvaluations
+                .Insert(level + 1, new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> { { operatorToAdd, evaluation } });
+
+            return operatorsEvaluations;
+        }
+
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtNewLevelBefore(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, ExpressionOperator levelOfThisOperator)
+        {
+            int level = operatorsEvaluations
+                .IndexOf(operatorsEvaluations.First(dict => dict.ContainsKey(levelOfThisOperator)));
+
+            operatorsEvaluations
+                .Insert(level, new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> { { operatorToAdd, evaluation } });
+
+            return operatorsEvaluations;
+        }
+
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtNewLevel(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, int level)
+        {
+            operatorsEvaluations
+                .Insert(level, new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>> { { operatorToAdd, evaluation } });
+
+            return operatorsEvaluations;
+        }
+
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> RemoveOperatorEvaluation(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToRemove)
+        {
+            operatorsEvaluations.First(dict => dict.ContainsKey(operatorToRemove)).Remove(operatorToRemove);
+
+            return operatorsEvaluations;
+        }
+    }
+
+    #endregion
 
     public partial class ClassOrEnumType
     {

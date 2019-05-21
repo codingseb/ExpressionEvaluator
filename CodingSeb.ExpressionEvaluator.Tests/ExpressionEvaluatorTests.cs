@@ -1828,7 +1828,43 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
+                XExpressionEvaluator2.StaticInit();
+                ExpressionEvaluator xExpressionEvaluator2 = new XExpressionEvaluator2();
 
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "1#", null)
+                    .Returns(1)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2#", null)
+                    .Returns(0.25)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "-4# - 6", null)
+                    .Returns(250)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "1 love 2", null)
+                    .Returns(6)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "1 love 2 >> 1", null)
+                    .Returns(3)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
 
 
                 #endregion
