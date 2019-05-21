@@ -208,6 +208,10 @@ namespace CodingSeb.ExpressionEvaluator
             ExpressionOperator.UnaryMinus
         };
 
+        protected virtual IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;
+        protected virtual IList<ExpressionOperator> RightOperandOnlyOperatorsEvaluationDictionary => rightOperandOnlyOperatorsEvaluationDictionary;
+        protected virtual IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> OperatorsEvaluations => operatorsEvaluations;
+
         protected static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
             new List<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
         {
@@ -1287,7 +1291,6 @@ namespace CodingSeb.ExpressionEvaluator
                                 if (isContinue)
                                 {
                                     isContinue = false;
-                                    continue;
                                 }
                             }
                         }
@@ -1305,9 +1308,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                dynamic collection = Evaluate(foreachParenthisEvaluationMatch.Groups["collection"].Value);
-
-                                foreach (dynamic foreachValue in collection)
+                                foreach (dynamic foreachValue in (dynamic)Evaluate(foreachParenthisEvaluationMatch.Groups["collection"].Value))
                                 {
                                     Variables[foreachParenthisEvaluationMatch.Groups["variableName"].Value] = foreachValue;
 
@@ -1847,7 +1848,9 @@ namespace CodingSeb.ExpressionEvaluator
                                                     stack.Push(functionEvaluationEventArg.Value);
                                                 }
                                                 else
+                                                {
                                                     throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+                                                }
                                             }
                                         }
                                     }
@@ -2029,7 +2032,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             {
                                                 ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
 
-                                                varValue = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
+                                                varValue = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
                                             }
                                             else
                                             {
@@ -2137,7 +2140,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
 
-                                        cusVarValueToPush = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
+                                        cusVarValueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
                                     }
                                     else
                                     {
@@ -2455,9 +2458,9 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             ExpressionOperator prefixOp = operatorsDictionary[assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Value];
 
-                            valueToPush = operatorsEvaluations[0][op](left, right);
+                            valueToPush = OperatorsEvaluations[0][op](left, right);
 
-                            valueToPush = operatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
+                            valueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
                         }
                         else
                         {
@@ -2474,7 +2477,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    valueToPush = operatorsEvaluations[0][op](left, right);
+                    valueToPush = OperatorsEvaluations[0][op](left, right);
                 }
 
                 stack.Push(valueToPush);
@@ -2621,7 +2624,7 @@ namespace CodingSeb.ExpressionEvaluator
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
                 .ToList();
 
-            operatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
+            OperatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
             {
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
@@ -2631,13 +2634,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if ((list[i] as ExpressionOperator) == eOp)
                         {
-                            if (rightOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
+                            if (RightOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
                                 list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
                                 list.RemoveAt(i - 1);
                                 break;
                             }
-                            else if (leftOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
+                            else if (LeftOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
                                 list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
                                 list.RemoveAt(i + 1);
@@ -2708,6 +2711,7 @@ namespace CodingSeb.ExpressionEvaluator
         #region Utils methods for parsing and interpretation
 
         private delegate dynamic InternalDelegate(params dynamic[] args);
+
         private bool GetLambdaExpression(string expr, Stack<object> stack)
         {
             Match lambdaExpressionMatch = lambdaExpressionRegex.Match(expr);
@@ -3264,6 +3268,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 this.lambda = lambda;
             }
+
             public DelegateEncaps(object target, MethodInfo methodInfo)
             {
                 this.target = target;
@@ -3280,66 +3285,82 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return (TResult)lambda();
             }
+
             public TResult Func1<T, TResult>(T arg)
             {
                 return (TResult)lambda(arg);
             }
+
             public TResult Func2<T1, T2, TResult>(T1 arg1, T2 arg2)
             {
                 return (TResult)lambda(arg1, arg2);
             }
+
             public TResult Func3<T1, T2, T3, TResult>(T1 arg1, T2 arg2, T3 arg3)
             {
                 return (TResult)lambda(arg1, arg2, arg3);
             }
+
             public TResult Func4<T1, T2, T3, T4, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4);
             }
+
             public TResult Func5<T1, T2, T3, T4, T5, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5);
             }
+
             public TResult Func6<T1, T2, T3, T4, T5, T6, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6);
             }
+
             public TResult Func7<T1, T2, T3, T4, T5, T6, T7, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             }
+
             public TResult Func8<T1, T2, T3, T4, T5, T6, T7, T8, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             }
+
             public TResult Func9<T1, T2, T3, T4, T5, T6, T7, T8, T9, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
             }
+
             public TResult Func10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
             }
+
             public TResult Func11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
             }
+
             public TResult Func12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
             }
+
             public TResult Func13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
             }
+
             public TResult Func14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
             }
+
             public TResult Func15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
             }
+
             public TResult Func16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, TResult>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16)
             {
                 return (TResult)lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
@@ -3425,6 +3446,13 @@ namespace CodingSeb.ExpressionEvaluator
 
     public static partial class OperatorsEvaluationsExtensions
     {
+        public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> Copy(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations)
+        {
+            return (IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>)operatorsEvaluations
+                .Select(dic => (IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>)new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>(dic))
+                .ToList();
+        }
+
         public static IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> AddOperatorEvaluationAtLevelOf(this IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations, ExpressionOperator operatorToAdd, Func<dynamic, dynamic, object> evaluation, ExpressionOperator levelOfThisOperator)
         {
             operatorsEvaluations
@@ -3477,6 +3505,20 @@ namespace CodingSeb.ExpressionEvaluator
             operatorsEvaluations.First(dict => dict.ContainsKey(operatorToRemove)).Remove(operatorToRemove);
 
             return operatorsEvaluations;
+        }
+
+        public static IList<ExpressionOperator> FluidAdd(this IList<ExpressionOperator> listOfOperator, ExpressionOperator operatorToAdd)
+        {
+            listOfOperator.Add(operatorToAdd);
+
+            return listOfOperator;
+        }
+
+        public static IList<ExpressionOperator> FluidRemove(this IList<ExpressionOperator> listOfOperator, ExpressionOperator operatorToRemove)
+        {
+            listOfOperator.Remove(operatorToRemove);
+
+            return listOfOperator;
         }
     }
 

@@ -1526,7 +1526,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Options")
                     .SetCategory("Integer Numbers default types");
 
-
                 yield return new TestCaseData(new ExpressionEvaluator
                     {
                         OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
@@ -1604,9 +1603,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 void VariableEval(object sender, VariableEvaluationEventArg e)
                 {
                     if (e.Name.Equals("GetSpecifiedGenericTypesVar"))
+                    {
                         e.Value = e.EvaluateGenericTypes();
+                    }
                     else if (e.Name.Equals("myvar2"))
+                    {
                         e.Value = 50;
+                    }
                     else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticVar"))
                     {
                         e.Value = 10;
@@ -1616,7 +1619,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 void FunctionEval(object sender, FunctionEvaluationEventArg e)
                 {
                     if (e.Name.Equals("GetSpecifiedGenericTypesFunc"))
+                    {
                         e.Value = e.EvaluateGenericTypes();
+                    }
                     else if (e.This is ClassOrEnumType classOrTypeName && classOrTypeName.Type == typeof(ClassForTest1) && e.Name.Equals("OnTheFlyStaticFunc"))
                     {
                         e.Value = 8;
@@ -1814,7 +1819,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
-
                 yield return new TestCaseData(xExpressionEvaluator1
                     , "true || true"
                     , new Func<Exception, object> (exception =>
@@ -1828,7 +1832,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
-                XExpressionEvaluator2.StaticInit();
                 ExpressionEvaluator xExpressionEvaluator2 = new XExpressionEvaluator2();
 
                 yield return new TestCaseData(xExpressionEvaluator2
@@ -1866,7 +1869,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
-
                 #endregion
 
                 #region bug resolution
@@ -1882,7 +1884,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         #endregion
-
 
         [TestCaseSource(nameof(TestCasesEvaluateWithSpecificEvaluator))]
         public object EvaluateWithSpecificEvaluator(ExpressionEvaluator evaluator, string expression, Func<Exception, object> inCaseOfException)

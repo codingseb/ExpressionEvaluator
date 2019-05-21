@@ -1,17 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
     public class XExpressionEvaluator2 : ExpressionEvaluator
     {
-        public static void StaticInit()
-        {
-            leftOperandOnlyOperatorsEvaluationDictionary.Add(XExpressionOperator2.Sharp);
+        protected new static readonly IList<ExpressionOperator> leftOperandOnlyOperatorsEvaluationDictionary =
+            ExpressionEvaluator.leftOperandOnlyOperatorsEvaluationDictionary
+                .ToList()
+                .FluidAdd(XExpressionOperator2.Sharp);
 
-            operatorsEvaluations
+        //protected new static readonly IList<ExpressionOperator> rightOperandOnlyOperatorsEvaluationDictionary = new List<ExpressionOperator>(ExpressionEvaluator.rightOperandOnlyOperatorsEvaluationDictionary);
+
+        protected new static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
+            ExpressionEvaluator.operatorsEvaluations
+                .Copy()
                 .AddOperatorEvaluationAtNewLevelAfter(XExpressionOperator2.Sharp, (left, _) => Math.Pow(left, -left), ExpressionOperator.UnaryPlus)
                 .AddOperatorEvaluationAtLevelOf(XExpressionOperator2.Love, (left, right) => (left | right) << 1, ExpressionOperator.ShiftBitsLeft);
-        }
+
+        protected override IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;
+        protected override IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> OperatorsEvaluations => operatorsEvaluations;
 
         protected override void Init()
         {
