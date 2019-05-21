@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.3.7.3 
+    Version : 1.3.7.4 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -883,6 +883,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Main evaluate methods (Expressions and scripts ==> public)
 
+        #region Scripts
+
         protected bool inScript;
 
         /// <summary>
@@ -1370,6 +1372,10 @@ namespace CodingSeb.ExpressionEvaluator
                 throw new ExpressionEvaluatorSyntaxErrorException("No [return] keyword found");
         }
 
+        #endregion
+
+        #region Expressions
+
         /// <summary>
         /// Evaluate the specified math or pseudo C# expression
         /// </summary>
@@ -1381,6 +1387,22 @@ namespace CodingSeb.ExpressionEvaluator
             return (T)Evaluate(expression);
         }
 
+        private IList<ParsingMethodDelegate> parsingMethods;
+
+        protected virtual IList<ParsingMethodDelegate> ParsingMethods  => parsingMethods ?? (parsingMethods = new List<ParsingMethodDelegate>()
+        {
+            EvaluateCast,
+            EvaluateNumber,
+            EvaluateInstanceCreationWithNewKeyword,
+            EvaluateVarOrFunc,
+            EvaluateOperators,
+            EvaluateChar,
+            EvaluateParenthis,
+            EvaluateIndexing,
+            EvaluateString,
+            EvaluateTernaryConditionalOperator,
+        });
+
         /// <summary>
         /// Evaluate the specified math or pseudo C# expression
         /// </summary>
@@ -1388,8 +1410,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The result of the operation if syntax is correct</returns>
         public object Evaluate(string expression)
         {
-            bool continueEvaluation = true;
-
             expression = expression.Trim();
 
             Stack<object> stack = new Stack<object>();
@@ -1397,55 +1417,13 @@ namespace CodingSeb.ExpressionEvaluator
             if (GetLambdaExpression(expression, stack))
                 return stack.Pop();
 
-            for (int i = 0; i < expression.Length && continueEvaluation; i++)
+            for (int i = 0; i < expression.Length; i++)
             {
-                if (!(EvaluateCast(expression, stack, ref i)
-                    || EvaluateNumber(expression, stack, ref i)
-                    || EvaluateInstanceCreationWithNewKeyword(expression, stack, ref i)
-                    || EvaluateVarOrFunc(expression, stack, ref i)
-                    || EvaluateOperators(expression, stack, ref i)
-                    || EvaluateChar(expression, stack, ref i)
-                    || EvaluateParenthis(expression, stack, ref i)
-                    || EvaluateIndexing(expression, stack, ref i)
-                    || EvaluateString(expression, stack, ref i)))
+                if (!ParsingMethods.Any(m => m(expression, stack, ref i)))
                 {
                     string s = expression.Substring(i, 1);
 
-                    if (s.Equals("?"))
-                    {
-                        bool condition = (bool)ProcessStack(stack);
-
-                        string restOfExpression = expression.Substring(i);
-
-                        for (int j = 1; j < restOfExpression.Length; j++)
-                        {
-                            string s2 = restOfExpression.Substring(j, 1);
-
-                            Match internalStringMatch = stringBeginningRegex.Match(restOfExpression.Substring(j));
-
-                            if (internalStringMatch.Success)
-                            {
-                                string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(restOfExpression.Substring(j + internalStringMatch.Length), internalStringMatch);
-                                j += innerString.Length - 1;
-                            }
-                            else if (s2.Equals("("))
-                            {
-                                j++;
-                                GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
-                            }
-                            else if (s2.Equals(":"))
-                            {
-                                stack.Clear();
-
-                                stack.Push(condition ? Evaluate(restOfExpression.Substring(1, j - 1)) : Evaluate(restOfExpression.Substring(j + 1)));
-
-                                continueEvaluation = false;
-
-                                break;
-                            }
-                        }
-                    }
-                    else if (!s.Trim().Equals(string.Empty))
+                    if (!s.Trim().Equals(string.Empty))
                     {
                         throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
                     }
@@ -1454,6 +1432,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             return ProcessStack(stack);
         }
+
+        #endregion
 
         #endregion
 
@@ -2320,6 +2300,46 @@ namespace CodingSeb.ExpressionEvaluator
                 stack.Push(operatorsDictionary[op]);
                 i+= op.Length - 1;
                 return true;
+            }
+
+            return false;
+        }
+
+        protected virtual bool EvaluateTernaryConditionalOperator(string expression, Stack<object> stack, ref int i)
+        {
+            if (expression.Substring(i, 1).Equals("?"))
+            {
+                bool condition = (bool)ProcessStack(stack);
+
+                string restOfExpression = expression.Substring(i);
+
+                for (int j = 1; j < restOfExpression.Length; j++)
+                {
+                    string s2 = restOfExpression.Substring(j, 1);
+
+                    Match internalStringMatch = stringBeginningRegex.Match(restOfExpression.Substring(j));
+
+                    if (internalStringMatch.Success)
+                    {
+                        string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(restOfExpression.Substring(j + internalStringMatch.Length), internalStringMatch);
+                        j += innerString.Length - 1;
+                    }
+                    else if (s2.Equals("("))
+                    {
+                        j++;
+                        GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
+                    }
+                    else if (s2.Equals(":"))
+                    {
+                        stack.Clear();
+
+                        stack.Push(condition ? Evaluate(restOfExpression.Substring(1, j - 1)) : Evaluate(restOfExpression.Substring(j + 1)));
+
+                        i = expression.Length;
+
+                        return true;
+                    }
+                }
             }
 
             return false;

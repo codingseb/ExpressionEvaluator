@@ -13,35 +13,19 @@
     <PackageReference Include="Shouldly" Version="3.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="OthersTests.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Update="OthersTests.cs" />
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Update="TestsUtils\ClassStructContainer.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\StructForTest3.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\StructForTest1.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\StructForTest4.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\StructForTest2.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\XExpressionEvaluator2.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="TestsUtils\XExpressionEvaluator1.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Update="TestsUtils\ClassStructContainer.cs" />
+    <Compile Update="TestsUtils\StructForTest3.cs" />
+    <Compile Update="TestsUtils\StructForTest1.cs" />
+    <Compile Update="TestsUtils\StructForTest4.cs" />
+    <Compile Update="TestsUtils\StructForTest2.cs" />
+    <Compile Update="TestsUtils\XExpressionEvaluator2.cs" />
+    <Compile Update="TestsUtils\XExpressionEvaluator1.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CodingSeb.ExpressionEvaluator\CodingSeb.ExpressionEvaluator.csproj" />
