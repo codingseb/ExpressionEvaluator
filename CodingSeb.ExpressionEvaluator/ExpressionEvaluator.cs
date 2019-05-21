@@ -2714,6 +2714,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils methods for parsing and interpretation
 
+        protected delegate bool ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
+
         protected delegate dynamic InternalDelegate(params dynamic[] args);
 
         protected virtual bool GetLambdaExpression(string expression, Stack<object> stack)
