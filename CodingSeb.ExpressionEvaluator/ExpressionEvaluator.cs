@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.0.0 
+    Version : 1.4.0.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -429,7 +429,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// if set to <c>true</c> use a cache for types that were resolved to resolve faster next time.
-        /// if set to <c>false</c> the cach of types resolution is not use for this instance of ExpressionEvaluator.
+        /// if set to <c>false</c> the cache of types resolution is not use for this instance of ExpressionEvaluator.
         /// Default : false
         /// the cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
         /// </summary>
