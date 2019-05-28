@@ -1219,6 +1219,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region var keyword
+
+                yield return new TestCaseData(Resources.Script0060, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("var keyword")
+                    .SetCategory("=")
+                    .Returns("A text for 4 test");
+
+                #endregion
+
                 #region More complex script
 
                 yield return new TestCaseData(Resources.Script0007, null, null, null)

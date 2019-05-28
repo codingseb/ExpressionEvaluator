@@ -1,0 +1,5 @@
+﻿/* Script0060 */
+var x = 4;
+var textVar = "A text for {0} test";
+
+return string.Format(textVar, x);
