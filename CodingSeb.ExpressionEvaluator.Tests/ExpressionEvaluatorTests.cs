@@ -1740,6 +1740,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region inherits ExpressionEvaluator
 
+                #region Redefine existing operators
+
                 ExpressionEvaluator xExpressionEvaluator1 = new XExpressionEvaluator1();
 
                 yield return new TestCaseData(xExpressionEvaluator1
@@ -1832,6 +1834,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
+                #endregion
+
+                #region Add your own simple operators
+
                 ExpressionEvaluator xExpressionEvaluator2 = new XExpressionEvaluator2();
 
                 yield return new TestCaseData(xExpressionEvaluator2
@@ -1868,6 +1874,54 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("ExpressionEvaluator extend")
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
+
+                #endregion
+
+                #region Add a complex operator or change the parsing process
+
+                ExpressionEvaluator xExpressionEvaluator3 = new XExpressionEvaluator3();
+
+                yield return new TestCaseData(xExpressionEvaluator3
+                    , "\"A sentence where a word must be replaced where it is\" ° \"replaced\" @ \"kept\"", null)
+                    .Returns("A sentence where a word must be kept where it is")
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators")
+                    .SetCategory("Custom parsing");
+
+                yield return new TestCaseData(xExpressionEvaluator3
+                    , "#1985-09-11.Year", null)
+                    .Returns(1985)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom syntax")
+                    .SetCategory("Custom parsing");
+
+                yield return new TestCaseData(xExpressionEvaluator3
+                    , "#1985-09-11.Month", null)
+                    .Returns(9)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom syntax")
+                    .SetCategory("Custom parsing");
+
+                yield return new TestCaseData(xExpressionEvaluator3
+                    , "#1985-09-11.Day", null)
+                    .Returns(11)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom syntax")
+                    .SetCategory("Custom parsing");
+
+                yield return new TestCaseData(xExpressionEvaluator3
+                    , "#1985-09-11.Equals(new DateTime(1985,9,11))", null)
+                    .Returns(true)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom syntax")
+                    .SetCategory("Custom parsing");
+
+                #endregion
 
                 #endregion
 

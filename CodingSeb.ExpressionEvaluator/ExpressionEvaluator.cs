@@ -2311,9 +2311,9 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 bool condition = (bool)ProcessStack(stack);
 
-                string restOfExpression = expression.Substring(i);
+                string restOfExpression = expression.Substring(i + 1);
 
-                for (int j = 1; j < restOfExpression.Length; j++)
+                for (int j = 0; j < restOfExpression.Length; j++)
                 {
                     string s2 = restOfExpression.Substring(j, 1);
 
