@@ -31,6 +31,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Create instance with [new(MyClassName, constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-Functions#standard-functions) or [new MyClassName(constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#standard-operators)
 * [Call void methods with fluid prefix convention to chain operations](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-Functions#go-fluid-with-a-simple-methods-prefixing-convention)
 * Manage [ExpandoObject](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpandoObject)
+* [Create custom Operators or change the parsing process](https://github.com/codingseb/ExpressionEvaluator/wiki/Advanced-Customization-and-Hacking)
 
 ## And with [ScriptEvaluate](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started#small-scripts) method
 * Small C# like script evaluation (Multi expressions separated by ; )
