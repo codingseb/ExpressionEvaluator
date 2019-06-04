@@ -120,6 +120,10 @@ namespace TryWindow
                 {
                     e.Value = JsonConvert.SerializeObject(e.This.GetType().GetProperties().Select(m => m.Name));
                 }
+                else if (e.Name.Equals("FieldsNames"))
+                {
+                    e.Value = JsonConvert.SerializeObject(e.This.GetType().GetFields().Select(m => m.Name));
+                }
             }
         }
 
