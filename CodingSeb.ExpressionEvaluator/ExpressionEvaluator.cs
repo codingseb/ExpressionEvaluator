@@ -382,7 +382,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "new", (self, args) =>
                 {
                     List<object> cArgs = args.ConvertAll(self.Evaluate);
-                    return Activator.CreateInstance((cArgs[0] as ClassOrEnumType).Type, cArgs.Skip(1).ToArray());
+                    return cArgs[0] is ClassOrEnumType classOrEnumType ? Activator.CreateInstance(classOrEnumType.Type, cArgs.Skip(1).ToArray()) : null;
                 }
             },
             { "Round", (self, args) =>
@@ -433,7 +433,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// Default : false
         /// the cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
         /// </summary>
-        public bool CacheTypesResolutions { get; set; } = false;
+        public bool CacheTypesResolutions { get; set; }
 
         /// <summary>
         /// A shared cache for types resolution.
@@ -1777,17 +1777,20 @@ namespace CodingSeb.ExpressionEvaluator
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
 
                                         // if not found check if obj is an expandoObject or similar
-                                        if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
+                                        if (obj is IDynamicMetaObjectProvider
+                                            && obj is IDictionary<string, object> dictionaryObject
+                                            && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
                                         {
                                             if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
                                                 stack.Push(internalDelegate(oArgs.ToArray()));
-                                            else
-                                                stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                            else if(dictionaryObject[varFuncName] is Delegate del)
+                                                stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
-                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
+                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate))
+                                            && instancePropertyInfo.GetValue(obj) is Delegate del)
                                         {
-                                            stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                            stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else
                                         {
@@ -1813,9 +1816,10 @@ namespace CodingSeb.ExpressionEvaluator
                                                 stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
                                             }
                                             else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
-                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
+                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
+                                            && staticPropertyInfo.GetValue(obj) is Delegate del2)
                                             {
-                                                stack.Push((staticPropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                                stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
                                             }
                                             else
                                             {
