@@ -1713,7 +1713,8 @@ namespace CodingSeb.ExpressionEvaluator
             && (!varFuncMatch.Groups["sign"].Success
                 || stack.Count == 0
                 || stack.Peek() is ExpressionOperator)
-            && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
+            && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim())
+            && (!operatorsDictionary.ContainsKey(varFuncMatch.Groups["name"].Value) || varFuncMatch.Groups["inObject"].Success))
             {
                 string varFuncName = varFuncMatch.Groups["name"].Value;
                 string genericsTypes = varFuncMatch.Groups["isgeneric"].Value;

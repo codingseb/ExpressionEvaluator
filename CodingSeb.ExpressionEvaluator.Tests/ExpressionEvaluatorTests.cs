@@ -1875,6 +1875,27 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "Not true", null)
+                    .Returns(false)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "Not(true)", null)
+                    .Returns(false)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "Not(1 == 1)", null)
+                    .Returns(false)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
                 #endregion
 
                 #region Add a complex operator or change the parsing process

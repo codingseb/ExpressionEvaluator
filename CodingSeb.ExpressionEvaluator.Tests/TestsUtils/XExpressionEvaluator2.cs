@@ -31,6 +31,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             operatorsDictionary.Add("#", XExpressionOperator2.Sharp);
             operatorsDictionary.Add("love", XExpressionOperator2.Love);
+            operatorsDictionary.Add("Not", ExpressionOperator.LogicalNegation);
         }
     }
 
