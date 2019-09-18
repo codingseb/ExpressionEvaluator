@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.0.0</Version>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
-    <FileVersion>1.4.0.0</FileVersion>
+    <Version>1.4.1.0</Version>
+    <AssemblyVersion>1.4.1.0</AssemblyVersion>
+    <FileVersion>1.4.1.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -18,16 +18,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Warning some breaking changes in the on the fly variables and function evaluations.
-Deep changes to allow more customization
-
-* Custom operators or custom expression parsing with inheritance
-* Manage &lt;&gt; in on the fly evaluations to evaluate generic types
-* 2 additional on the fly evaluation (Preevaluation)
-* optionally use var before variable assignation (For better copy paste with C# code)
-* option to globally cache namespaces and types resolution (to speed up multiple evaluation)
-* Correction of Array/collection indexing when using OptionForceIntegernumbersEvaluationsAsDoubleDyDefault=true
-* Some other corrections and refactorings</PackageReleaseNotes>
+    <PackageReleaseNotes>Correction of bug :
+* Added a righthandOperator 'Not' does not work</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
