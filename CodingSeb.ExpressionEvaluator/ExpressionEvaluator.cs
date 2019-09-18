@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.0.0 
+    Version : 1.4.1.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -382,7 +382,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "new", (self, args) =>
                 {
                     List<object> cArgs = args.ConvertAll(self.Evaluate);
-                    return Activator.CreateInstance((cArgs[0] as ClassOrEnumType).Type, cArgs.Skip(1).ToArray());
+                    return cArgs[0] is ClassOrEnumType classOrEnumType ? Activator.CreateInstance(classOrEnumType.Type, cArgs.Skip(1).ToArray()) : null;
                 }
             },
             { "Round", (self, args) =>
@@ -429,11 +429,11 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// if set to <c>true</c> use a cache for types that were resolved to resolve faster next time.
-        /// if set to <c>false</c> the cach of types resolution is not use for this instance of ExpressionEvaluator.
+        /// if set to <c>false</c> the cache of types resolution is not use for this instance of ExpressionEvaluator.
         /// Default : false
         /// the cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
         /// </summary>
-        public bool CacheTypesResolutions { get; set; } = false;
+        public bool CacheTypesResolutions { get; set; }
 
         /// <summary>
         /// A shared cache for types resolution.
@@ -1713,7 +1713,8 @@ namespace CodingSeb.ExpressionEvaluator
             && (!varFuncMatch.Groups["sign"].Success
                 || stack.Count == 0
                 || stack.Peek() is ExpressionOperator)
-            && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim()))
+            && !operatorsDictionary.ContainsKey(varFuncMatch.Value.Trim())
+            && (!operatorsDictionary.ContainsKey(varFuncMatch.Groups["name"].Value) || varFuncMatch.Groups["inObject"].Success))
             {
                 string varFuncName = varFuncMatch.Groups["name"].Value;
                 string genericsTypes = varFuncMatch.Groups["isgeneric"].Value;
@@ -1777,17 +1778,20 @@ namespace CodingSeb.ExpressionEvaluator
                                         MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
 
                                         // if not found check if obj is an expandoObject or similar
-                                        if (obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object> dictionaryObject && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
+                                        if (obj is IDynamicMetaObjectProvider
+                                            && obj is IDictionary<string, object> dictionaryObject
+                                            && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
                                         {
                                             if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
                                                 stack.Push(internalDelegate(oArgs.ToArray()));
-                                            else
-                                                stack.Push((dictionaryObject[varFuncName] as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                            else if(dictionaryObject[varFuncName] is Delegate del)
+                                                stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
-                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate)))
+                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate))
+                                            && instancePropertyInfo.GetValue(obj) is Delegate del)
                                         {
-                                            stack.Push((instancePropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                            stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else
                                         {
@@ -1813,9 +1817,10 @@ namespace CodingSeb.ExpressionEvaluator
                                                 stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
                                             }
                                             else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
-                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate)))
+                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
+                                            && staticPropertyInfo.GetValue(obj) is Delegate del2)
                                             {
-                                                stack.Push((staticPropertyInfo.GetValue(obj) as Delegate).DynamicInvoke(oArgs.ToArray()));
+                                                stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
                                             }
                                             else
                                             {

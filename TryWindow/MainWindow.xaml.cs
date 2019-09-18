@@ -45,6 +45,7 @@ namespace TryWindow
             evaluator.Namespaces.Add("System.Diagnostics");
 
             evaluator.EvaluateVariable += Evaluator_EvaluateVariable;
+            evaluator.EvaluateFunction += Evaluator_EvaluateFunction;
 
             Stopwatch stopWatch = new Stopwatch();
 
@@ -55,7 +56,7 @@ namespace TryWindow
                 Exception exception = null;
                 cancellationTokenSource = new CancellationTokenSource();
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                string result = await Task.Run<string>(() =>
+                string result = await Task.Run(() =>
                 {
                     if (!int.TryParse(sIteration, out int iterations))
                         iterations = 1;
@@ -104,6 +105,11 @@ namespace TryWindow
             CancelButton.IsEnabled = false;
         }
 
+        private void Evaluator_EvaluateFunction(object sender, FunctionEvaluationEventArg e)
+        {
+            
+        }
+
         private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
         {
             if (e.This != null)
@@ -119,6 +125,10 @@ namespace TryWindow
                 else if (e.Name.Equals("PropertiesNames"))
                 {
                     e.Value = JsonConvert.SerializeObject(e.This.GetType().GetProperties().Select(m => m.Name));
+                }
+                else if (e.Name.Equals("FieldsNames"))
+                {
+                    e.Value = JsonConvert.SerializeObject(e.This.GetType().GetFields().Select(m => m.Name));
                 }
             }
         }
