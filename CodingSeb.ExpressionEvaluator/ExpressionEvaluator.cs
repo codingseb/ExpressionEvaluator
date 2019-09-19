@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.1.0 
+    Version : 1.4.1.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1735,6 +1735,7 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = stack.Pop();
                             object keepObj = obj;
                             Type objType = null;
+                            Type[] inferedGenericsTypes = obj.GetType().GenericTypeArguments;
                             ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                             if (obj != null && TypesToBlock.Contains(obj.GetType()))
@@ -1775,7 +1776,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                         // Standard Instance or public method find
-                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes);
+                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes);
 
                                         // if not found check if obj is an expandoObject or similar
                                         if (obj is IDynamicMetaObjectProvider
@@ -1807,7 +1808,7 @@ namespace CodingSeb.ExpressionEvaluator
                                                 for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                                 {
                                                     Type type = StaticTypesForExtensionsMethods[e];
-                                                    methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes);
+                                                    methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes);
                                                     isExtention = methodInfo != null;
                                                 }
                                             }
@@ -2781,7 +2782,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes = "")
+        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes)
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
@@ -2790,7 +2791,7 @@ namespace CodingSeb.ExpressionEvaluator
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
                     || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes);
+                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -2818,7 +2819,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (methodInfo != null)
             {
-                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes);
+                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes, inferedGenericsTypes);
             }
             else
             {
@@ -2828,7 +2829,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes);
+                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes, inferedGenericsTypes);
 
                     bool parametersCastOK = true;
 
@@ -2891,14 +2892,25 @@ namespace CodingSeb.ExpressionEvaluator
             return methodInfo;
         }
 
-        protected virtual MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo, string genericsTypes = "")
+        protected virtual MethodInfo MakeConcreteMethodIfGeneric(MethodInfo methodInfo, string genericsTypes, Type[] inferedGenericsTypes)
         {
             if (methodInfo.IsGenericMethod)
             {
                 if (genericsTypes.Equals(string.Empty))
-                    return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Length).ToArray());
+                {
+                    if(inferedGenericsTypes != null && inferedGenericsTypes.Length == methodInfo.GetGenericArguments().Length)
+                    {
+                        return methodInfo.MakeGenericMethod(inferedGenericsTypes);
+                    }
+                    else
+                    {
+                        return methodInfo.MakeGenericMethod(Enumerable.Repeat(typeof(object), methodInfo.GetGenericArguments().Length).ToArray());
+                    }
+                }
                 else
+                {
                     return methodInfo.MakeGenericMethod(GetConcreteTypes(genericsTypes));
+                }
             }
 
             return methodInfo;

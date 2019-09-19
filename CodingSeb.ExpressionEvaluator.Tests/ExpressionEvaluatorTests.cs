@@ -957,6 +957,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("new List<string>().GetType()", ExpectedResult = typeof(List<string>), Category = "new Keyword, Generics")]
         [TestCase("new Dictionary<string,List<int>>().GetType()", ExpectedResult = typeof(Dictionary<string, List<int>>), Category = "new Keyword, Generics")]
 
+        // Linq and Types inference
+        [TestCase("new List<int>() { 1, 2, 3, 4 }.Where<int>(x => x > 2).Json", ExpectedResult = "[3,4]", Category = "Linq, Lambda, new Keyword, Generics")]
+        [TestCase("new List<int>() { 1, 2, 3, 4 }.Where(x => x > 2).Json", ExpectedResult = "[3,4]", Category = "Linq, Type inference, Lambda, new Keyword, Generics")]
+
         #endregion
 
         #region Complex expressions
