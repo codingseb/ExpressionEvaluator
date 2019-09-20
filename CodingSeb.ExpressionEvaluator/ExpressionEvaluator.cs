@@ -452,6 +452,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Assemblies, Namespaces and types lists
 
+        private static readonly IList<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+
         /// <summary>
         /// All assemblies needed to resolves Types
         /// by default all Assemblies loaded in the current AppDomain
@@ -866,7 +868,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual void AssembliesInit()
         {
-            Assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            Assemblies = assemblies;
         }
 
         protected virtual void DefaultDecimalSeparatorInit()
@@ -1419,7 +1421,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             for (int i = 0; i < expression.Length; i++)
             {
-                if (!ParsingMethods.Any(m => m(expression, stack, ref i)))
+                if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
                 {
                     string s = expression.Substring(i, 1);
 
