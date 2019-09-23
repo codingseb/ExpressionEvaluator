@@ -454,7 +454,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private static IList<Assembly> staticAssemblies;
         private IList<Assembly> assemblies;
-        
+
         /// <summary>
         /// All assemblies needed to resolves Types
         /// by default all Assemblies loaded in the current AppDomain
@@ -3154,7 +3154,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (result == null)
                 {
-                    result = Types.ToList().Find(type => type.Name.Equals(typeName, StringComparisonForCasing));
+                    result = Types.ToList().Find(type => type.Name.Equals(typeName, StringComparisonForCasing) || type.FullName.StartsWith(typeName + ","));
                 }
 
                 for (int a = 0; a < Assemblies.Count && result == null; a++)

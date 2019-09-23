@@ -1971,12 +1971,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             {
                 return evaluator.Evaluate(expression);
             }
-            catch (Exception exception)
+            catch (Exception exception) when (inCaseOfException != null)
             {
-                if (inCaseOfException == null)
-                    throw;
-                else
-                    return inCaseOfException(exception);
+                return inCaseOfException(exception);
             }
         }
 
