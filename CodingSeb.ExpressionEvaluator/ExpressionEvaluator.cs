@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.1.1 
+    Version : 1.4.1.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -452,13 +452,18 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Assemblies, Namespaces and types lists
 
-        private static readonly IList<Assembly> assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-
+        private static IList<Assembly> staticAssemblies;
+        private IList<Assembly> assemblies;
+        
         /// <summary>
         /// All assemblies needed to resolves Types
         /// by default all Assemblies loaded in the current AppDomain
         /// </summary>
-        public virtual IList<Assembly> Assemblies { get; set; } = new List<Assembly>();
+        public virtual IList<Assembly> Assemblies
+        {
+            get { return assemblies ?? (assemblies = staticAssemblies) ?? (assemblies = staticAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList()); }
+            set { assemblies = value; }
+        }
 
         /// <summary>
         /// All Namespaces Where to find types
@@ -850,8 +855,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public ExpressionEvaluator()
         {
-            AssembliesInit();
-
             DefaultDecimalSeparatorInit();
 
             Init();
@@ -864,11 +867,6 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator(IDictionary<string, object> variables) : this()
         {
             Variables = variables;
-        }
-
-        protected virtual void AssembliesInit()
-        {
-            Assemblies = assemblies;
         }
 
         protected virtual void DefaultDecimalSeparatorInit()
@@ -1363,8 +1361,6 @@ namespace CodingSeb.ExpressionEvaluator
             valueReturned = isReturn;
             breakCalled = isBreak;
             continueCalled = isContinue;
-
-            inScript = false;
 
             if (isReturn || OptionOnNoReturnKeywordFoundInScriptAction == OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression)
                 return lastResult;
@@ -2045,17 +2041,14 @@ namespace CodingSeb.ExpressionEvaluator
                                             {
                                                 dictionaryObject[varFuncName] = varValue;
                                             }
+                                            else if (valueTypeNestingTrace != null)
+                                            {
+                                                valueTypeNestingTrace.Value = varValue;
+                                                valueTypeNestingTrace.AssignValue();
+                                            }
                                             else
                                             {
-                                                if (valueTypeNestingTrace != null)
-                                                {
-                                                    valueTypeNestingTrace.Value = varValue;
-                                                    valueTypeNestingTrace.AssignValue();
-                                                }
-                                                else
-                                                {
-                                                    ((dynamic)member).SetValue(obj, varValue);
-                                                }
+                                                ((dynamic)member).SetValue(obj, varValue);
                                             }
                                         }
                                     }
@@ -2759,21 +2752,33 @@ namespace CodingSeb.ExpressionEvaluator
 
                 stack.Push(new InternalDelegate((object[] args) =>
                 {
-                    Dictionary<string, object> vars = new Dictionary<string, object>(Variables);
+                    var vars = new Dictionary<string, object>(variables);
 
                     for (int a = 0; a < argsNames.Count || a < args.Length; a++)
                     {
                         vars[argsNames[a]] = args[a];
                     }
 
-                    ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(vars);
+                    var savedVars = variables;
+                    Variables = vars;
 
                     string lambdaBody = lambdaExpressionMatch.Groups["expression"].Value.Trim();
 
+                    object result = null;
+
                     if (inScript && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
-                        return expressionEvaluator.ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
+                    {
+                        result = ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
+                        inScript = true;
+                    }
                     else
-                        return expressionEvaluator.Evaluate(lambdaExpressionMatch.Groups["expression"].Value);
+                    {
+                        result = Evaluate(lambdaExpressionMatch.Groups["expression"].Value);
+                    }
+
+                    variables = savedVars;
+
+                    return result;
                 }));
 
                 return true;
