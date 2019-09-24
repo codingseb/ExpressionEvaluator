@@ -1,0 +1,2 @@
+﻿/* Script0062 */
+var x = new List<int> {1,2,3,4}

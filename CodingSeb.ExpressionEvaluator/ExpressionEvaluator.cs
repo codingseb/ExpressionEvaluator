@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.2.0 
+    Version : 1.4.2.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -775,6 +775,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; } = OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression;
 
+        /// <summary>
+        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] after each expression.
+        /// If <c>false</c> Allow to omit the semicolon for the last expression of the script.
+        /// Default : true
+        /// </summary>
+        public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
+
         #endregion
 
         #region Reflection flags
@@ -1345,11 +1352,18 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         lastResult = ScriptExpressionEvaluate(ref i);
                     }
+                    else if (!OptionScriptNeedSemicolonAtTheEndOfLastExpression && i == script.Length - 1)
+                    {
+                        i++;
+                        lastResult = ScriptExpressionEvaluate(ref i);
+                        startOfExpression--;
+                    }
 
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                     tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
-                    i++;
+                    if (OptionScriptNeedSemicolonAtTheEndOfLastExpression || i < script.Length - 1)
+                        i++;
                 }
             }
 
