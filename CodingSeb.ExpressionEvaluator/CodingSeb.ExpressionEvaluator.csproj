@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.1.0</Version>
-    <AssemblyVersion>1.4.1.0</AssemblyVersion>
-    <FileVersion>1.4.1.0</FileVersion>
+    <Version>1.4.2.0</Version>
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+    <FileVersion>1.4.2.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,7 +19,11 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>Correction of bug :
-* Added a righthandOperator 'Not' does not work</PackageReleaseNotes>
+* In Lambda blocks did not keep options, namespaces and assemblies.
+
+Improvement
+* Easy and optimistic generic types inference
+* Default assemblies (all loaded assemblies) Loaded statically (for better perfs)</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
