@@ -2114,9 +2114,9 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             stack.Push(varValueToPush);
                         }
-                        else if (Variables.TryGetValue(varFuncName, out object cusVarValueToPush)
+                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush)
                                 || varFuncMatch.Groups["assignationOperator"].Success
-                                || stack.Count == 1 && stack.Peek() is ClassOrEnumType && string.IsNullOrWhiteSpace(expression.Substring(i))
+                                || (stack.Count == 1 && stack.Peek() is ClassOrEnumType && string.IsNullOrWhiteSpace(expression.Substring(i))))
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
                             if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum)
