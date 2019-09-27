@@ -1260,6 +1260,41 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Typed and dynamic variables
+
+                yield return new TestCaseData(Resources.Script0063, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("int")
+                    .SetCategory("=")
+                    .Returns(5);
+
+                yield return new TestCaseData(Resources.Script0064, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("float")
+                    .SetCategory("=")
+                    .Returns(5.5);
+
+                yield return new TestCaseData(Resources.Script0065, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("Dynamic variable")
+                    .SetCategory("dynamic")
+                    .SetCategory("=")
+                    .Returns(8);
+
+                yield return new TestCaseData(Resources.Script0066, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("string")
+                    .SetCategory("int")
+                    .SetCategory("for")
+                    .SetCategory("++")
+                    .SetCategory("=")
+                    .Returns("0,1,2,3,4,");
+
+                #endregion
+
                 #region More complex script
 
                 yield return new TestCaseData(Resources.Script0007, null, null, null, null)
@@ -1403,6 +1438,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug")
                     .SetCategory("Better Than C#")
                     .Returns("Result Hey 9, 5");
+
+                yield return new TestCaseData(Resources.Script0066, new ExpressionEvaluator { OptionScriptNeedSemicolonAtTheEndOfLastExpression = false }, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("string")
+                    .SetCategory("int")
+                    .SetCategory("for")
+                    .SetCategory("++")
+                    .SetCategory("=")
+                    .SetCategory("OptionScriptNeedSemicolonAtTheEndOfLastExpression")
+                    .Returns("0,1,2,3,4,");
 
                 #endregion
             }

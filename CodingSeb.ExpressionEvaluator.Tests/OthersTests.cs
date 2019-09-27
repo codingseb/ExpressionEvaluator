@@ -3,6 +3,7 @@ using Shouldly;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
+    [TestFixture]
     public class OthersTests
     {
         [Test]

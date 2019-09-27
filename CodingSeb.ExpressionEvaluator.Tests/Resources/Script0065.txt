@@ -1,0 +1,4 @@
+﻿/* Script0065 */
+dynamic x = 6;
+
+return x + 2;
