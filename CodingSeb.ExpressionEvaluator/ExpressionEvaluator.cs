@@ -2114,10 +2114,12 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             stack.Push(varValueToPush);
                         }
-                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
-                            && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
+                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) 
+                                || varFuncMatch.Groups["assignationOperator"].Success
+                                || (stack.Count == 1 && stack.Peek() is ClassOrEnumType && string.IsNullOrWhiteSpace(expression.Substring(i)))
+                            && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType()))))
                         {
-                            if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum && varFuncMatch.Groups["assignationOperator"].Success)
+                            if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum)
                             {
                                 stack.Pop();
 
