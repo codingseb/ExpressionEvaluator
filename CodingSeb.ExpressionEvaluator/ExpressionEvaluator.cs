@@ -2117,18 +2117,19 @@ namespace CodingSeb.ExpressionEvaluator
                         else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
-                            StronglyTypedVariable stronglyTypedVariable;
-
                             if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum && varFuncMatch.Groups["assignationOperator"].Success)
                             {
                                 stack.Pop();
 
-                                stronglyTypedVariable = new StronglyTypedVariable
+                                Variables[varFuncName] = new StronglyTypedVariable
                                 {
                                     Type = classOrEnum.Type,
                                     Value = !varFuncMatch.Groups["assignationOperator"].Success && classOrEnum.Type.IsValueType ? Activator.CreateInstance(classOrEnum.Type) : null,
                                 };
                             }
+
+                            if (cusVarValueToPush is StronglyTypedVariable typedVariable)
+                                cusVarValueToPush = typedVariable.Value;
 
                             stack.Push(cusVarValueToPush);
 
@@ -2180,7 +2181,29 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
 
                                 if (assign)
-                                    Variables[varFuncName] = cusVarValueToPush;
+                                {
+                                    if (Variables.ContainsKey(varFuncName) && Variables[varFuncName] is StronglyTypedVariable stronglyTypedVariable)
+                                    {
+                                        if(cusVarValueToPush == null && !stronglyTypedVariable.Type.IsValueType)
+                                        {
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
+                                        }
+
+                                        Type typeToAssign = cusVarValueToPush?.GetType();
+                                        if (typeToAssign == null || stronglyTypedVariable.Type.IsAssignableFrom(typeToAssign))
+                                        {
+                                            stronglyTypedVariable.Value = cusVarValueToPush;
+                                        }
+                                        else
+                                        {
+                                            throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Variables[varFuncName] = cusVarValueToPush;
+                                    }
+                                }
                             }
                             else if (varFuncMatch.Groups["assignationOperator"].Success)
                             {
