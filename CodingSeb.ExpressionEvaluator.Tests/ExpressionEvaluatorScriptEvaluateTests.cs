@@ -1301,6 +1301,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("=")
                     .Returns("[1,2,3,4]");
 
+                yield return new TestCaseData("int? x = null; return x;", null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("null")
+                    .SetCategory("nullable")
+                    .SetCategory("=")
+                    .Returns(null);
+
                 #endregion
 
                 #region More complex script
@@ -1541,6 +1549,31 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Exception");
 
                 #endregion
+
+                #region set bad content to TypedVariable 
+
+                yield return new TestCaseData(new ExpressionEvaluator(), "int x = \"Test\";", typeof(InvalidCastException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("int")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(new ExpressionEvaluator(), "List<int> x = 3;", typeof(InvalidCastException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("int")
+                    .SetCategory("List")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(new ExpressionEvaluator(), "int x = null;", typeof(ExpressionEvaluatorSyntaxErrorException), "Can not cast null to System.Int32 because it's not a nullable valueType", null)
+                    .SetCategory("Script")
+                    .SetCategory("int")
+                    .SetCategory("null")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("Exception");
+
+                #endregion
+
             }
         }
 
