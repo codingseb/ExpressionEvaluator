@@ -2184,7 +2184,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     if (Variables.ContainsKey(varFuncName) && Variables[varFuncName] is StronglyTypedVariable stronglyTypedVariable)
                                     {
-                                        if(cusVarValueToPush == null && !stronglyTypedVariable.Type.IsValueType)
+                                        if(cusVarValueToPush == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
                                         {
                                             throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
                                         }
