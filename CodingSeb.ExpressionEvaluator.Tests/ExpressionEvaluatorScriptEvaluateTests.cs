@@ -1293,6 +1293,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("=")
                     .Returns("0,1,2,3,4,");
 
+                yield return new TestCaseData(Resources.Script0067, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("primaryTyped variable")
+                    .SetCategory("List")
+                    .SetCategory("int")
+                    .SetCategory("=")
+                    .Returns("[1,2,3,4]");
+
                 #endregion
 
                 #region More complex script
