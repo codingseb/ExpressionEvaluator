@@ -1573,7 +1573,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Exception");
 
                 #endregion
-
             }
         }
 
@@ -1582,15 +1581,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
-            Assert.Catch(exceptionType, () => evaluator.ScriptEvaluate(evaluator.RemoveComments(script)));
-
-            if (exceptionMessage != null)
+            try
             {
-                try
-                {
-                    evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
-                }
-                catch(Exception exception)
+                evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
+            }
+            catch(Exception exception)
+            {
+                exception.ShouldBeAssignableTo(exceptionType);
+                if (exceptionMessage != null)
                 {
                     exception.Message.ShouldBe(exceptionMessage);
                 }

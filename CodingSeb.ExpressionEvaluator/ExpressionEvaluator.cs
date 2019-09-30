@@ -2123,6 +2123,10 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 if (Variables.ContainsKey(varFuncName))
                                     throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a new variable named [{varFuncName}]. A variable with this name already exists");
+                                else if (varFuncMatch.Groups["varKeyword"].Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a variable wih type and var keyword.");
+                                else if (varFuncMatch.Groups["dynamicKeyword"].Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a variable wih type and dynamic keyword.");
 
                                 stack.Pop();
 
