@@ -2121,6 +2121,9 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum)
                             {
+                                if (Variables.ContainsKey(varFuncName))
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a new variable named [{varFuncName}]. A variable with this name already exists");
+
                                 stack.Pop();
 
                                 Variables[varFuncName] = new StronglyTypedVariable
