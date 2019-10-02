@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.2.0 
+    Version : 1.4.3.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -30,8 +30,10 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
         protected const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
+        protected const string primaryTypesGroupPattern = "(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)";
+        protected const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])" + primaryTypesGroupPattern + "(?=[^a-zA-Z_]|$)";
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var\s+)|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern = null;
@@ -57,8 +59,6 @@ namespace CodingSeb.ExpressionEvaluator
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
         protected string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
-
-        protected const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -775,6 +775,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; } = OptionOnNoReturnKeywordFoundInScriptAction.ReturnAutomaticallyLastEvaluatedExpression;
 
+        /// <summary>
+        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] after each expression.
+        /// If <c>false</c> Allow to omit the semicolon for the last expression of the script.
+        /// Default : true
+        /// </summary>
+        public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
+
         #endregion
 
         #region Reflection flags
@@ -942,6 +949,8 @@ namespace CodingSeb.ExpressionEvaluator
             TryBlockEvaluatedState tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
             List<List<string>> ifElseStatementsList = new List<List<string>>();
             List<List<string>> tryStatementsList = new List<List<string>>();
+
+            script = script.TrimEnd();
 
             object ManageJumpStatementsOrExpressionEval(string expression)
             {
@@ -1336,7 +1345,9 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     ExecuteBlocksStacks();
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
+                    bool executed = false;
+
+                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)){}
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
@@ -1344,16 +1355,25 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (script[i] == ';')
                     {
                         lastResult = ScriptExpressionEvaluate(ref i);
+                        executed = true;
+                    }
+
+                    if (!OptionScriptNeedSemicolonAtTheEndOfLastExpression && i == script.Length - 1 && !executed)
+                    {
+                        i++;
+                        lastResult = ScriptExpressionEvaluate(ref i);
+                        startOfExpression--;
                     }
 
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                     tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
-                    i++;
+                    if (OptionScriptNeedSemicolonAtTheEndOfLastExpression || i < script.Length)
+                        i++;
                 }
             }
 
-            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue)
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedSemicolonAtTheEndOfLastExpression)
                 throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
 
             ExecuteBlocksStacks();
@@ -1704,7 +1724,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (varFuncMatch.Groups["varKeyword"].Success
                 && !varFuncMatch.Groups["assignationOperator"].Success)
             {
-                throw new ExpressionEvaluatorSyntaxErrorException("Implicit variables must be initialized");
+                throw new ExpressionEvaluatorSyntaxErrorException("Implicit variables must be initialized. [var " + varFuncMatch.Groups["name"].Value + "]");
             }
 
             if (varFuncMatch.Success
@@ -2094,9 +2114,32 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             stack.Push(varValueToPush);
                         }
-                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush) || varFuncMatch.Groups["assignationOperator"].Success)
+                        else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush)
+                                || varFuncMatch.Groups["assignationOperator"].Success
+                                || (stack.Count == 1 && stack.Peek() is ClassOrEnumType && string.IsNullOrWhiteSpace(expression.Substring(i))))
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
+                            if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum)
+                            {
+                                if (Variables.ContainsKey(varFuncName))
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a new variable named [{varFuncName}]. A variable with this name already exists");
+                                else if (varFuncMatch.Groups["varKeyword"].Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable wih type and var keyword.");
+                                else if (varFuncMatch.Groups["dynamicKeyword"].Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable wih type and dynamic keyword.");
+
+                                stack.Pop();
+
+                                Variables[varFuncName] = new StronglyTypedVariable
+                                {
+                                    Type = classOrEnum.Type,
+                                    Value = !varFuncMatch.Groups["assignationOperator"].Success && classOrEnum.Type.IsValueType ? Activator.CreateInstance(classOrEnum.Type) : null,
+                                };
+                            }
+
+                            if (cusVarValueToPush is StronglyTypedVariable typedVariable)
+                                cusVarValueToPush = typedVariable.Value;
+
                             stack.Push(cusVarValueToPush);
 
                             if (OptionVariableAssignationActive)
@@ -2147,7 +2190,29 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
 
                                 if (assign)
-                                    Variables[varFuncName] = cusVarValueToPush;
+                                {
+                                    if (Variables.ContainsKey(varFuncName) && Variables[varFuncName] is StronglyTypedVariable stronglyTypedVariable)
+                                    {
+                                        if(cusVarValueToPush == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
+                                        {
+                                            throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
+                                        }
+
+                                        Type typeToAssign = cusVarValueToPush?.GetType();
+                                        if (typeToAssign == null || stronglyTypedVariable.Type.IsAssignableFrom(typeToAssign))
+                                        {
+                                            stronglyTypedVariable.Value = cusVarValueToPush;
+                                        }
+                                        else
+                                        {
+                                            throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Variables[varFuncName] = cusVarValueToPush;
+                                    }
+                                }
                             }
                             else if (varFuncMatch.Groups["assignationOperator"].Success)
                             {
@@ -3577,6 +3642,13 @@ namespace CodingSeb.ExpressionEvaluator
     public partial class ClassOrEnumType
     {
         public Type Type { get; set; }
+    }
+
+    public partial class StronglyTypedVariable
+    {
+        public Type Type { get; set; }
+
+        public object Value { get; set; }
     }
 
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception

@@ -36,7 +36,10 @@ namespace TryWindow
             CalculateButton.IsEnabled = false;
             CancelButton.IsEnabled = true;
 
-            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                OptionScriptNeedSemicolonAtTheEndOfLastExpression = NeedSemicolonAtTheEndCheckBox.IsChecked.GetValueOrDefault(),
+            };
 
             if (UseCachesCheckbox.IsChecked ?? false)
                 evaluator.CacheTypesResolutions = true;
