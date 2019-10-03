@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.3.0 
+    Version : 1.4.4.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -2124,9 +2124,9 @@ namespace CodingSeb.ExpressionEvaluator
                                 if (Variables.ContainsKey(varFuncName))
                                     throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a new variable named [{varFuncName}]. A variable with this name already exists");
                                 else if (varFuncMatch.Groups["varKeyword"].Success)
-                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable wih type and var keyword.");
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable with type and var keyword.");
                                 else if (varFuncMatch.Groups["dynamicKeyword"].Success)
-                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable wih type and dynamic keyword.");
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable with type and dynamic keyword.");
 
                                 stack.Pop();
 
