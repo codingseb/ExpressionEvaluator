@@ -53,6 +53,7 @@ It is largely based on and inspired by the following resources [this post on st
 * [Flee](https://github.com/mparlak/Flee)
 * [CS-Script](https://github.com/oleg-shilo/cs-script) Best alternative (I use it some times) -> Real C# scripts better than ExpressionEvaluator (But everything is compiled. Read the doc. Execution is faster but compilation can make it very slow. And if not done the right way, it can lead to [memory leaks](https://en.wikipedia.org/wiki/Memory_leak))
 * [Roslyn](https://github.com/dotnet/roslyn) The Microsoft official solution (For scripting [see](https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples))
+* [MathParser](https://github.com/KirillOsenkov/MathParser) expression tree compiler and interpreter for math expressions. Heavily inspired by Roslyn.
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
