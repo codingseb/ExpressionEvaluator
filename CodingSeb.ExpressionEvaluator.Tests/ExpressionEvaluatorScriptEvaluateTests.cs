@@ -825,6 +825,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region List<>.ForEach
+                yield return new TestCaseData(Resources.Script0068, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("List")
+                    .SetCategory("variable assignation")
+                    .SetCategory("ForEach")
+                    .Returns(10);
+                yield return new TestCaseData(Resources.Script0069, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("List")
+                    .SetCategory("variable assignation")
+                    .SetCategory("ForEach")
+                    .Returns("1;2;3;4;");
+                #endregion
+
                 #region if, else if, else
 
                 yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), null, null, null, null)

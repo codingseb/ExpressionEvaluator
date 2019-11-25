@@ -1,0 +1,11 @@
+﻿/* Script0069 */
+List<int> myList = new List<int>{1, 2, 3, 4};
+
+string text = "";
+
+myList.ForEach(v =>
+{
+	text += v.ToString() + ";";
+});
+
+return text;
