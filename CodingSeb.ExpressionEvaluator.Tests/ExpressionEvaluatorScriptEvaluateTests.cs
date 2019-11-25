@@ -1627,12 +1627,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("/* multi line\nblock comment */").SetCategory("RemoveComments").Returns("\n");
                 yield return new TestCaseData(@"a = ""apple""; // test").SetCategory("RemoveComments").Returns(@"a = ""apple"";  ");
                 yield return new TestCaseData(@"a = ""apple""; /* test */").SetCategory("RemoveComments").Returns(@"a = ""apple"";  ");
-                yield return new TestCaseData(@"// /*comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* //comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"// bla bla /*comment within comments */  bla bla").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* bla bla //comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"// ""bla bla"" ").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* ""bla bla"" */").SetCategory("RemoveComments").Returns(@" ");
+                yield return new TestCaseData("// /*comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("/* //comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("// bla bla /*comment within comments */  bla bla").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("/* bla bla //comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData(@"// ""bla bla"" ").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData(@"/* ""bla bla"" */").SetCategory("RemoveComments").Returns(" ");
                 yield return new TestCaseData(@"""// test """).SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""// test """);
                 yield return new TestCaseData(@"""/* test */""").SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""/* test */""");
                 yield return new TestCaseData(@"""bla bla // test """).SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""bla bla // test """);
