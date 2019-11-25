@@ -2928,6 +2928,16 @@ namespace CodingSeb.ExpressionEvaluator
                                 .MakeGenericMethod(parameterType.GetGenericArguments());
                             modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
                         }
+                        else if(paramTypeName.StartsWith("Action")
+                            && modifiedArgs[a] is InternalDelegate)
+                        {
+                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                            DelegateEncaps de = new DelegateEncaps(led);
+                            MethodInfo encapsMethod = de.GetType()
+                                .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                                .MakeGenericMethod(parameterType.GetGenericArguments());
+                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                        }
                         else if (paramTypeName.StartsWith("Converter")
                             && modifiedArgs[a] is InternalDelegate)
                         {
@@ -3394,6 +3404,91 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 methodInfo.Invoke(target, args);
                 return target;
+            }
+
+            public void Action0()
+            {
+                lambda();
+            }
+
+            public void Action1<T1>(T1 arg1)
+            {
+                lambda(arg1);
+            }
+
+            public void Action2<T1, T2>(T1 arg1, T2 arg2)
+            {
+                lambda(arg1, arg2);
+            }
+
+            public void Action3<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3)
+            {
+                lambda(arg1, arg2, arg3);
+            }
+
+            public void Action4<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+            {
+                lambda(arg1, arg2, arg3, arg4);
+            }
+
+            public void Action5<T1, T2, T3, T4, T5>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5);
+            }
+
+            public void Action6<T1, T2, T3, T4, T5, T6>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6);
+            }
+
+            public void Action7<T1, T2, T3, T4, T5, T6, T7>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            }
+
+            public void Action8<T1, T2, T3, T4, T5, T6, T7, T8>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            }
+
+            public void Action9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+            }
+
+            public void Action10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+            }
+
+            public void Action11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
+            }
+
+            public void Action12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
+            }
+
+            public void Action13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
+            }
+
+            public void Action14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
+            }
+
+            public void Action15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
+            }
+
+            public void Action16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8, T9 arg9, T10 arg10, T11 arg11, T12 arg12, T13 arg13, T14 arg14, T15 arg15, T16 arg16)
+            {
+                lambda(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
             }
 
             public TResult Func0<TResult>()
