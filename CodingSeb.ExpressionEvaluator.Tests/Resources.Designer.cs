@@ -1173,18 +1173,48 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to /* Script0067 */
-        ///string test = &quot;&quot;;
+        ///List&lt;int&gt; myList = new List&lt;int&gt;{1, 2, 3, 4};
         ///
-        ///for(int x = 0; x &lt; 5; x++)
-        ///{
-        ///	test += x.ToString() + &quot;,&quot;;
-        ///}
-        ///
-        ///return test;.
+        ///myList.Json;.
         /// </summary>
         public static string Script0067 {
             get {
                 return ResourceManager.GetString("Script0067", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0068 */
+        ///List&lt;int&gt; myList = new List&lt;int&gt;{1, 2, 3, 4};
+        ///
+        ///int a = 0;
+        ///
+        ///myList.ForEach(v =&gt; a += v);
+        ///
+        ///return a;.
+        /// </summary>
+        public static string Script0068 {
+            get {
+                return ResourceManager.GetString("Script0068", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0069 */
+        ///List&lt;int&gt; myList = new List&lt;int&gt;{1, 2, 3, 4};
+        ///
+        ///string text = &quot;&quot;;
+        ///
+        ///myList.ForEach(v =&gt;
+        ///{
+        ///	text += v.ToString() + &quot;;&quot;;
+        ///});
+        ///
+        ///return text;.
+        /// </summary>
+        public static string Script0069 {
+            get {
+                return ResourceManager.GetString("Script0069", resourceCulture);
             }
         }
     }

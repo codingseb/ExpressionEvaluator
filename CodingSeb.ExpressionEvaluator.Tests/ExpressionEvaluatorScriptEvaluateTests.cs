@@ -825,6 +825,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region List<>.ForEach
+                yield return new TestCaseData(Resources.Script0068, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("List")
+                    .SetCategory("variable assignation")
+                    .SetCategory("ForEach")
+                    .Returns(10);
+                yield return new TestCaseData(Resources.Script0069, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("List")
+                    .SetCategory("variable assignation")
+                    .SetCategory("ForEach")
+                    .Returns("1;2;3;4;");
+                #endregion
+
                 #region if, else if, else
 
                 yield return new TestCaseData(Resources.Script0004.Replace("[valx]", "0").Replace("[valy]", "1"), null, null, null, null)
@@ -1612,12 +1627,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("/* multi line\nblock comment */").SetCategory("RemoveComments").Returns("\n");
                 yield return new TestCaseData(@"a = ""apple""; // test").SetCategory("RemoveComments").Returns(@"a = ""apple"";  ");
                 yield return new TestCaseData(@"a = ""apple""; /* test */").SetCategory("RemoveComments").Returns(@"a = ""apple"";  ");
-                yield return new TestCaseData(@"// /*comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* //comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"// bla bla /*comment within comments */  bla bla").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* bla bla //comment within comments */").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"// ""bla bla"" ").SetCategory("RemoveComments").Returns(@" ");
-                yield return new TestCaseData(@"/* ""bla bla"" */").SetCategory("RemoveComments").Returns(@" ");
+                yield return new TestCaseData("// /*comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("/* //comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("// bla bla /*comment within comments */  bla bla").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData("/* bla bla //comment within comments */").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData(@"// ""bla bla"" ").SetCategory("RemoveComments").Returns(" ");
+                yield return new TestCaseData(@"/* ""bla bla"" */").SetCategory("RemoveComments").Returns(" ");
                 yield return new TestCaseData(@"""// test """).SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""// test """);
                 yield return new TestCaseData(@"""/* test */""").SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""/* test */""");
                 yield return new TestCaseData(@"""bla bla // test """).SetCategory("RemoveComments").SetCategory("Not a comments").Returns(@"""bla bla // test """);

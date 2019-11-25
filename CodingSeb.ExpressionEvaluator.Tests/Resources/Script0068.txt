@@ -1,0 +1,8 @@
+﻿/* Script0068 */
+List<int> myList = new List<int>{1, 2, 3, 4};
+
+int a = 0;
+
+myList.ForEach(v => a += v);
+
+return a;
