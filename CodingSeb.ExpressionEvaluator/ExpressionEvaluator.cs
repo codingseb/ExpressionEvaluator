@@ -816,6 +816,11 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Custom and on the fly variables and methods
 
+        /// <summary>
+        /// If set, this object is used to use it's properties and methods as global variables and functions
+        /// </summary>
+        public object Context { get; set; }
+
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
@@ -873,6 +878,26 @@ namespace CodingSeb.ExpressionEvaluator
         /// <param name="variables">The Values of variables use in the expressions</param>
         public ExpressionEvaluator(IDictionary<string, object> variables) : this()
         {
+            Variables = variables;
+        }
+
+        /// <summary>
+        /// Constructor with context initialize
+        /// </summary>
+        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        public ExpressionEvaluator(object context) : this()
+        {
+            Context = context;
+        }
+
+        /// <summary>
+        /// Constructor with variables and context initialize
+        /// </summary>
+        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        /// <param name="variables">The Values of variables use in the expressions</param>
+        public ExpressionEvaluator(object context, IDictionary<string, object> variables) : this()
+        {
+            Context = context;
             Variables = variables;
         }
 
