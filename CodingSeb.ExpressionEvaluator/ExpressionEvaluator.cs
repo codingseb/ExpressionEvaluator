@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.6.0 
+    Version : 1.4.6.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -817,7 +817,7 @@ namespace CodingSeb.ExpressionEvaluator
         #region Custom and on the fly variables and methods
 
         /// <summary>
-        /// If set, this object is used to use it's properties and methods as global variables and functions
+        /// If set, this object is used to use it's fields, properties and methods as global variables and functions
         /// </summary>
         public object Context { get; set; }
 
@@ -884,7 +884,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Constructor with context initialize
         /// </summary>
-        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        /// <param name="context">the context that propose it's fields, properties and methods to the evaluation</param>
         public ExpressionEvaluator(object context) : this()
         {
             Context = context;
@@ -893,7 +893,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Constructor with variables and context initialize
         /// </summary>
-        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        /// <param name="context">the context that propose it's fields, properties and methods to the evaluation</param>
         /// <param name="variables">The Values of variables use in the expressions</param>
         public ExpressionEvaluator(object context, IDictionary<string, object> variables) : this()
         {
