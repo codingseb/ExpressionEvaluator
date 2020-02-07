@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.5.0 
+    Version : 1.4.6.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -816,6 +816,11 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Custom and on the fly variables and methods
 
+        /// <summary>
+        /// If set, this object is used to use it's properties and methods as global variables and functions
+        /// </summary>
+        public object Context { get; set; }
+
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
@@ -873,6 +878,26 @@ namespace CodingSeb.ExpressionEvaluator
         /// <param name="variables">The Values of variables use in the expressions</param>
         public ExpressionEvaluator(IDictionary<string, object> variables) : this()
         {
+            Variables = variables;
+        }
+
+        /// <summary>
+        /// Constructor with context initialize
+        /// </summary>
+        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        public ExpressionEvaluator(object context) : this()
+        {
+            Context = context;
+        }
+
+        /// <summary>
+        /// Constructor with variables and context initialize
+        /// </summary>
+        /// <param name="context">the context that propose it's methods and properties to the evaluation</param>
+        /// <param name="variables">The Values of variables use in the expressions</param>
+        public ExpressionEvaluator(object context, IDictionary<string, object> variables) : this()
+        {
+            Context = context;
             Variables = variables;
         }
 
@@ -1624,9 +1649,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     dynamic indexedObject = element;
                                     dynamic index = Evaluate(subArgs[0]);
-                                    dynamic value = Evaluate(subArgs[1]);
-
-                                    indexedObject[index] = value;
+                                    indexedObject[index] = (dynamic)Evaluate(subArgs[1]);
                                 }
                                 else
                                 {
@@ -1736,142 +1759,143 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string varFuncName = varFuncMatch.Groups["name"].Value;
                 string genericsTypes = varFuncMatch.Groups["isgeneric"].Value;
+                bool inObject = varFuncMatch.Groups["inObject"].Success;
 
                 i += varFuncMatch.Length;
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
                     List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionFunctionArgumentsSeparator);
-                    if (varFuncMatch.Groups["inObject"].Success)
+
+                    if (inObject
+                        || Context?.GetType()
+                            .GetMethods()
+                            .Any(methodInfo => methodInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
                     {
-                        if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
-                        {
+                        if (inObject && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
                             throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value})] must follow an object.");
-                        }
-                        else
+
+                        object obj = inObject ? stack.Pop() : Context;
+                        object keepObj = obj;
+                        Type objType = null;
+                        Type[] inferedGenericsTypes = obj.GetType().GenericTypeArguments;
+                        ValueTypeNestingTrace valueTypeNestingTrace = null;
+
+                        if (obj != null && TypesToBlock.Contains(obj.GetType()))
+                            throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
+                        else if (obj is Type staticType && TypesToBlock.Contains(staticType))
+                            throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                        else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
+                            throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+
+                        try
                         {
-                            object obj = stack.Pop();
-                            object keepObj = obj;
-                            Type objType = null;
-                            Type[] inferedGenericsTypes = obj.GetType().GenericTypeArguments;
-                            ValueTypeNestingTrace valueTypeNestingTrace = null;
-
-                            if (obj != null && TypesToBlock.Contains(obj.GetType()))
-                                throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
-                            else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                                throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
-                            else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
-                                throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
-
-                            try
+                            if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
                             {
-                                if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
+                                stack.Push(null);
+                            }
+                            else
+                            {
+                                FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+
+                                PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
+
+                                if (functionPreEvaluationEventArg.CancelEvaluation)
                                 {
-                                    stack.Push(null);
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+                                }
+                                else if (functionPreEvaluationEventArg.FunctionReturnedValue)
+                                {
+                                    stack.Push(functionPreEvaluationEventArg.Value);
                                 }
                                 else
                                 {
-                                    FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+                                    List<object> oArgs = funcArgs.ConvertAll(Evaluate);
+                                    BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
-                                    PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
-
-                                    if (functionPreEvaluationEventArg.CancelEvaluation)
-                                    {
+                                    if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
-                                    }
-                                    else if (functionPreEvaluationEventArg.FunctionReturnedValue)
+                                    if (!OptionInstanceMethodsCallActive && (flag & BindingFlags.Instance) != 0)
+                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
+
+                                    // Standard Instance or public method find
+                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes);
+
+                                    // if not found check if obj is an expandoObject or similar
+                                    if (obj is IDynamicMetaObjectProvider
+                                        && obj is IDictionary<string, object> dictionaryObject
+                                        && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
                                     {
-                                        stack.Push(functionPreEvaluationEventArg.Value);
+                                        if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
+                                            stack.Push(internalDelegate(oArgs.ToArray()));
+                                        else if(dictionaryObject[varFuncName] is Delegate del)
+                                            stack.Push(del.DynamicInvoke(oArgs.ToArray()));
+                                    }
+                                    else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
+                                        && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate))
+                                        && instancePropertyInfo.GetValue(obj) is Delegate del)
+                                    {
+                                        stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                     }
                                     else
                                     {
-                                        List<object> oArgs = funcArgs.ConvertAll(Evaluate);
-                                        BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
+                                        bool isExtention = false;
 
-                                        if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
-                                        if (!OptionInstanceMethodsCallActive && (flag & BindingFlags.Instance) != 0)
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
-
-                                        // Standard Instance or public method find
-                                        MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes);
-
-                                        // if not found check if obj is an expandoObject or similar
-                                        if (obj is IDynamicMetaObjectProvider
-                                            && obj is IDictionary<string, object> dictionaryObject
-                                            && (dictionaryObject[varFuncName] is InternalDelegate || dictionaryObject[varFuncName] is Delegate))
+                                        // if not found try to Find extension methods.
+                                        if (methodInfo == null && obj != null)
                                         {
-                                            if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
-                                                stack.Push(internalDelegate(oArgs.ToArray()));
-                                            else if(dictionaryObject[varFuncName] is Delegate del)
-                                                stack.Push(del.DynamicInvoke(oArgs.ToArray()));
+                                            oArgs.Insert(0, obj);
+                                            objType = obj.GetType();
+                                            //obj = null;
+                                            object extentionObj = null;
+                                            for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
+                                            {
+                                                Type type = StaticTypesForExtensionsMethods[e];
+                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes);
+                                                isExtention = methodInfo != null;
+                                            }
                                         }
-                                        else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
-                                            && (instancePropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || instancePropertyInfo.PropertyType == typeof(Delegate))
-                                            && instancePropertyInfo.GetValue(obj) is Delegate del)
+
+                                        if (methodInfo != null)
                                         {
-                                            stack.Push(del.DynamicInvoke(oArgs.ToArray()));
+                                            stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
+                                        }
+                                        else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
+                                        && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
+                                        && staticPropertyInfo.GetValue(obj) is Delegate del2)
+                                        {
+                                            stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
                                         }
                                         else
                                         {
-                                            bool isExtention = false;
+                                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
 
-                                            // if not found try to Find extension methods.
-                                            if (methodInfo == null && obj != null)
-                                            {
-                                                oArgs.Insert(0, obj);
-                                                objType = obj.GetType();
-                                                //obj = null;
-                                                object extentionObj = null;
-                                                for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
-                                                {
-                                                    Type type = StaticTypesForExtensionsMethods[e];
-                                                    methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes);
-                                                    isExtention = methodInfo != null;
-                                                }
-                                            }
+                                            EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
-                                            if (methodInfo != null)
+                                            if (functionEvaluationEventArg.FunctionReturnedValue)
                                             {
-                                                stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
-                                            }
-                                            else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
-                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
-                                            && staticPropertyInfo.GetValue(obj) is Delegate del2)
-                                            {
-                                                stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
+                                                stack.Push(functionEvaluationEventArg.Value);
                                             }
                                             else
                                             {
-                                                FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
-
-                                                EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
-
-                                                if (functionEvaluationEventArg.FunctionReturnedValue)
-                                                {
-                                                    stack.Push(functionEvaluationEventArg.Value);
-                                                }
-                                                else
-                                                {
-                                                    throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
-                                                }
+                                                throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
                                             }
                                         }
                                     }
                                 }
                             }
-                            catch (ExpressionEvaluatorSecurityException)
-                            {
-                                throw;
-                            }
-                            catch (ExpressionEvaluatorSyntaxErrorException)
-                            {
-                                throw;
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
-                            }
+                        }
+                        catch (ExpressionEvaluatorSecurityException)
+                        {
+                            throw;
+                        }
+                        catch (ExpressionEvaluatorSyntaxErrorException)
+                        {
+                            throw;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
                         }
                     }
                     else
@@ -1894,11 +1918,11 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (Variables.TryGetValue(varFuncName, out object o) && o is InternalDelegate lambdaExpression)
                         {
-                            stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
+                            stack.Push(lambdaExpression.Invoke(funcArgs.ConvertAll(Evaluate).ToArray()));
                         }
                         else if (Variables.TryGetValue(varFuncName, out o) && o is Delegate delegateVar)
                         {
-                            stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(e => Evaluate(e)).ToArray()));
+                            stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(Evaluate).ToArray()));
                         }
                         else
                         {
@@ -1919,12 +1943,18 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (varFuncMatch.Groups["inObject"].Success)
+                    if (inObject
+                        || Context?.GetType()
+                            .GetProperties()
+                            .Any(propInfo => propInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true
+                        || Context?.GetType()
+                            .GetFields()
+                            .Any(fieldInfo => fieldInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
                     {
-                        if (stack.Count == 0 || stack.Peek() is ExpressionOperator)
+                        if (inObject && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
                             throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value}] must follow an object.");
 
-                        object obj = stack.Pop();
+                        object obj = inObject ? stack.Pop() : Context;
                         object keepObj = obj;
                         Type objType = null;
                         ValueTypeNestingTrace valueTypeNestingTrace = null;

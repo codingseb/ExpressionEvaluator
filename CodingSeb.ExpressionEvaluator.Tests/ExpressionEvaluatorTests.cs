@@ -1742,6 +1742,44 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region with Context object
+
+                ExpressionEvaluator evaluatorWithContext = new ExpressionEvaluator(new ContextObject1());
+
+                yield return new TestCaseData(evaluatorWithContext
+                    , "AIntValue"
+                    , null)
+                    .Returns(3)
+                    .SetCategory("Context object");
+
+                yield return new TestCaseData(evaluatorWithContext
+                    , "SayHelloTo(\"Bob\")"
+                    , null)
+                    .Returns("Hello Bob")
+                    .SetCategory("Context object");
+
+                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator();
+
+                evaluatorWithPersonContext.Context = new Person1()
+                {
+                    name = "John",
+                    LastName = "Smith"
+                };
+
+                yield return new TestCaseData(evaluatorWithPersonContext
+                    , "name + \" \" + LastName"
+                    , null)
+                    .Returns("John Smith")
+                    .SetCategory("Context object");
+
+                yield return new TestCaseData(evaluatorWithPersonContext
+                    , "APersonMethod() + 10"
+                    , null)
+                    .Returns(20)
+                    .SetCategory("Context object");
+
+                #endregion
+
                 #region inherits ExpressionEvaluator
 
                 #region Redefine existing operators
