@@ -786,6 +786,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
         /// If <c>false</c> Allow to access only to public members.
         /// Default : false
+        /// Warning : This clearly break the encapsulation principle use this only if you know what you do.
         /// </summary>
         public bool OptionAllowNonPublicMembersAccess { get; set; }
 
