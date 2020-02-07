@@ -1758,6 +1758,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("Hello Bob")
                     .SetCategory("Context object");
 
+                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator();
+
+                evaluatorWithPersonContext.Context = new Person1()
+                {
+                    Name = "John",
+                    LastName = "Smith"
+                };
+
+                yield return new TestCaseData(evaluatorWithPersonContext
+                    , "Name + \" \" + LastName"
+                    , null)
+                    .Returns("John Smith")
+                    .SetCategory("Context object");
+
+                yield return new TestCaseData(evaluatorWithPersonContext
+                    , "APersonMethod() + 10"
+                    , null)
+                    .Returns(20)
+                    .SetCategory("Context object");
+
                 #endregion
 
                 #region inherits ExpressionEvaluator
