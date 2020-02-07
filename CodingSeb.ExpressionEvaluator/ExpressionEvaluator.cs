@@ -786,7 +786,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Reflection flags
 
-        protected BindingFlags InstanceBindingFlag
+        protected virtual BindingFlags InstanceBindingFlag
         {
             get
             {
@@ -799,7 +799,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        public BindingFlags StaticBindingFlag
+        protected virtual BindingFlags StaticBindingFlag
         {
             get
             {
