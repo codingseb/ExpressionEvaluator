@@ -1338,7 +1338,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionStaticProperiesGetActive = false
+                    OptionStaticPropertiesGetActive = false
                 };
 
                 evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
@@ -1366,7 +1366,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionInstanceProperiesGetActive = false
+                    OptionInstancePropertiesGetActive = false
                 };
 
                 evaluator.Variables["customObject"] = new ClassForTest1();

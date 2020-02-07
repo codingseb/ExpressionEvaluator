@@ -695,7 +695,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool OptionStaticProperiesGetActive { get; set; } = true;
+        public bool OptionStaticPropertiesGetActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to call instance methods on objects.
@@ -709,7 +709,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// if <c>false</c> unactive this functionality.
         /// By default : true
         /// </summary>
-        public bool OptionInstanceProperiesGetActive { get; set; } = true;
+        public bool OptionInstancePropertiesGetActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get object at index or key like IndexedObject[indexOrKey]
@@ -1990,9 +1990,9 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
-                                    if (!OptionStaticProperiesGetActive && (flag & BindingFlags.Static) != 0)
+                                    if (!OptionStaticPropertiesGetActive && (flag & BindingFlags.Static) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
-                                    if (!OptionInstanceProperiesGetActive && (flag & BindingFlags.Instance) != 0)
+                                    if (!OptionInstancePropertiesGetActive && (flag & BindingFlags.Instance) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
 
                                     bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
