@@ -1762,12 +1762,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluatorWithPersonContext.Context = new Person1()
                 {
-                    Name = "John",
+                    name = "John",
                     LastName = "Smith"
                 };
 
                 yield return new TestCaseData(evaluatorWithPersonContext
-                    , "Name + \" \" + LastName"
+                    , "name + \" \" + LastName"
                     , null)
                     .Returns("John Smith")
                     .SetCategory("Context object");

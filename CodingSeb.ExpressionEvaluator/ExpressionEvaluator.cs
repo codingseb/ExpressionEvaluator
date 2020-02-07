@@ -1943,9 +1943,13 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (inObject || Context?.GetType()
+                    if (inObject
+                        || Context?.GetType()
                             .GetProperties()
-                            .Any(propInfo => propInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
+                            .Any(propInfo => propInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true
+                        || Context?.GetType()
+                            .GetFields()
+                            .Any(fieldInfo => fieldInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
                     {
                         if (inObject && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
                             throw new ExpressionEvaluatorSyntaxErrorException($"[{varFuncMatch.Value}] must follow an object.");
