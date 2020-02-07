@@ -782,6 +782,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
 
+        /// <summary>
+        /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
+        /// If <c>false</c> Allow to access only to public members.
+        /// Default : false
+        /// </summary>
+        public bool OptionAllowNonPublicMembersAccess { get; set; }
+
         #endregion
 
         #region Reflection flags
@@ -794,6 +801,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (!OptionCaseSensitiveEvaluationActive)
                     flag |= BindingFlags.IgnoreCase;
+                if (OptionAllowNonPublicMembersAccess)
+                    flag |= BindingFlags.NonPublic;
 
                 return flag;
             }
@@ -807,6 +816,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (!OptionCaseSensitiveEvaluationActive)
                     flag |= BindingFlags.IgnoreCase;
+                if (OptionAllowNonPublicMembersAccess)
+                    flag |= BindingFlags.NonPublic;
 
                 return flag;
             }
@@ -1769,7 +1780,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (inObject
                         || Context?.GetType()
-                            .GetMethods()
+                            .GetMethods(InstanceBindingFlag)
                             .Any(methodInfo => methodInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
                     {
                         if (inObject && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
@@ -1945,10 +1956,10 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (inObject
                         || Context?.GetType()
-                            .GetProperties()
+                            .GetProperties(InstanceBindingFlag)
                             .Any(propInfo => propInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true
                         || Context?.GetType()
-                            .GetFields()
+                            .GetFields(InstanceBindingFlag)
                             .Any(fieldInfo => fieldInfo.Name.Equals(varFuncName, StringComparisonForCasing)) == true)
                     {
                         if (inObject && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
