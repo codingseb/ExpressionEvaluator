@@ -1742,7 +1742,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region with Context object
+                #region With Context object
 
                 ExpressionEvaluator evaluatorWithContext = new ExpressionEvaluator(new ContextObject1());
 
@@ -1777,6 +1777,54 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     , null)
                     .Returns(20)
                     .SetCategory("Context object");
+
+                #endregion
+
+                #region NonPublic members
+
+                ExpressionEvaluator nonPublicEvaluator = new ExpressionEvaluator(new Dictionary<string, object>()
+                {
+                    { "obj", new ClassWithNonPublicMembersAndMethods() }
+                })
+                {
+                    OptionAllowNonPublicMembersAccess = true
+                };
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.myPrivateField"
+                    , null)
+                    .Returns(5)
+                    .SetCategory("NonPublic Members and methods");
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.myProtectedField"
+                    , null)
+                    .Returns(10)
+                    .SetCategory("NonPublic Members and methods");
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.MyPrivateProperty"
+                    , null)
+                    .Returns(15)
+                    .SetCategory("NonPublic Members and methods");
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.MyProtectedProperty"
+                    , null)
+                    .Returns(20)
+                    .SetCategory("NonPublic Members and methods");
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.MyPrivateMethod(\"Bob\")"
+                    , null)
+                    .Returns("Hello Bob")
+                    .SetCategory("NonPublic Members and methods");
+
+                yield return new TestCaseData(nonPublicEvaluator
+                    , "obj.MyProtectedMethod(\"Bob\")"
+                    , null)
+                    .Returns("GoodBye Bob")
+                    .SetCategory("NonPublic Members and methods");
 
                 #endregion
 
