@@ -1,7 +1,7 @@
 ![ExpressionEvaluator Icon](https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true "ExpressionEvaluator A Simple Math and Pseudo C# Expression Evaluator in One C# File") 
 # ExpressionEvaluator
 
-A Simple Math and Pseudo C# Expression Evaluator in One C# File.
+A Simple Math and Pseudo C# Expression Evaluator in One [C# File](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs).
 
 And from version 1.2.0 can execute small C# like scripts 
 
