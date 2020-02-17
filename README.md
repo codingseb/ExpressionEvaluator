@@ -1,7 +1,7 @@
 ![ExpressionEvaluator Icon](https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true "ExpressionEvaluator A Simple Math and Pseudo C# Expression Evaluator in One C# File") 
 # ExpressionEvaluator
 
-A Simple Math and Pseudo C# Expression Evaluator in One C# File.
+A Simple Math and Pseudo C# Expression Evaluator in One [C# File](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs).
 
 And from version 1.2.0 can execute small C# like scripts 
 
@@ -41,6 +41,8 @@ It is largely based on and inspired by the following resources [this post on st
 ## Resources
 * [Getting Started](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started)
 * [Documentation on the wiki](https://github.com/codingseb/ExpressionEvaluator/wiki)
+* [Live Demos](https://dotnetfiddle.net/Packages/41132/CodingSeb_ExpressionEvaluator)
+* [Try it](https://dotnetfiddle.net/up4x3W)
 
 ## And more is coming
 * [The Todo List](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpressionEvaluator-Todo-List)
