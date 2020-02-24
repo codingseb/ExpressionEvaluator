@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.7.0</Version>
-    <AssemblyVersion>1.4.7.0</AssemblyVersion>
-    <FileVersion>1.4.7.0</FileVersion>
+    <Version>1.4.8.0</Version>
+    <AssemblyVersion>1.4.8.0</AssemblyVersion>
+    <FileVersion>1.4.8.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -18,9 +18,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Add OptionAllowNonPublicMembersAccess to use private or protected members of variables and context (By default false)
-* Correction of spelling of options : OptionStaticPropertiesGetActive and OptionInstancePropertiesGetActive (Warning breaking change if you use it)
-* More of virtual and partial for better extensibility</PackageReleaseNotes>
+    <PackageReleaseNotes>* Update nuget Microsoft.CSharp dependency to version 4.7.0</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
