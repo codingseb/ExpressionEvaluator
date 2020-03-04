@@ -16,7 +16,7 @@ It is largely based on and inspired by the following resources [this post on st
 |nuget|[![NuGet Status](http://img.shields.io/nuget/v/CodingSeb.ExpressionEvaluator.svg?style=flat&max-age=86400)](https://www.nuget.org/packages/CodingSeb.ExpressionEvaluator/)|
 
 ## Features
-* Basic mathematical expression evaluation
+* Basic mathematical expression evaluation (+ - * /)
 * System.Math methods and constants directly available (some like Max, Min, Avg are improved)
 * Some useful [functions](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#standard-functions) for example to create List and Arrays
 * [Custom variables definition](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#custom-variables)
