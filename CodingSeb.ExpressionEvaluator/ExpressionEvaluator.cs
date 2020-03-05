@@ -3787,6 +3787,16 @@ namespace CodingSeb.ExpressionEvaluator
         public object Value { get; set; }
     }
 
+    public partial class SubExpression
+    {
+        public string Expression { get; set; }
+
+        public SubExpression(string expression)
+        {
+            Expression = expression;
+        }
+    }
+
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception
     {
         public ExpressionEvaluatorSyntaxErrorException()
