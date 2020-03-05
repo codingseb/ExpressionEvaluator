@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.8.1 
+    Version : 1.4.8.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -2751,6 +2751,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
+                .Select(e => e is SubExpression subExpression ? Evaluate(subExpression.Expression) : e)
                 .ToList();
 
             OperatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>

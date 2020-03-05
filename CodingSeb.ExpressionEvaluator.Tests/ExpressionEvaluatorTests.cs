@@ -2064,5 +2064,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         #endregion
+
+        #region With SubExpressions variables
+
+        [Test]
+        public void EvaluateWithSubExpressionsVariables()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["a"] = 1;
+            evaluator.Variables["b"] = 2;
+            evaluator.Variables["c"] = new SubExpression("a+b");
+            evaluator.Variables["d"] = new SubExpression("c+3");
+
+            evaluator.Evaluate("a").ShouldBe(1);
+            evaluator.Evaluate("b").ShouldBe(2);
+            evaluator.Evaluate("c").ShouldBe(3);
+            evaluator.Evaluate("d").ShouldBe(6);
+            evaluator.Evaluate("d-a").ShouldBe(5);
+        }
+
+        #endregion
     }
 }
