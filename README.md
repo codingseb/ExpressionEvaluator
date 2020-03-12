@@ -51,6 +51,7 @@ It is largely based on and inspired by the following resources [this post on st
 ### Free
 * [NCalc](https://github.com/pitermarx/NCalc-Edge)
 * [Jint](https://github.com/sebastienros/jint) Support scripting but with Javascript
+* [NLua](https://github.com/NLua/NLua) use Lua language in C#
 * [DynamicExpresso](https://github.com/davideicardi/DynamicExpresso/)
 * [Flee](https://github.com/mparlak/Flee)
 * [CS-Script](https://github.com/oleg-shilo/cs-script) Best alternative (I use it some times) -> Real C# scripts better than ExpressionEvaluator (But everything is compiled. Read the doc. Execution is faster but compilation can make it very slow. And if not done the right way, it can lead to [memory leaks](https://en.wikipedia.org/wiki/Memory_leak))
