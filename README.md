@@ -16,7 +16,7 @@ It is largely based on and inspired by the following resources [this post on st
 |nuget|[![NuGet Status](http://img.shields.io/nuget/v/CodingSeb.ExpressionEvaluator.svg?style=flat&max-age=86400)](https://www.nuget.org/packages/CodingSeb.ExpressionEvaluator/)|
 
 ## Features
-* Basic mathematical expression evaluation
+* Basic mathematical and logical expression evaluation
 * System.Math methods and constants directly available (some like Max, Min, Avg are improved)
 * Some useful [functions](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#standard-functions) for example to create List and Arrays
 * [Custom variables definition](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-functions#custom-variables)
@@ -51,6 +51,7 @@ It is largely based on and inspired by the following resources [this post on st
 ### Free
 * [NCalc](https://github.com/pitermarx/NCalc-Edge)
 * [Jint](https://github.com/sebastienros/jint) Support scripting but with Javascript
+* [NLua](https://github.com/NLua/NLua) use Lua language in C#
 * [DynamicExpresso](https://github.com/davideicardi/DynamicExpresso/)
 * [Flee](https://github.com/mparlak/Flee)
 * [CS-Script](https://github.com/oleg-shilo/cs-script) Best alternative (I use it some times) -> Real C# scripts better than ExpressionEvaluator (But everything is compiled. Read the doc. Execution is faster but compilation can make it very slow. And if not done the right way, it can lead to [memory leaks](https://en.wikipedia.org/wiki/Memory_leak))
