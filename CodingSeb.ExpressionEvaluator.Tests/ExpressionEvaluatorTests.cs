@@ -500,6 +500,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("null ?? \"Option2\"", TestOf = typeof(string), ExpectedResult = "Option2", Category = "Null Coalescing Operator")]
         #endregion
 
+        #region Null conditional Operator
+        [TestCase("null?.Trim()", ExpectedResult = null, Category = "Null conditional Operator")]
+        #endregion
+
         #region default values
         [TestCase("default(int)", TestOf = typeof(int), ExpectedResult = 0, Category = "default values")]
         [TestCase("default(bool)", TestOf = typeof(bool), ExpectedResult = false, Category = "default values")]
@@ -1075,9 +1079,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 Dictionary<string, object> onInstanceVariables = new Dictionary<string, object>()
                 {
                     { "simpleArray", new object[] {2 , "Hello", true} },
+                    { "simpleArray2", new object[] {2 , " Hello  ", true, null } },
                     { "otherArray", new object[] {2 , "Hello", true, new ClassForTest1() { IntProperty = 18 } } },
                     { "simpleList", new List<object>() {"Test" ,false, -15, 123.8f} },
                     { "nullVar", null },
+                    { "notTrimmedString", " Hello  " },
                     { "simpleInt", 42 },
                     { "simpleChar", 'n' },
                     { "simpleLineFeed", '\n' },
@@ -1090,9 +1096,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("simpleList?.Count", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(4);
                 yield return new TestCaseData("nullVar?.Length", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(null);
                 yield return new TestCaseData("nullVar?.Count", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Property").Returns(null);
+                yield return new TestCaseData("nullVar?.Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Method").Returns(null);
+                yield return new TestCaseData("nullVar?.Trim().Length", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Method").Returns(null);
+                yield return new TestCaseData("notTrimmedString?.Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Method").Returns("Hello");
+                yield return new TestCaseData("notTrimmedString?.Trim().Length", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional Method").Returns(5);
                 yield return new TestCaseData("simpleArray?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(true);
                 yield return new TestCaseData("simpleList?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(-15);
+                yield return new TestCaseData("simpleArray2[1].Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns("Hello");
                 yield return new TestCaseData("nullVar?[2]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
+                yield return new TestCaseData("nullVar?[1].Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
+                yield return new TestCaseData("nullVar?[1]?.Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
+                yield return new TestCaseData("nullVar?[1][3]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
+                yield return new TestCaseData("simpleArray2?[3]?.Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
 
                 yield return new TestCaseData("simpleInt.ToString()", onInstanceVariables, true).SetCategory("Instance Method").Returns("42");
                 yield return new TestCaseData("simpleInt.ToString().Length", onInstanceVariables, true).SetCategory("Instance Method,Instance Property").Returns(2);

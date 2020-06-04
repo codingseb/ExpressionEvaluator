@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.9.1 
+    Version : 1.4.10.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -212,28 +212,39 @@ namespace CodingSeb.ExpressionEvaluator
         protected virtual IList<ExpressionOperator> RightOperandOnlyOperatorsEvaluationDictionary => rightOperandOnlyOperatorsEvaluationDictionary;
         protected virtual IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> OperatorsEvaluations => operatorsEvaluations;
 
+        protected static object IndexingOperatorFunc(dynamic left, dynamic right)
+        {
+            if (left is NullConditionalNullValue)
+                return left;
+
+            Type type = ((object)left).GetType();
+
+            if (left is IDictionary<string, object> dictionaryLeft)
+            {
+                return dictionaryLeft[right];
+            }
+            else if (type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
+            {
+                return methodInfo.Invoke(left, new object[] { right });
+            }
+
+            return left[right];
+        }
+
         protected static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
             new List<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Indexing, (dynamic left, dynamic right) =>
+                {ExpressionOperator.Indexing, IndexingOperatorFunc},
+                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) =>
                     {
-                        Type type = ((object)left).GetType();
+                        if(left == null)
+                            return new NullConditionalNullValue();
 
-                        if(left is IDictionary<string, object> dictionaryLeft)
-                        {
-                            return dictionaryLeft[right];
-                        }
-                        else if(type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
-                        {
-                            return methodInfo.Invoke(left, new object[] { right });
-                        }
-
-                        return left[right];
+                        return IndexingOperatorFunc(left, right);
                     }
                 },
-                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) => left is IDictionary<string,object> dictionaryLeft ? dictionaryLeft[right] : left?[right] },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -358,7 +369,6 @@ namespace CodingSeb.ExpressionEvaluator
                         return null;
                 }
             },
-            //{ "if", (self, args) => (bool)self.Evaluate(args[0]) ? self.Evaluate(args[1]) : self.Evaluate(args[2]) },
             { "in", (self, args) => args.Skip(1).ToList().ConvertAll(self.Evaluate).Contains(self.Evaluate(args[0])) },
             { "List", (self, args) => args.ConvertAll(self.Evaluate) },
             { "ListOfType", (self, args) =>
@@ -1787,7 +1797,7 @@ namespace CodingSeb.ExpressionEvaluator
                         object obj = inObject ? stack.Pop() : Context;
                         object keepObj = obj;
                         Type objType = null;
-                        Type[] inferedGenericsTypes = obj.GetType().GenericTypeArguments;
+                        Type[] inferedGenericsTypes = obj?.GetType().GenericTypeArguments;
                         ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                         if (obj != null && TypesToBlock.Contains(obj.GetType()))
@@ -1799,9 +1809,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                         try
                         {
-                            if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
+                            if(obj is NullConditionalNullValue)
                             {
-                                stack.Push(null);
+                                stack.Push(obj);
+                            }
+                            else if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
+                            {
+                                stack.Push(new NullConditionalNullValue());
                             }
                             else
                             {
@@ -1977,9 +1991,13 @@ namespace CodingSeb.ExpressionEvaluator
 
                         try
                         {
-                            if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
+                            if (obj is NullConditionalNullValue)
                             {
-                                stack.Push(null);
+                                stack.Push(obj);
+                            }
+                            else if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
+                            {
+                                stack.Push(new NullConditionalNullValue());
                             }
                             else
                             {
@@ -2544,9 +2562,17 @@ namespace CodingSeb.ExpressionEvaluator
                     throw new Exception($"{bracketCount} ']' character {beVerb} missing in expression : [{expression}]");
                 }
 
+                dynamic left = stack.Pop();
+
+                if (left is NullConditionalNullValue)
+                {
+                    stack.Push(left);
+                    return true;
+                }
+
                 dynamic right = Evaluate(innerExp.ToString());
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
-                dynamic left = stack.Pop();
+                
 
                 if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
                     right = (int)right;
@@ -2566,7 +2592,7 @@ namespace CodingSeb.ExpressionEvaluator
                         throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
 
                     if (op == ExpressionOperator.IndexingWithNullConditional)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Null coalescing is not usable left to {exceptionContext}");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
 
                     if (postFixOperator)
                     {
@@ -2752,6 +2778,7 @@ namespace CodingSeb.ExpressionEvaluator
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
                 .Select(e => e is SubExpression subExpression ? Evaluate(subExpression.Expression) : e)
+                .Select(e => e is NullConditionalNullValue ? null : e)
                 .ToList();
 
             OperatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
@@ -3400,7 +3427,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Utils private sub classes for parsing and interpretation
+        #region Utils protected sub classes for parsing and interpretation
 
         protected class ValueTypeNestingTrace
         {
@@ -3423,6 +3450,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
         }
+
+        protected class NullConditionalNullValue
+        { }
 
         protected class DelegateEncaps
         {
