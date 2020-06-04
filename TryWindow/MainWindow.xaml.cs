@@ -16,8 +16,8 @@ namespace TryWindow
     /// </summary>
     public partial class MainWindow : Window
     {
-        private string persistCodeFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "code.cs");
-        private string persistIterationFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "iterations");
+        private readonly string persistCodeFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "code.cs");
+        private readonly string persistIterationFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "iterations");
 
         private CancellationTokenSource cancellationTokenSource = null;
 
@@ -88,7 +88,7 @@ namespace TryWindow
                     {
                         stopWatch.Stop();
                     }
-                }, cancellationTokenSource.Token);
+                }, cancellationTokenSource.Token).ConfigureAwait(true);
 
                 if (exception == null)
                     ResultTextBlock.Text = result;
@@ -110,7 +110,6 @@ namespace TryWindow
 
         private void Evaluator_EvaluateFunction(object sender, FunctionEvaluationEventArg e)
         {
-            
         }
 
         private void Evaluator_EvaluateVariable(object sender, VariableEvaluationEventArg e)
@@ -138,8 +137,7 @@ namespace TryWindow
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            if (cancellationTokenSource != null)
-                cancellationTokenSource.Cancel();
+            cancellationTokenSource?.Cancel();
         }
 
         private void ScriptTextBox_TextChanged(object sender, EventArgs e)

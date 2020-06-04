@@ -1773,12 +1773,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("Hello Bob")
                     .SetCategory("Context object");
 
-                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator();
-
-                evaluatorWithPersonContext.Context = new Person1()
+                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator
                 {
-                    name = "John",
-                    LastName = "Smith"
+                    Context = new Person1()
+                    {
+                        name = "John",
+                        LastName = "Smith"
+                    }
                 };
 
                 yield return new TestCaseData(evaluatorWithPersonContext
