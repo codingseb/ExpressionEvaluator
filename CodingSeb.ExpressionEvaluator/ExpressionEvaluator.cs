@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 namespace CodingSeb.ExpressionEvaluator
 {
     /// <summary>
-    /// This class allow to evaluate a string math or pseudo C# expression 
+    /// This class allow to evaluate a string math or pseudo C# expression
     /// </summary>
     public partial class ExpressionEvaluator
     {
@@ -653,8 +653,8 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure). 
-        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available). 
+        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure).
+        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available).
         /// By default : true
         /// </summary>
         public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
@@ -744,7 +744,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true 
+        /// By default : true
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionEvaluateFunctionActive { get; set; } = true;
@@ -772,7 +772,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true 
+        /// By default : true
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
@@ -1394,7 +1394,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     bool executed = false;
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)){}
+                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
@@ -1454,7 +1454,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         private IList<ParsingMethodDelegate> parsingMethods;
 
-        protected virtual IList<ParsingMethodDelegate> ParsingMethods  => parsingMethods ?? (parsingMethods = new List<ParsingMethodDelegate>()
+        protected virtual IList<ParsingMethodDelegate> ParsingMethods => parsingMethods ?? (parsingMethods = new List<ParsingMethodDelegate>()
         {
             EvaluateCast,
             EvaluateNumber,
@@ -1809,7 +1809,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         try
                         {
-                            if(obj is NullConditionalNullValue)
+                            if (obj is NullConditionalNullValue)
                             {
                                 stack.Push(obj);
                             }
@@ -1851,7 +1851,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         if (dictionaryObject[varFuncName] is InternalDelegate internalDelegate)
                                             stack.Push(internalDelegate(oArgs.ToArray()));
-                                        else if(dictionaryObject[varFuncName] is Delegate del)
+                                        else if (dictionaryObject[varFuncName] is Delegate del)
                                             stack.Push(del.DynamicInvoke(oArgs.ToArray()));
                                     }
                                     else if (objType.GetProperty(varFuncName, InstanceBindingFlag) is PropertyInfo instancePropertyInfo
@@ -2250,7 +2250,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     if (Variables.ContainsKey(varFuncName) && Variables[varFuncName] is StronglyTypedVariable stronglyTypedVariable)
                                     {
-                                        if(cusVarValueToPush == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
+                                        if (cusVarValueToPush == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
                                         {
                                             throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
                                         }
@@ -2417,11 +2417,11 @@ namespace CodingSeb.ExpressionEvaluator
 
             Match match = Regex.Match(expression.Substring(i), regexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
-            if(match.Success)
+            if (match.Success)
             {
                 string op = match.Value;
                 stack.Push(operatorsDictionary[op]);
-                i+= op.Length - 1;
+                i += op.Length - 1;
                 return true;
             }
 
@@ -2572,7 +2572,6 @@ namespace CodingSeb.ExpressionEvaluator
 
                 dynamic right = Evaluate(innerExp.ToString());
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
-                
 
                 if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
                     right = (int)right;
@@ -2995,7 +2994,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 .MakeGenericMethod(parameterType.GetGenericArguments());
                             modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
                         }
-                        else if(paramTypeName.StartsWith("Action")
+                        else if (paramTypeName.StartsWith("Action")
                             && modifiedArgs[a] is InternalDelegate)
                         {
                             InternalDelegate led = modifiedArgs[a] as InternalDelegate;
@@ -3047,7 +3046,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (genericsTypes.Equals(string.Empty))
                 {
-                    if(inferedGenericsTypes != null && inferedGenericsTypes.Length == methodInfo.GetGenericArguments().Length)
+                    if (inferedGenericsTypes != null && inferedGenericsTypes.Length == methodInfo.GetGenericArguments().Length)
                     {
                         return methodInfo.MakeGenericMethod(inferedGenericsTypes);
                     }
@@ -3722,7 +3721,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         public bool Equals(ExpressionOperator otherOperator)
         {
-           return otherOperator!= null && OperatorValue == otherOperator.OperatorValue;
+            return otherOperator != null && OperatorValue == otherOperator.OperatorValue;
         }
     }
 
