@@ -617,6 +617,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("Abs(-4) > 10 / 2 ? Abs(-3) : (Abs(-4) + 4) / 2", ExpectedResult = 4, Category = "Conditional Operator t ? x : y")]
         [TestCase("Abs(-4) < 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 6, Category = "Conditional Operator t ? x : y")]
         [TestCase("Abs(-4) > 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
+        [TestCase("Abs(-4) > 10 / 2?(true ? 6 : 3+2):(false?Abs(-18):100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
+        [TestCase("1==1?true:false", ExpectedResult = true, Category = "Conditional Operator t ? x : y")]
         #endregion
 
         #region Math Constants
@@ -1773,12 +1775,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns("Hello Bob")
                     .SetCategory("Context object");
 
-                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator();
-
-                evaluatorWithPersonContext.Context = new Person1()
+                ExpressionEvaluator evaluatorWithPersonContext = new ExpressionEvaluator
                 {
-                    name = "John",
-                    LastName = "Smith"
+                    Context = new Person1()
+                    {
+                        name = "John",
+                        LastName = "Smith"
+                    }
                 };
 
                 yield return new TestCaseData(evaluatorWithPersonContext
