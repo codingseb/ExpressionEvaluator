@@ -2456,7 +2456,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Clear();
 
-                        stack.Push(condition ? Evaluate(restOfExpression.Substring(1, j - 1)) : Evaluate(restOfExpression.Substring(j + 1)));
+                        stack.Push(condition ? Evaluate(restOfExpression.Substring(0, j)) : Evaluate(restOfExpression.Substring(j + 1)));
 
                         i = expression.Length;
 
