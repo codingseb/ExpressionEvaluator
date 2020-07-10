@@ -15,7 +15,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         /// <summary>
         /// To evaluate DateTimes objects with #year-month-day syntax (#2019-05-28)
         /// </summary>
-        protected virtual bool EvaluateDateTimeSyntax(string expression, Stack<object> stack, ref int i)
+        protected virtual bool? EvaluateDateTimeSyntax(string expression, Stack<object> stack, ref int i)
         {
             Match match = Regex.Match(expression.Substring(i), @"^\s*#(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})");
 
@@ -40,7 +40,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         /// <summary>
         /// To evaluate a string replace with custom ternary indicator
         /// </summary>
-        protected virtual bool EvaluateSpecialTernaryOperator(string expression, Stack<object> stack, ref int i)
+        protected virtual bool? EvaluateSpecialTernaryOperator(string expression, Stack<object> stack, ref int i)
         {
             if (expression.Substring(i, 1).Equals("°"))
             {
