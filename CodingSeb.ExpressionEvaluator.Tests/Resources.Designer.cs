@@ -1217,5 +1217,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0069", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0070 */
+        ///var e = new Exception(&quot;Test&quot;);
+        ///
+        ///return 1+2;.
+        /// </summary>
+        public static string Script0070 {
+            get {
+                return ResourceManager.GetString("Script0070", resourceCulture);
+            }
+        }
     }
 }
