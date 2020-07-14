@@ -3013,9 +3013,6 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils methods for parsing and interpretation
 
-        /// <summary>
-        /// Should return null if an error occurred which should not interrupt the parsing process
-        /// </summary>
         protected delegate bool? ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
