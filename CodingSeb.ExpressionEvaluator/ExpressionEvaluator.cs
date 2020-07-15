@@ -215,7 +215,9 @@ namespace CodingSeb.ExpressionEvaluator
         protected static object IndexingOperatorFunc(dynamic left, dynamic right)
         {
             if (left is NullConditionalNullValue)
+            {
                 return left;
+            }
             else if (left is BubbleExceptionContainer)
             {
                 return left;
@@ -1528,20 +1530,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 for (int i = 0; i < expression.Length; i++)
                 {
-                    if (!ParsingMethods.Any(parsingMethod =>
-                    {
-                        bool? pRes = parsingMethod(expression, stack, ref i);
-                        //Possibility to implement an option to toggle left associativity
-                        //If "null" is returned, an error occured while parsing
-                        if (pRes.HasValue)
-                        {
-                            return pRes.Value; //normal case
-                        }
-                        else
-                        {
-                            return true; //Go on with parsing without throwing an exception. We want to reach the stack processing.
-                        }
-                    }))
+                    if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
                     {
                         string s = expression.Substring(i, 1);
 
@@ -1573,7 +1562,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Sub parts evaluate methods (protected virtual)
 
-        protected virtual bool? EvaluateCast(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateCast(string expression, Stack<object> stack, ref int i)
         {
             Match castMatch = Regex.Match(expression.Substring(i), CastRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
@@ -1595,7 +1584,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateNumber(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateNumber(string expression, Stack<object> stack, ref int i)
         {
             string restOfExpression = expression.Substring(i);
             Match numberMatch = Regex.Match(restOfExpression, numberRegexPattern, RegexOptions.IgnoreCase);
@@ -1658,7 +1647,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionNewKeywordEvaluationActive)
                 return false;
@@ -1828,7 +1817,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateVarOrFunc(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateVarOrFunc(string expression, Stack<object> stack, ref int i)
         {
             Match varFuncMatch = varOrFunctionRegEx.Match(expression.Substring(i));
 
@@ -1889,7 +1878,7 @@ namespace CodingSeb.ExpressionEvaluator
                             else if (obj is BubbleExceptionContainer)
                             {
                                 stack.Push(obj);
-                                return null;
+                                return true;
                             }
                             else
                             {
@@ -1997,7 +1986,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 Exception = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex)
                             });
-                            return null;  //Signals an error to the parsing method array call                          
+                            return true;  //Signals an error to the parsing method array call                          
                         }
                     }
                     else
@@ -2081,7 +2070,7 @@ namespace CodingSeb.ExpressionEvaluator
                             else if (obj is BubbleExceptionContainer)
                             {
                                 stack.Push(obj);
-                                return null;
+                                return true;
                             }
                             else
                             {
@@ -2234,7 +2223,13 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                            //Transport the exception in stack.
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex)
+                            });
+                            i--;
+                            return true;  //Signals an error to the parsing method array call
                         }
                     }
                     else
@@ -2441,7 +2436,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateChar(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateChar(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionCharEvaluationActive)
                 return false;
@@ -2492,7 +2487,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateOperators(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateOperators(string expression, Stack<object> stack, ref int i)
         {
             string regexPattern = "^(" + string.Join("|", operatorsDictionary
                 .Keys
@@ -2512,7 +2507,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateTernaryConditionalOperator(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateTernaryConditionalOperator(string expression, Stack<object> stack, ref int i)
         {
             if (expression.Substring(i, 1).Equals("?"))
             {
@@ -2552,7 +2547,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateParenthis(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateParenthis(string expression, Stack<object> stack, ref int i)
         {
             string s = expression.Substring(i, 1);
 
@@ -2603,7 +2598,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateIndexing(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateIndexing(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionIndexingActive)
                 return false;
@@ -2731,7 +2726,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateString(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateString(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionStringEvaluationActive)
                 return false;
@@ -3013,7 +3008,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils methods for parsing and interpretation
 
-        protected delegate bool? ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
+        protected delegate bool ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
 
