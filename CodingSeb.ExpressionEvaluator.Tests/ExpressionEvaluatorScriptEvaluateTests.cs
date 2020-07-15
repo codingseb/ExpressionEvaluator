@@ -1481,6 +1481,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionScriptNeedSemicolonAtTheEndOfLastExpression")
                     .Returns("0,1,2,3,4,");
 
+                yield return new TestCaseData(Resources.Script0070, new ExpressionEvaluator { OptionScriptNeedSemicolonAtTheEndOfLastExpression = false }, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("new Exception must not throw the exception")
+                    .Returns(3);
+
                 #endregion
             }
         }

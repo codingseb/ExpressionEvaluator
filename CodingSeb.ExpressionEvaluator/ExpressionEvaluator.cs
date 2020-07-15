@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.12.0 
+    Version : 1.4.13.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -215,8 +215,11 @@ namespace CodingSeb.ExpressionEvaluator
         protected static object IndexingOperatorFunc(dynamic left, dynamic right)
         {
             if (left is NullConditionalNullValue)
+            {
                 return left;
-            else if ( left is Exception ) {
+            }
+            else if (left is BubbleExceptionContainer)
+            {
                 return left;
             }
             Type type = ((object)left).GetType();
@@ -300,36 +303,42 @@ namespace CodingSeb.ExpressionEvaluator
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
                 {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => {
-                    if ( left is Exception ) {
-                        throw left as Exception;
-                    } else {
-                        if ( !left ) {
-                            return false;
-                        } else {
-                            if (right is Exception ) {
-                                throw right as Exception;
-                            }else{
-                                return left && right;
-                            }
-                        }
-                    }                   
+                    if ( left is BubbleExceptionContainer leftExceptionContainer)
+                    {
+                        throw leftExceptionContainer.Exception;
+                    }
+                    else if (!left)
+                    {
+                        return false;
+                    }
+                    else if (right is BubbleExceptionContainer rightExceptionContainer)
+                    {
+                        throw rightExceptionContainer.Exception;
+                    }
+                    else
+                    {
+                        return left && right;
+                    }
                 } },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
                 {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => {
-                    if ( left is Exception ) {
-                        throw left as Exception;
-                    } else {
-                        if ( left ) {
-                            return true;
-                        } else {
-                            if (right is Exception ) {
-                                throw right as Exception;
-                            }else{
-                                return left || right;
-                            }
-                        }
+                    if ( left is BubbleExceptionContainer leftExceptionContainer)
+                    {
+                        throw leftExceptionContainer.Exception;
+                    }
+                    else if (left)
+                    {
+                        return true;
+                    }
+                    else if (right is BubbleExceptionContainer rightExceptionContainer)
+                    {
+                        throw rightExceptionContainer.Exception;
+                    }
+                    else
+                    {
+                        return left || right;
                     }
                 } },
             },
@@ -876,9 +885,9 @@ namespace CodingSeb.ExpressionEvaluator
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Counts stack initialisations to determine if the expresseion enty point was reached. In that case the transported exception should be thrown.
+        /// Counts stack initialisations to determine if the expression enty point was reached. In that case the transported exception should be thrown.
         /// </summary>
-        private int evaluationStackCount=0;
+        private int evaluationStackCount;
 
         /// <summary>
         /// The Values of the variable use in the expressions
@@ -1064,12 +1073,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return match.Value.Contains("(") ? "(" : string.Empty;
                 });
 
-                var res=Evaluate(expression);
-                if (res is Exception ) {
-                    throw res as Exception;
-                }
-                return res;
-
+                return Evaluate(expression);
             }
 
             object ScriptExpressionEvaluate(ref int index)
@@ -1516,38 +1520,31 @@ namespace CodingSeb.ExpressionEvaluator
         public object Evaluate(string expression)
         {
             expression = expression.Trim();
-            
+
             Stack<object> stack = new Stack<object>();
             evaluationStackCount++;
-            try {
-                if ( GetLambdaExpression( expression, stack ) )
+            try
+            {
+                if (GetLambdaExpression(expression, stack))
                     return stack.Pop();
 
-                for ( int i = 0; i < expression.Length; i++ ) {
-                    if ( !ParsingMethods.Any( parsingMethod => {
-                        bool? pRes = parsingMethod( expression, stack, ref i );
-                        //Possibility to implement an option to toggle left associativity
-                        //If "null" is returned, an error occured while parsing
-                        if ( pRes.HasValue ) {
-                            return pRes.Value; //normal case
-                        } else {
-                            return true; //Go on with parsing without throwing an exception. We want to reach the stack processing.
-                        }
-                    } ) ) {
-                        string s = expression.Substring( i, 1 );
+                for (int i = 0; i < expression.Length; i++)
+                {
+                    if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
+                    {
+                        string s = expression.Substring(i, 1);
 
-                        if ( !s.Trim().Equals( string.Empty ) ) {
-                            throw new ExpressionEvaluatorSyntaxErrorException( $"Invalid character [{(int)s[ 0 ]}:{s}]" );
+                        if (!s.Trim().Equals(string.Empty))
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
                         }
                     }
                 }
-                var res = ProcessStack( stack );
-                if ( evaluationStackCount == 1 && res is Exception ) {
-                    //We reached the top level of the evaluation. So we want to throw the resulting exception.
-                    throw res as Exception;
-                }
-                return res;
-            } finally {
+
+                return ProcessStack(stack);
+            }
+            finally
+            {
                 evaluationStackCount--;
             }
         }
@@ -1558,7 +1555,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Sub parts evaluate methods (protected virtual)
 
-        protected virtual bool? EvaluateCast(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateCast(string expression, Stack<object> stack, ref int i)
         {
             Match castMatch = Regex.Match(expression.Substring(i), CastRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
 
@@ -1580,7 +1577,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateNumber(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateNumber(string expression, Stack<object> stack, ref int i)
         {
             string restOfExpression = expression.Substring(i);
             Match numberMatch = Regex.Match(restOfExpression, numberRegexPattern, RegexOptions.IgnoreCase);
@@ -1643,7 +1640,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionNewKeywordEvaluationActive)
                 return false;
@@ -1813,7 +1810,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateVarOrFunc(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateVarOrFunc(string expression, Stack<object> stack, ref int i)
         {
             Match varFuncMatch = varOrFunctionRegEx.Match(expression.Substring(i));
 
@@ -1870,10 +1867,13 @@ namespace CodingSeb.ExpressionEvaluator
                             else if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
                             {
                                 stack.Push(new NullConditionalNullValue());
-                            }else if(obj is Exception ) {
-                                stack.Push( obj );
-                                return null;
-                            } else
+                            }
+                            else if (obj is BubbleExceptionContainer)
+                            {
+                                stack.Push(obj);
+                                return true;
+                            }
+                            else
                             {
                                 FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
 
@@ -1974,9 +1974,12 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            //Transort the exception in stack.
-                            stack.Push( new ExpressionEvaluatorSyntaxErrorException( $"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex ) );
-                            return null;  //Signals an error to the parsing method array call                          
+                            //Transport the exception in stack.
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex)
+                            });
+                            return true;  //Signals an error to the parsing method array call                          
                         }
                     }
                     else
@@ -2056,10 +2059,13 @@ namespace CodingSeb.ExpressionEvaluator
                             else if (varFuncMatch.Groups["nullConditional"].Success && obj == null)
                             {
                                 stack.Push(new NullConditionalNullValue());
-                            } else if ( obj is Exception ) {
-                                stack.Push( obj );
-                                return null;
-                            } else
+                            }
+                            else if (obj is BubbleExceptionContainer)
+                            {
+                                stack.Push(obj);
+                                return true;
+                            }
+                            else
                             {
                                 VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
 
@@ -2210,7 +2216,13 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                            //Transport the exception in stack.
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex)
+                            });
+                            i--;
+                            return true;  //Signals an error to the parsing method array call
                         }
                     }
                     else
@@ -2417,7 +2429,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateChar(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateChar(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionCharEvaluationActive)
                 return false;
@@ -2468,7 +2480,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateOperators(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateOperators(string expression, Stack<object> stack, ref int i)
         {
             string regexPattern = "^(" + string.Join("|", operatorsDictionary
                 .Keys
@@ -2488,7 +2500,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateTernaryConditionalOperator(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateTernaryConditionalOperator(string expression, Stack<object> stack, ref int i)
         {
             if (expression.Substring(i, 1).Equals("?"))
             {
@@ -2528,7 +2540,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateParenthis(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateParenthis(string expression, Stack<object> stack, ref int i)
         {
             string s = expression.Substring(i, 1);
 
@@ -2579,7 +2591,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool? EvaluateIndexing(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateIndexing(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionIndexingActive)
                 return false;
@@ -2628,8 +2640,10 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     stack.Push(left);
                     return true;
-                } else if ( left is Exception ) {
-                    stack.Push( left );
+                }
+                else if (left is BubbleExceptionContainer)
+                {
+                    stack.Push(left);
                     return true;
                 }
 
@@ -2705,7 +2719,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool? EvaluateString(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateString(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionStringEvaluationActive)
                 return false;
@@ -2855,29 +2869,41 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             if (RightOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
-                                try {
-                                    list[ i ] = operatorEvalutationsDict[ eOp ]( null, (dynamic)list[ i - 1 ] );
-                                } catch ( Exception ex ) {
-                                    var right = (dynamic)list[ i - 1 ];
-                                    if ( right is Exception ) {
-                                        list[ i ] = right;//Bubble up the causing error
-                                    } else {
-                                        list[ i ] = ex;//Transport the processing error
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var right = (dynamic)list[i - 1];
+                                    if (right is BubbleExceptionContainer)
+                                    {
+                                        list[i] = right;//Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i - 1);
                                 break;
                             }
                             else if (LeftOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
-                            {                              
-                                try {
-                                    list[ i ] = operatorEvalutationsDict[ eOp ]( (dynamic)list[ i + 1 ], null );
-                                } catch (Exception ex) {
-                                    var left = (dynamic)list[ i + 1 ];
-                                    if ( left is Exception ) {
-                                        list[ i ] = left;//Bubble up the causing error
-                                    } else {
-                                        list[ i ] = ex;//Transport the processing error
+                            {
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var left = (dynamic)list[i + 1];
+                                    if (left is BubbleExceptionContainer)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i + 1);
@@ -2885,17 +2911,25 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                try {
-                                    list[ i ] = operatorEvalutationsDict[ eOp ]( (dynamic)list[ i + 1 ], (dynamic)list[ i - 1 ] );
-                                }catch(Exception ex ) {
-                                    var left = ( dynamic )list[ i + 1 ];
-                                    var right = ( dynamic )list[ i - 1 ];
-                                    if( left is Exception ) {
-                                        list[ i ] = left; //Bubble up the causing error
-                                    } else if( right is Exception ) {
-                                        list[ i ] = right; //Bubble up the causing error
-                                    } else {
-                                        list[ i ] = ex; //Transport the processing error
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var left = (dynamic)list[i + 1];
+                                    var right = (dynamic)list[i - 1];
+                                    if (left is BubbleExceptionContainer)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else if (right is BubbleExceptionContainer)
+                                    {
+                                        list[i] = right; //Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i + 1);
@@ -2914,14 +2948,23 @@ namespace CodingSeb.ExpressionEvaluator
                 stack.Push(list[i]);
             }
 
-            if ( stack.Count > 1 ) {
-                foreach ( var item in stack ) {
-                    if ( item is Exception ) {
-                        throw item as Exception; //Throw the first occuring error
+            if (stack.Count > 1)
+            {
+                foreach (var item in stack)
+                {
+                    if (item is BubbleExceptionContainer bubbleExceptionContainer)
+                    {
+                        throw bubbleExceptionContainer.Exception; //Throw the first occuring error
                     }
                 }
-                throw new ExpressionEvaluatorSyntaxErrorException( "Syntax error. Check that no operator is missing" );
+                throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
             }
+            else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
+            {
+                //We reached the top level of the evaluation. So we want to throw the resulting exception.
+                throw bubbleExceptionContainer.Exception;
+            }
+
             return stack.Pop();
         }
 
@@ -2964,10 +3007,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Utils methods for parsing and interpretation
 
-        /// <summary>
-        /// Should return null if an error occurred which should not interrupt the parsing process
-        /// </summary>
-        protected delegate bool? ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
+        protected delegate bool ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
 
@@ -3926,6 +3966,11 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Expression = expression;
         }
+    }
+
+    public partial class BubbleExceptionContainer
+    {
+        public Exception Exception { get; set; }
     }
 
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception
