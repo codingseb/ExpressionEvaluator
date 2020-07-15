@@ -1541,14 +1541,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                 }
 
-                var res = ProcessStack(stack);
-                if (evaluationStackCount == 1 && res is BubbleExceptionContainer bubbleExceptionContainer)
-                {
-                    //We reached the top level of the evaluation. So we want to throw the resulting exception.
-                    throw bubbleExceptionContainer.Exception;
-                }
-
-                return res;
+                return ProcessStack(stack);
             }
             finally
             {
@@ -2966,6 +2959,12 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
             }
+            else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
+            {
+                //We reached the top level of the evaluation. So we want to throw the resulting exception.
+                throw bubbleExceptionContainer.Exception;
+            }
+
             return stack.Pop();
         }
 
