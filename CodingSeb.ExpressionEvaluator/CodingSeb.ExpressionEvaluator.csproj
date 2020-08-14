@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.13.0</Version>
-    <AssemblyVersion>1.4.13.0</AssemblyVersion>
-    <FileVersion>1.4.13.0</FileVersion>
+    <Version>1.4.14.0</Version>
+    <AssemblyVersion>1.4.14.0</AssemblyVersion>
+    <FileVersion>1.4.14.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -18,9 +18,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* More complete Corrections of the bug on &amp;&amp; and || operators when the right part throw an exception when only the left part should be evaluated
-* Correction of a bug when creating an exception without throwing (introduced in last release)
-* Some refactoring</PackageReleaseNotes>
+    <PackageReleaseNotes>* Support for Unicode naming (variables, types, methods...) to support coding in languages like (Chinese, Korean, Japenese...)</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
