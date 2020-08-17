@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.14.0 
+    Version : 1.4.14.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -28,11 +28,9 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        protected const string diactiticsKeywordsRegexPattern = @"\p{L}_";
-        protected const string primaryTypesGroupPattern = "(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)";
-        protected const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])" + primaryTypesGroupPattern + "(?=[^a-zA-Z_]|$)";
+        protected const string primaryTypesRegexPattern = @"(?<=^|[^\p{L}_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
@@ -41,7 +39,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
-        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + "0-9])))");
+        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
@@ -51,13 +49,13 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
         protected static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]", RegexOptions.Compiled);
         protected static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
-        protected static readonly Regex lambdaExpressionRegex = new Regex($@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)(?>\s*)([,](?>\s*)[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*(?>\s*))*)?[)])|[{ diactiticsKeywordsRegexPattern}](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
-        protected static readonly Regex lambdaArgRegex = new Regex($"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
+        protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
+        protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
-        protected string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
+        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -69,8 +67,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         protected static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + "0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
