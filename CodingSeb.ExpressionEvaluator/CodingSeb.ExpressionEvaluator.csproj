@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.14.0</Version>
-    <AssemblyVersion>1.4.14.0</AssemblyVersion>
-    <FileVersion>1.4.14.0</FileVersion>
+    <Version>1.4.15.0</Version>
+    <AssemblyVersion>1.4.15.0</AssemblyVersion>
+    <FileVersion>1.4.15.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -18,7 +18,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Support for Unicode naming (variables, types, methods...) to support coding in languages like (Chinese, Korean, Japenese...)</PackageReleaseNotes>
+    <PackageReleaseNotes>* Add a Hack to better manage overloaded Linq methods define in Enumerable (Sum, Average, Min and Max...)</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
