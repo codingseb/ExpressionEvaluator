@@ -3103,69 +3103,44 @@ namespace CodingSeb.ExpressionEvaluator
                 .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
                 .ToList();
 
-                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                // For Linq methods that are overloaded and implement possibly lambda arguments
+                try
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes, inferedGenericsTypes);
-
-                    bool parametersCastOK = true;
-
-                    modifiedArgs = new List<object>(args);
-
-                    for (int a = 0; a < modifiedArgs.Count; a++)
+                    if (methodInfos.Count > 1
+                        && type == typeof(Enumerable)
+                        && args.Count == 2
+                        && args[1] is InternalDelegate internalDelegate
+                        && args[0] is IEnumerable enumerable
+                        && enumerable.GetEnumerator() is IEnumerator enumerator
+                        && enumerator.MoveNext()
+                        && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
                     {
-                        Type parameterType = methodInfos[m].GetParameters()[a].ParameterType;
-                        string paramTypeName = parameterType.Name;
+                        Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
 
-                        if (paramTypeName.StartsWith("Predicate")
-                            && modifiedArgs[a] is InternalDelegate)
+                        methodInfo = methodInfos.Find(m =>
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
-                        }
-                        else if (paramTypeName.StartsWith("Func")
-                            && modifiedArgs[a] is InternalDelegate)
+                            ParameterInfo[] parameterInfos = m.GetParameters();
+
+                            return parameterInfos.Length == 2
+                                && parameterInfos[1].ParameterType.Name.StartsWith("Func")
+                                && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
+                                && genericTypesArgs.Length == 2
+                                && genericTypesArgs[1] == lambdaResultType;
+                        });
+
+                        if (methodInfo != null)
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Action")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Converter")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
-                        }
-                        else
-                        {
-                            try
-                            {
-                                if (!methodInfos[m].GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
-                                {
-                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfos[m].GetParameters()[a].ParameterType);
-                                }
-                            }
-                            catch
-                            {
-                                parametersCastOK = false;
-                            }
+                            methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
                         }
                     }
+                }
+                catch { }
 
-                    if (parametersCastOK)
-                        methodInfo = methodInfos[m];
+                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                {
+                    modifiedArgs = new List<object>(args);
+
+                    methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
                 }
 
                 if (methodInfo != null)
@@ -3174,6 +3149,73 @@ namespace CodingSeb.ExpressionEvaluator
                     args.AddRange(modifiedArgs);
                 }
             }
+
+            return methodInfo;
+        }
+
+        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
+        {
+            MethodInfo methodInfo = null;
+
+            methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+
+            bool parametersCastOK = true;
+
+            for (int a = 0; a < modifiedArgs.Count; a++)
+            {
+                Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
+                string paramTypeName = parameterType.Name;
+
+                if (paramTypeName.StartsWith("Predicate")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
+                }
+                else if (paramTypeName.StartsWith("Func")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Action")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Converter")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
+                }
+                else
+                {
+                    try
+                    {
+                        if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        {
+                            modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                        }
+                    }
+                    catch
+                    {
+                        parametersCastOK = false;
+                    }
+                }
+            }
+
+            if (parametersCastOK)
+                methodInfo = methodInfoToCast;
 
             return methodInfo;
         }
