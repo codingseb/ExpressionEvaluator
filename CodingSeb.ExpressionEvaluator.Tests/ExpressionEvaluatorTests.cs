@@ -1874,7 +1874,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region inherits ExpressionEvaluator
+                #region Inherits ExpressionEvaluator
 
                 #region Redefine existing operators
 
@@ -2082,13 +2082,43 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region bug resolution
+                #region Bug resolution
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "(new List<Regex>()).GetType()"
                     , null)
                     .Returns(typeof(List<Regex>))
                     .SetCategory("Bug resolution");
+
+                // For bug #65
+                var Persons = new List<Person2>() { new Person2() { Code = "QT00010", Name = "Pedrito", Number = 11.11m },
+                    new Person2() { Code = "QT00011", Name = "Pablito", Number = 12.11m }};
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Sum(x=>x.Number)"
+                    , null)
+                    .Returns(23.22m)
+                    .SetCategory("Bug resolution"); 
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Average(x=>x.Number)"
+                    , null)
+                    .Returns(11.61m)
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Max(x=>x.Number)"
+                    , null)
+                    .Returns(12.11m)
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Min(x=>x.Number)"
+                    , null)
+                    .Returns(11.11m)
+                    .SetCategory("Bug resolution");
+
+                // end of bug #65
 
                 #endregion
             }

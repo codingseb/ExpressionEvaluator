@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.14.0 
+    Version : 1.4.15.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -28,11 +28,9 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        protected const string diactiticsKeywordsRegexPattern = @"\p{L}_";
-        protected const string primaryTypesGroupPattern = "(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)";
-        protected const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])" + primaryTypesGroupPattern + "(?=[^a-zA-Z_]|$)";
+        protected const string primaryTypesRegexPattern = @"(?<=^|[^\p{L}_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
@@ -41,7 +39,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
-        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + "0-9])))");
+        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
@@ -51,13 +49,13 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
         protected static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]", RegexOptions.Compiled);
         protected static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
-        protected static readonly Regex lambdaExpressionRegex = new Regex($@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)(?>\s*)([,](?>\s*)[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*(?>\s*))*)?[)])|[{ diactiticsKeywordsRegexPattern}](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
-        protected static readonly Regex lambdaArgRegex = new Regex($"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
+        protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
+        protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
-        protected string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
+        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -69,8 +67,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         protected static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + "0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
@@ -3105,69 +3103,44 @@ namespace CodingSeb.ExpressionEvaluator
                 .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
                 .ToList();
 
-                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                // For Linq methods that are overloaded and implement possibly lambda arguments
+                try
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes, inferedGenericsTypes);
-
-                    bool parametersCastOK = true;
-
-                    modifiedArgs = new List<object>(args);
-
-                    for (int a = 0; a < modifiedArgs.Count; a++)
+                    if (methodInfos.Count > 1
+                        && type == typeof(Enumerable)
+                        && args.Count == 2
+                        && args[1] is InternalDelegate internalDelegate
+                        && args[0] is IEnumerable enumerable
+                        && enumerable.GetEnumerator() is IEnumerator enumerator
+                        && enumerator.MoveNext()
+                        && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
                     {
-                        Type parameterType = methodInfos[m].GetParameters()[a].ParameterType;
-                        string paramTypeName = parameterType.Name;
+                        Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
 
-                        if (paramTypeName.StartsWith("Predicate")
-                            && modifiedArgs[a] is InternalDelegate)
+                        methodInfo = methodInfos.Find(m =>
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
-                        }
-                        else if (paramTypeName.StartsWith("Func")
-                            && modifiedArgs[a] is InternalDelegate)
+                            ParameterInfo[] parameterInfos = m.GetParameters();
+
+                            return parameterInfos.Length == 2
+                                && parameterInfos[1].ParameterType.Name.StartsWith("Func")
+                                && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
+                                && genericTypesArgs.Length == 2
+                                && genericTypesArgs[1] == lambdaResultType;
+                        });
+
+                        if (methodInfo != null)
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Action")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Converter")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
-                        }
-                        else
-                        {
-                            try
-                            {
-                                if (!methodInfos[m].GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
-                                {
-                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfos[m].GetParameters()[a].ParameterType);
-                                }
-                            }
-                            catch
-                            {
-                                parametersCastOK = false;
-                            }
+                            methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
                         }
                     }
+                }
+                catch { }
 
-                    if (parametersCastOK)
-                        methodInfo = methodInfos[m];
+                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                {
+                    modifiedArgs = new List<object>(args);
+
+                    methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
                 }
 
                 if (methodInfo != null)
@@ -3176,6 +3149,73 @@ namespace CodingSeb.ExpressionEvaluator
                     args.AddRange(modifiedArgs);
                 }
             }
+
+            return methodInfo;
+        }
+
+        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
+        {
+            MethodInfo methodInfo = null;
+
+            methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+
+            bool parametersCastOK = true;
+
+            for (int a = 0; a < modifiedArgs.Count; a++)
+            {
+                Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
+                string paramTypeName = parameterType.Name;
+
+                if (paramTypeName.StartsWith("Predicate")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
+                }
+                else if (paramTypeName.StartsWith("Func")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Action")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Converter")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
+                }
+                else
+                {
+                    try
+                    {
+                        if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        {
+                            modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                        }
+                    }
+                    catch
+                    {
+                        parametersCastOK = false;
+                    }
+                }
+            }
+
+            if (parametersCastOK)
+                methodInfo = methodInfoToCast;
 
             return methodInfo;
         }
