@@ -2117,7 +2117,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                     }
 
-                                    if (varValue == null && pushVarValue)
+                                    if (!isDynamic && varValue == null && pushVarValue)
                                     {
                                         varValue = ((dynamic)member).GetValue(obj);
 

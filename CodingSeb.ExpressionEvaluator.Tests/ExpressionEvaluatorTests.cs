@@ -1153,11 +1153,31 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("string.IsNullOrEmpty(nullVar) || nullVar.StartsWith(\"ABC\") == false", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
                 yield return new TestCaseData("!string.IsNullOrEmpty(nullVar) && nullVar.Length < 2", onInstanceVariables, true).SetCategory("Instance Property,And Conditional").Returns(false);
                 yield return new TestCaseData("string.IsNullOrEmpty(nullVar) || nullVar.Length < 2", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
-               yield return new TestCaseData("true || 1/0 == 0", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
+                yield return new TestCaseData("true || 1/0 == 0", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
                 yield return new TestCaseData("false && true || true", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional,And Conditional,Precedence check").Returns(true);
                 yield return new TestCaseData("true || true && false", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional,And Conditional,Precedence check").Returns(true);
                 yield return new TestCaseData("false && nullVar.What ? nullVar.Text : \"Hello\"", onInstanceVariables, true).SetCategory("Instance Property,Ternary operator, And Conditional").Returns("Hello");
                 yield return new TestCaseData("false && (false && nullVar.What ? nullVar.boolValue : true) ? nullVar.Text : \"Hello\"", onInstanceVariables, true).SetCategory("Instance Property,Ternary operator, And Conditional").Returns("Hello");
+
+                #endregion
+
+                #region ExpandoObject
+
+                dynamic MyDynamic = new System.Dynamic.ExpandoObject();
+                MyDynamic.NullValue = null;
+                MyDynamic.Number = 11;
+
+                Dictionary<string, object> ExpandoObjectVariables = new Dictionary<string, object>()
+                {
+                    { "expObj", MyDynamic },
+                };
+
+                yield return new TestCaseData("expObj.Number", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns(11);
+
+                #region bug #67
+                yield return new TestCaseData("expObj.NullValue", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns(null);
+                yield return new TestCaseData("expObj.NullValue ?? \"A\"", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns("A");
+                #endregion
 
 
                 #endregion
