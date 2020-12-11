@@ -1,0 +1,7 @@
+﻿/* Script0071 */
+var myVar = null;
+
+myVar ??= "First Null-coalescing assignation";
+myVar ??= "Second Null-coalescing assignation";
+
+return myVar;
