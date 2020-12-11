@@ -570,11 +570,22 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("x >>= 2;",
                    evaluator0011,
                     new Action(() => evaluator0011.Variables["x"].ShouldBe(5)),
-                    new Action(() => evaluator0011.Variables["x"].ShouldBe(1)), null)
+                    new Action(() => evaluator0011.Variables["x"].ShouldBe(1)),
+                    null)
                 .SetCategory("Script")
                 .SetCategory("Variable assignation")
                 .SetCategory(">>=")
                 .Returns(1);
+
+                yield return new TestCaseData(Resources.Script0071,
+                    null,
+                    null,
+                    null,
+                    null)
+                .SetCategory("Script")
+                .SetCategory("Variable assignation")
+                .SetCategory("??=")
+                .Returns("First Null-coalescing assignation");
 
                 #endregion
 

@@ -1220,13 +1220,28 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         
         /// <summary>
         ///   Looks up a localized string similar to /* Script0070 */
-        ///var e = new Exception(&quot;Test&quot;);
+        ///var e = new Exception(&quot;Must not be thrown&quot;);
         ///
         ///return 1+2;.
         /// </summary>
         public static string Script0070 {
             get {
                 return ResourceManager.GetString("Script0070", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0071 */
+        ///var myVar = null;
+        ///
+        ///myVar ??= &quot;First Null-coalescing assignation&quot;;
+        ///myVar ??= &quot;Second Null-coalescing assignation&quot;;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0071 {
+            get {
+                return ResourceManager.GetString("Script0071", resourceCulture);
             }
         }
     }
