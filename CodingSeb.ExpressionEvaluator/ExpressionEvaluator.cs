@@ -2848,6 +2848,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual object ProcessStack(Stack<object> stack)
         {
+            if (stack.Count == 0)
+                throw new ExpressionEvaluatorSyntaxErrorException("Empty expression or no token found");
+
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
                 .Select(e => e is SubExpression subExpression ? Evaluate(subExpression.Expression) : e)
@@ -2964,7 +2967,6 @@ namespace CodingSeb.ExpressionEvaluator
 
             return stack.Pop();
         }
-
         #endregion
 
         #region Remove comments

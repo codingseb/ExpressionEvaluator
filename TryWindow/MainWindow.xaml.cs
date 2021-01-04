@@ -25,6 +25,8 @@ namespace TryWindow
         {
             InitializeComponent();
 
+            new ExpressionEvaluator().Evaluate("");
+
             if (File.Exists(persistCodeFileName))
                 ScriptTextBox.Text = File.ReadAllText(persistCodeFileName);
             if (File.Exists(persistIterationFileName))
