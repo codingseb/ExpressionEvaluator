@@ -36,7 +36,7 @@ It is largely based on and inspired by the following resources [this post on st
 ## And with [ScriptEvaluate](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started#small-scripts) method
 * Small C# like script evaluation (Multi expressions separated by ; )
 * Some conditional and loop blocks [keywords](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#scripts-keywords) (if, while, for, foreach ...)
-* Multi-line (multi expression) Lambda expressions.
+* Multi-line (multi expression) Lambda expressions. (Can be use as method [See #72 Declare methods in scripts](https://github.com/codingseb/ExpressionEvaluator/issues/72))
 
 ## Resources
 * [Getting Started](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started)
