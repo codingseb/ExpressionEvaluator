@@ -999,46 +999,13 @@ namespace CodingSeb.ExpressionEvaluator
 
             script = script.TrimEnd();
 
-            object ManageJumpStatementsOrExpressionEval(string expression)
-            {
-                expression = expression.Trim();
-
-                if (expression.Equals("break", StringComparisonForCasing))
-                {
-                    isBreak = true;
-                    return lastResult;
-                }
-
-                if (expression.Equals("continue", StringComparisonForCasing))
-                {
-                    isContinue = true;
-                    return lastResult;
-                }
-
-                if (expression.StartsWith("throw ", StringComparisonForCasing))
-                {
-                    throw Evaluate(expression.Remove(0, 6)) as Exception;
-                }
-
-                expression = returnKeywordRegex.Replace(expression, match =>
-                {
-                    if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
-                        return match.Value;
-
-                    isReturn = true;
-                    return match.Value.Contains("(") ? "(" : string.Empty;
-                });
-
-                return Evaluate(expression);
-            }
-
             object ScriptExpressionEvaluate(ref int index)
             {
                 string expression = script.Substring(startOfExpression, index - startOfExpression);
 
                 startOfExpression = index + 1;
 
-                return ManageJumpStatementsOrExpressionEval(expression);
+                return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
             }
 
             bool TryParseStringAndParenthisAndCurlyBrackets(ref int index)
@@ -1078,7 +1045,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (ifElseStatementsList.Count > 0)
                 {
-                    string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0]))?[1];
+                    string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0], ref isBreak, ref isContinue, ref isReturn, lastResult) )?[1];
 
                     if (!string.IsNullOrEmpty(ifScript))
                         lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
@@ -1300,7 +1267,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             isContinue = false;
                                         }
                                     }
-                                    while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]));
+                                    while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0], ref isBreak, ref isContinue, ref isReturn, lastResult));
                                 }
                                 else
                                 {
@@ -1314,7 +1281,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("while", StringComparisonForCasing))
                         {
-                            while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0]))
+                            while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0], ref isBreak, ref isContinue, ref isReturn, lastResult))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -1334,10 +1301,10 @@ namespace CodingSeb.ExpressionEvaluator
                             void forAction(int index)
                             {
                                 if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty))
-                                    ManageJumpStatementsOrExpressionEval(keywordAttributes[index]);
+                                    ManageJumpStatementsOrExpressionEval(keywordAttributes[index], ref isBreak, ref isContinue, ref isReturn, lastResult);
                             }
 
-                            for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1]); forAction(2))
+                            for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1], ref isBreak, ref isContinue, ref isReturn, lastResult); forAction(2))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -1503,6 +1470,49 @@ namespace CodingSeb.ExpressionEvaluator
         #endregion
 
         #region Sub parts evaluate methods (protected virtual)
+
+        #region Scripts
+
+        protected virtual object ManageJumpStatementsOrExpressionEval(string expression, ref bool isBreak, ref bool isContinue, ref bool isReturn, object lastResult)
+        {
+            expression = expression.Trim();
+
+            if (expression.Equals("break", StringComparisonForCasing))
+            {
+                isBreak = true;
+                return lastResult;
+            }
+
+            if (expression.Equals("continue", StringComparisonForCasing))
+            {
+                isContinue = true;
+                return lastResult;
+            }
+
+            if (expression.StartsWith("throw ", StringComparisonForCasing))
+            {
+                throw Evaluate(expression.Remove(0, 6)) as Exception;
+            }
+
+            bool ret = isReturn;
+
+            expression = returnKeywordRegex.Replace(expression, match =>
+            {
+                if (OptionCaseSensitiveEvaluationActive && !match.Value.StartsWith("return"))
+                    return match.Value;
+
+                ret = true;
+                return match.Value.Contains("(") ? "(" : string.Empty;
+            });
+
+            isReturn = ret;
+
+            return Evaluate(expression);
+        }
+
+        #endregion
+
+        #region Expressions
 
         protected virtual bool EvaluateCast(string expression, Stack<object> stack, ref int i)
         {
@@ -2767,6 +2777,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             return false;
         }
+
+        #endregion
 
         #endregion
 
