@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.10.1 
+    Version : 1.4.18.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -28,12 +28,9 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        protected const string diactitics = "áàâãåǎăāąæéèêëěēĕėęěìíîïīĭįĳóôõöōŏőøðœùúûüǔũūŭůűųýþÿŷıćĉċčçďđĝğġģĥħĵķĺļľŀłńņňŋñŕŗřśŝşšţťŧŵźżžÁÀÂÃÅǍĂĀĄÆÉÈÊËĚĒĔĖĘĚÌÍÎÏĪĬĮĲÓÔÕÖŌŎŐØÐŒÙÚÛÜǓŨŪŬŮŰŲÝÞŸŶIĆĈĊČÇĎĐĜĞĠĢĤĦĴĶĹĻĽĿŁŃŅŇŊÑŔŖŘŚŜŞŠŢŤŦŴŹŻŽß";
-        protected const string diactiticsKeywordsRegexPattern = "a-zA-Z_" + diactitics;
-        protected const string primaryTypesGroupPattern = "(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)";
-        protected const string primaryTypesRegexPattern = "(?<=^|[^" + diactiticsKeywordsRegexPattern + "])" + primaryTypesGroupPattern + "(?=[^a-zA-Z_]|$)";
+        protected const string primaryTypesRegexPattern = @"(?<=^|[^\p{L}_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex($@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![{ diactiticsKeywordsRegexPattern}0-9]))|((?<isgeneric>[<](?>([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
@@ -42,7 +39,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
-        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![" + diactiticsKeywordsRegexPattern + "0-9])))");
+        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
@@ -52,13 +49,13 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex endOfStringWithoutDollarWithAt = new Regex("^[^\"]*[\"]", RegexOptions.Compiled);
         protected static readonly Regex endOfStringInterpolationRegex = new Regex("^('\"'|[^}\"])*[}\"]", RegexOptions.Compiled);
         protected static readonly Regex stringBeginningForEndBlockRegex = new Regex("[$]?[@]?[\"]$", RegexOptions.Compiled);
-        protected static readonly Regex lambdaExpressionRegex = new Regex($@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)(?>\s*)([,](?>\s*)[{diactiticsKeywordsRegexPattern}][{ diactiticsKeywordsRegexPattern}0-9]*(?>\s*))*)?[)])|[{ diactiticsKeywordsRegexPattern}](?>[{ diactiticsKeywordsRegexPattern }0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
-        protected static readonly Regex lambdaArgRegex = new Regex($"[{ diactiticsKeywordsRegexPattern }](?>[{ diactiticsKeywordsRegexPattern }0-9]*)", RegexOptions.Compiled);
+        protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
+        protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return $@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern}0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
-        protected string CastRegexPattern { get { return $@"^\((?>\s*)(?<typeName>[{ diactiticsKeywordsRegexPattern }][{ diactiticsKeywordsRegexPattern }0-9{ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) }\[\]<>]*[?]?)(?>\s*)\)"; } }
+        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -70,8 +67,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         protected static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[" + diactiticsKeywordsRegexPattern + "](?>[" + diactiticsKeywordsRegexPattern + @"0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![" + diactiticsKeywordsRegexPattern + "0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
@@ -215,8 +212,13 @@ namespace CodingSeb.ExpressionEvaluator
         protected static object IndexingOperatorFunc(dynamic left, dynamic right)
         {
             if (left is NullConditionalNullValue)
+            {
                 return left;
-
+            }
+            else if (left is BubbleExceptionContainer)
+            {
+                return left;
+            }
             Type type = ((object)left).GetType();
 
             if (left is IDictionary<string, object> dictionaryLeft)
@@ -297,11 +299,45 @@ namespace CodingSeb.ExpressionEvaluator
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => left && right },
+                {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => {
+                    if ( left is BubbleExceptionContainer leftExceptionContainer)
+                    {
+                        throw leftExceptionContainer.Exception;
+                    }
+                    else if (!left)
+                    {
+                        return false;
+                    }
+                    else if (right is BubbleExceptionContainer rightExceptionContainer)
+                    {
+                        throw rightExceptionContainer.Exception;
+                    }
+                    else
+                    {
+                        return left && right;
+                    }
+                } },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => left || right },
+                {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => {
+                    if ( left is BubbleExceptionContainer leftExceptionContainer)
+                    {
+                        throw leftExceptionContainer.Exception;
+                    }
+                    else if (left)
+                    {
+                        return true;
+                    }
+                    else if (right is BubbleExceptionContainer rightExceptionContainer)
+                    {
+                        throw rightExceptionContainer.Exception;
+                    }
+                    else
+                    {
+                        return left || right;
+                    }
+                } },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
@@ -844,6 +880,11 @@ namespace CodingSeb.ExpressionEvaluator
         public object Context { get; set; }
 
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
+
+        /// <summary>
+        /// Counts stack initialisations to determine if the expression enty point was reached. In that case the transported exception should be thrown.
+        /// </summary>
+        private int evaluationStackCount;
 
         /// <summary>
         /// The Values of the variable use in the expressions
@@ -1445,24 +1486,31 @@ namespace CodingSeb.ExpressionEvaluator
             expression = expression.Trim();
 
             Stack<object> stack = new Stack<object>();
-
-            if (GetLambdaExpression(expression, stack))
-                return stack.Pop();
-
-            for (int i = 0; i < expression.Length; i++)
+            evaluationStackCount++;
+            try
             {
-                if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
-                {
-                    string s = expression.Substring(i, 1);
+                if (GetLambdaExpression(expression, stack))
+                    return stack.Pop();
 
-                    if (!s.Trim().Equals(string.Empty))
+                for (int i = 0; i < expression.Length; i++)
+                {
+                    if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                        string s = expression.Substring(i, 1);
+
+                        if (!s.Trim().Equals(string.Empty))
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                        }
                     }
                 }
-            }
 
-            return ProcessStack(stack);
+                return ProcessStack(stack);
+            }
+            finally
+            {
+                evaluationStackCount--;
+            }
         }
 
         #endregion
@@ -1827,6 +1875,11 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 stack.Push(new NullConditionalNullValue());
                             }
+                            else if (obj is BubbleExceptionContainer)
+                            {
+                                stack.Push(obj);
+                                return true;
+                            }
                             else
                             {
                                 FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
@@ -1928,7 +1981,12 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
+                            //Transport the exception in stack.
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex)
+                            });
+                            return true;  //Signals an error to the parsing method array call                          
                         }
                     }
                     else
@@ -2009,6 +2067,11 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 stack.Push(new NullConditionalNullValue());
                             }
+                            else if (obj is BubbleExceptionContainer)
+                            {
+                                stack.Push(obj);
+                                return true;
+                            }
                             else
                             {
                                 VariablePreEvaluationEventArg variablePreEvaluationEventArg = new VariablePreEvaluationEventArg(varFuncName, this, obj, genericsTypes, GetConcreteTypes);
@@ -2064,7 +2127,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                     }
 
-                                    if (varValue == null && pushVarValue)
+                                    if (!isDynamic && varValue == null && pushVarValue)
                                     {
                                         varValue = ((dynamic)member).GetValue(obj);
 
@@ -2160,7 +2223,13 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (Exception ex)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                            //Transport the exception in stack.
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex)
+                            });
+                            i--;
+                            return true;  //Signals an error to the parsing method array call
                         }
                     }
                     else
@@ -2466,7 +2535,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         stack.Clear();
 
-                        stack.Push(condition ? Evaluate(restOfExpression.Substring(1, j - 1)) : Evaluate(restOfExpression.Substring(j + 1)));
+                        stack.Push(condition ? Evaluate(restOfExpression.Substring(0, j)) : Evaluate(restOfExpression.Substring(j + 1)));
 
                         i = expression.Length;
 
@@ -2575,6 +2644,11 @@ namespace CodingSeb.ExpressionEvaluator
                 dynamic left = stack.Pop();
 
                 if (left is NullConditionalNullValue)
+                {
+                    stack.Push(left);
+                    return true;
+                }
+                else if (left is BubbleExceptionContainer)
                 {
                     stack.Push(left);
                     return true;
@@ -2786,6 +2860,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual object ProcessStack(Stack<object> stack)
         {
+            if (stack.Count == 0)
+                throw new ExpressionEvaluatorSyntaxErrorException("Empty expression or no token found");
+
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
                 .Select(e => e is SubExpression subExpression ? Evaluate(subExpression.Expression) : e)
@@ -2804,19 +2881,69 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             if (RightOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
-                                list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var right = (dynamic)list[i - 1];
+                                    if (right is BubbleExceptionContainer)
+                                    {
+                                        list[i] = right;//Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                    }
+                                }
                                 list.RemoveAt(i - 1);
                                 break;
                             }
                             else if (LeftOperandOnlyOperatorsEvaluationDictionary.Contains(eOp))
                             {
-                                list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var left = (dynamic)list[i + 1];
+                                    if (left is BubbleExceptionContainer)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                    }
+                                }
                                 list.RemoveAt(i + 1);
                                 break;
                             }
                             else
                             {
-                                list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
+                                try
+                                {
+                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
+                                }
+                                catch (Exception ex)
+                                {
+                                    var left = (dynamic)list[i + 1];
+                                    var right = (dynamic)list[i - 1];
+                                    if (left is BubbleExceptionContainer)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else if (right is BubbleExceptionContainer)
+                                    {
+                                        list[i] = right; //Bubble up the causing error
+                                    }
+                                    else
+                                    {
+                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                    }
+                                }
                                 list.RemoveAt(i + 1);
                                 list.RemoveAt(i - 1);
                                 i--;
@@ -2834,11 +2961,24 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             if (stack.Count > 1)
+            {
+                foreach (var item in stack)
+                {
+                    if (item is BubbleExceptionContainer bubbleExceptionContainer)
+                    {
+                        throw bubbleExceptionContainer.Exception; //Throw the first occuring error
+                    }
+                }
                 throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
+            }
+            else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
+            {
+                //We reached the top level of the evaluation. So we want to throw the resulting exception.
+                throw bubbleExceptionContainer.Exception;
+            }
 
             return stack.Pop();
         }
-
         #endregion
 
         #region Remove comments
@@ -2977,69 +3117,44 @@ namespace CodingSeb.ExpressionEvaluator
                 .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
                 .ToList();
 
-                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                // For Linq methods that are overloaded and implement possibly lambda arguments
+                try
                 {
-                    methodInfos[m] = MakeConcreteMethodIfGeneric(methodInfos[m], genericsTypes, inferedGenericsTypes);
-
-                    bool parametersCastOK = true;
-
-                    modifiedArgs = new List<object>(args);
-
-                    for (int a = 0; a < modifiedArgs.Count; a++)
+                    if (methodInfos.Count > 1
+                        && type == typeof(Enumerable)
+                        && args.Count == 2
+                        && args[1] is InternalDelegate internalDelegate
+                        && args[0] is IEnumerable enumerable
+                        && enumerable.GetEnumerator() is IEnumerator enumerator
+                        && enumerator.MoveNext()
+                        && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
                     {
-                        Type parameterType = methodInfos[m].GetParameters()[a].ParameterType;
-                        string paramTypeName = parameterType.Name;
+                        Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
 
-                        if (paramTypeName.StartsWith("Predicate")
-                            && modifiedArgs[a] is InternalDelegate)
+                        methodInfo = methodInfos.Find(m =>
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
-                        }
-                        else if (paramTypeName.StartsWith("Func")
-                            && modifiedArgs[a] is InternalDelegate)
+                            ParameterInfo[] parameterInfos = m.GetParameters();
+
+                            return parameterInfos.Length == 2
+                                && parameterInfos[1].ParameterType.Name.StartsWith("Func")
+                                && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
+                                && genericTypesArgs.Length == 2
+                                && genericTypesArgs[1] == lambdaResultType;
+                        });
+
+                        if (methodInfo != null)
                         {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Action")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            DelegateEncaps de = new DelegateEncaps(led);
-                            MethodInfo encapsMethod = de.GetType()
-                                .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
-                                .MakeGenericMethod(parameterType.GetGenericArguments());
-                            modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                        }
-                        else if (paramTypeName.StartsWith("Converter")
-                            && modifiedArgs[a] is InternalDelegate)
-                        {
-                            InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                            modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
-                        }
-                        else
-                        {
-                            try
-                            {
-                                if (!methodInfos[m].GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
-                                {
-                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfos[m].GetParameters()[a].ParameterType);
-                                }
-                            }
-                            catch
-                            {
-                                parametersCastOK = false;
-                            }
+                            methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
                         }
                     }
+                }
+                catch { }
 
-                    if (parametersCastOK)
-                        methodInfo = methodInfos[m];
+                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                {
+                    modifiedArgs = new List<object>(args);
+
+                    methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
                 }
 
                 if (methodInfo != null)
@@ -3048,6 +3163,73 @@ namespace CodingSeb.ExpressionEvaluator
                     args.AddRange(modifiedArgs);
                 }
             }
+
+            return methodInfo;
+        }
+
+        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
+        {
+            MethodInfo methodInfo = null;
+
+            methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+
+            bool parametersCastOK = true;
+
+            for (int a = 0; a < modifiedArgs.Count; a++)
+            {
+                Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
+                string paramTypeName = parameterType.Name;
+
+                if (paramTypeName.StartsWith("Predicate")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
+                }
+                else if (paramTypeName.StartsWith("Func")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Action")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    DelegateEncaps de = new DelegateEncaps(led);
+                    MethodInfo encapsMethod = de.GetType()
+                        .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                        .MakeGenericMethod(parameterType.GetGenericArguments());
+                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                }
+                else if (paramTypeName.StartsWith("Converter")
+                    && modifiedArgs[a] is InternalDelegate)
+                {
+                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
+                    modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
+                }
+                else
+                {
+                    try
+                    {
+                        if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        {
+                            modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                        }
+                    }
+                    catch
+                    {
+                        parametersCastOK = false;
+                    }
+                }
+            }
+
+            if (parametersCastOK)
+                methodInfo = methodInfoToCast;
 
             return methodInfo;
         }
@@ -3837,6 +4019,11 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Expression = expression;
         }
+    }
+
+    public partial class BubbleExceptionContainer
+    {
+        public Exception Exception { get; set; }
     }
 
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception

@@ -617,6 +617,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("Abs(-4) > 10 / 2 ? Abs(-3) : (Abs(-4) + 4) / 2", ExpectedResult = 4, Category = "Conditional Operator t ? x : y")]
         [TestCase("Abs(-4) < 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 6, Category = "Conditional Operator t ? x : y")]
         [TestCase("Abs(-4) > 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
+        [TestCase("Abs(-4) > 10 / 2?(true ? 6 : 3+2):(false?Abs(-18):100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
+        [TestCase("1==1?true:false", ExpectedResult = true, Category = "Conditional Operator t ? x : y")]
         #endregion
 
         #region Math Constants
@@ -798,10 +800,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("ListOfType(typeof(int), 1,2,3 )[0]", ExpectedResult = 1, Category = "Standard Functions,ListOfType Function,Indexing")]
         [TestCase("ListOfType(typeof(int), 1,2,3 )[1]", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Indexing")]
         [TestCase("ListOfType(typeof(int), 1,2,3 )[2]", ExpectedResult = 3, Category = "Standard Functions,ListOfType Function,Indexing")]
-        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).GetType()", ExpectedResult = typeof(List<string>), Category = "Standard Functions,ListOfType Function,Instance Property")]
-        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" ).Count", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Instance Property")]
-        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[0]", ExpectedResult = "hello", Category = "Standard Functions,ListOfType Function,Indexing")]
-        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\" )[1]", ExpectedResult = "Test", Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\").GetType()", ExpectedResult = typeof(List<string>), Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\").Count", ExpectedResult = 2, Category = "Standard Functions,ListOfType Function,Instance Property")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\")[0]", ExpectedResult = "hello", Category = "Standard Functions,ListOfType Function,Indexing")]
+        [TestCase("ListOfType(typeof(string), \"hello\",\"Test\")[1]", ExpectedResult = "Test", Category = "Standard Functions,ListOfType Function,Indexing")]
         #endregion
 
         #region Log Function
@@ -1109,15 +1111,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("nullVar?[1][3]", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
                 yield return new TestCaseData("simpleArray2?[3]?.Trim()", onInstanceVariables, true).SetCategory("Instance Property,Null Conditional indexing").Returns(null);
 
-                yield return new TestCaseData("simpleInt.ToString()", onInstanceVariables, true).SetCategory("Instance Method").Returns("42");
-                yield return new TestCaseData("simpleInt.ToString().Length", onInstanceVariables, true).SetCategory("Instance Method,Instance Property").Returns(2);
-
                 yield return new TestCaseData("customObject.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
                 yield return new TestCaseData("customObject?.IntProperty", onInstanceVariables, true).SetCategory("Instance Property").Returns(25);
                 yield return new TestCaseData("customObject.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
                 yield return new TestCaseData("customObject?.intField", onInstanceVariables, true).SetCategory("Instance Field").Returns(12);
                 yield return new TestCaseData("customObject.Add3To(9)", onInstanceVariables, true).SetCategory("Instance Method").Returns(12);
                 yield return new TestCaseData("customObject?.Add3To(5)", onInstanceVariables, true).SetCategory("Instance Method").Returns(8);
+
+                yield return new TestCaseData("simpleInt.ToString()", onInstanceVariables, true).SetCategory("Instance Method").Returns("42");
+                yield return new TestCaseData("simpleInt.ToString().Length", onInstanceVariables, true).SetCategory("Instance Method,Instance Property").Returns(2);
 
                 yield return new TestCaseData("ClassForTest1.StaticIntProperty", onInstanceVariables, true).SetCategory("Static Property").Returns(67);
                 yield return new TestCaseData("ClassForTest1.StaticStringMethod(\"Bob\")", onInstanceVariables, true).SetCategory("Static Method").Returns("Hello Bob");
@@ -1139,6 +1141,45 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("simpleInt++ - simpleInt", onInstanceVariables, true).SetCategory("Postfix operator, ++").Returns(-1);
                 yield return new TestCaseData("simpleInt--", onInstanceVariables, true).SetCategory("Postfix operator, --").Returns(42);
                 yield return new TestCaseData("simpleInt-- - simpleInt", onInstanceVariables, true).SetCategory("Postfix operator, --").Returns(1);
+
+                yield return new TestCaseData("false && 1/0>0", onInstanceVariables, true).SetCategory("Conditional And, negative left operand (should respect left associativity)").Returns(false);
+                yield return new TestCaseData("true || 1/0>0", onInstanceVariables, true).SetCategory("Conditional Or, positive left operand (should respect left associativity)").Returns(true);
+                yield return new TestCaseData("false && (true && 1/0>0)", onInstanceVariables, true).SetCategory("Conditional And, negative left operand (should respect left associativity)").Returns(false);
+                yield return new TestCaseData("true || (false || 1/0>0)", onInstanceVariables, true).SetCategory("Conditional Or, positive left operand (should respect left associativity)").Returns(true);
+                yield return new TestCaseData("false && 1/0 == 0", onInstanceVariables, true).SetCategory("Instance Property,And Conditional").Returns(false);
+                yield return new TestCaseData("!string.IsNullOrEmpty(nullVar) && nullVar.StartsWith(\"ABC\")", onInstanceVariables, true).SetCategory("Instance Property,And Conditional").Returns(false);
+                yield return new TestCaseData("string.IsNullOrEmpty(nullVar) || nullVar.StartsWith(\"ABC\")", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
+                yield return new TestCaseData("!string.IsNullOrEmpty(nullVar) && nullVar.StartsWith(\"ABC\") == false", onInstanceVariables, true).SetCategory("Instance Property,And Conditional").Returns(false);
+                yield return new TestCaseData("string.IsNullOrEmpty(nullVar) || nullVar.StartsWith(\"ABC\") == false", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
+                yield return new TestCaseData("!string.IsNullOrEmpty(nullVar) && nullVar.Length < 2", onInstanceVariables, true).SetCategory("Instance Property,And Conditional").Returns(false);
+                yield return new TestCaseData("string.IsNullOrEmpty(nullVar) || nullVar.Length < 2", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
+                yield return new TestCaseData("true || 1/0 == 0", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional").Returns(true);
+                yield return new TestCaseData("false && true || true", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional,And Conditional,Precedence check").Returns(true);
+                yield return new TestCaseData("true || true && false", onInstanceVariables, true).SetCategory("Instance Property,Or Conditional,And Conditional,Precedence check").Returns(true);
+                yield return new TestCaseData("false && nullVar.What ? nullVar.Text : \"Hello\"", onInstanceVariables, true).SetCategory("Instance Property,Ternary operator, And Conditional").Returns("Hello");
+                yield return new TestCaseData("false && (false && nullVar.What ? nullVar.boolValue : true) ? nullVar.Text : \"Hello\"", onInstanceVariables, true).SetCategory("Instance Property,Ternary operator, And Conditional").Returns("Hello");
+
+                #endregion
+
+                #region ExpandoObject
+
+                dynamic MyDynamic = new System.Dynamic.ExpandoObject();
+                MyDynamic.NullValue = null;
+                MyDynamic.Number = 11;
+
+                Dictionary<string, object> ExpandoObjectVariables = new Dictionary<string, object>()
+                {
+                    { "expObj", MyDynamic },
+                };
+
+                yield return new TestCaseData("expObj.Number", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns(11);
+
+                #region bug #67
+                yield return new TestCaseData("expObj.NullValue", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns(null);
+                yield return new TestCaseData("expObj.NullValue ?? \"A\"", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns("A");
+                #endregion
+
+
                 #endregion
 
                 #region Delegates as a variable
@@ -1425,6 +1466,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     { "P1var", "P1" },
                     { "myObj", new ClassForTest1() },
+                    { "nullVar", null },
                 });
 
                 evaluator.PreEvaluateVariable += (sender, e) =>
@@ -1444,7 +1486,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(evaluator, "myObj.PropertyThatWillFailed", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
                 yield return new TestCaseData(evaluator, "myObj.Add3To(5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
                 yield return new TestCaseData(evaluator, "Abs(-5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
+                #endregion
 
+                #region Bugs corrections
+
+                yield return new TestCaseData(evaluator, "true && 1/0>0", typeof(DivideByZeroException)).SetCategory("Conditional And, positive left operand (should lead to exception)");
+                yield return new TestCaseData(evaluator, "false || 1/0>0", typeof(DivideByZeroException)).SetCategory("Conditional Or, positive left operand (should lead to exception associativity)");
+                yield return new TestCaseData(evaluator, "true && (true && 1/0>0)", typeof(DivideByZeroException)).SetCategory("Conditional And, positive left operand (should lead to exception)");
+                yield return new TestCaseData(evaluator, "false || (false || 1/0>0)", typeof(DivideByZeroException)).SetCategory("Conditional Or, positive left operand (should lead to exception associativity)");
+                
                 #endregion
             }
         }
@@ -1844,7 +1894,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region inherits ExpressionEvaluator
+                #region Inherits ExpressionEvaluator
 
                 #region Redefine existing operators
 
@@ -2052,13 +2102,43 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region bug resolution
+                #region Bug resolution
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "(new List<Regex>()).GetType()"
                     , null)
                     .Returns(typeof(List<Regex>))
                     .SetCategory("Bug resolution");
+
+                // For bug #65
+                var Persons = new List<Person2>() { new Person2() { Code = "QT00010", Name = "Pedrito", Number = 11.11m },
+                    new Person2() { Code = "QT00011", Name = "Pablito", Number = 12.11m }};
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Sum(x=>x.Number)"
+                    , null)
+                    .Returns(23.22m)
+                    .SetCategory("Bug resolution"); 
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Average(x=>x.Number)"
+                    , null)
+                    .Returns(11.61m)
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Max(x=>x.Number)"
+                    , null)
+                    .Returns(12.11m)
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
+                    , "Persons.Min(x=>x.Number)"
+                    , null)
+                    .Returns(11.11m)
+                    .SetCategory("Bug resolution");
+
+                // end of bug #65
 
                 #endregion
             }

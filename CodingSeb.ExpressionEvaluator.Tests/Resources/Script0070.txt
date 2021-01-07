@@ -1,0 +1,4 @@
+﻿/* Script0070 */
+var e = new Exception("Must not be thrown");
+
+return 1+2;
