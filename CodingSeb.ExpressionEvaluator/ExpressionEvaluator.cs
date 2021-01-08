@@ -75,7 +75,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region enums (if else blocks states)
+        #region enums 
 
         protected enum IfBlockEvaluatedState
         {
@@ -93,7 +93,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Dictionaries declarations (Primary types, number suffix, escaped chars, operators management, default vars and functions)
+        #region Dictionaries declarations (Primary types, number suffix, escaped chars, operators management, keywords management, default vars and functions)
 
         protected static readonly IDictionary<string, Type> primaryTypesDict = new Dictionary<string, Type>()
         {
@@ -1040,132 +1040,19 @@ namespace CodingSeb.ExpressionEvaluator
 
             script = script.TrimEnd();
 
-            object ScriptExpressionEvaluate(ref int index)
-            {
-                string expression = script.Substring(startOfExpression, index - startOfExpression);
-
-                startOfExpression = index + 1;
-
-                return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
-            }
-
-            bool TryParseStringAndParenthisAndCurlyBrackets(ref int index)
-            {
-                bool parsed = true;
-                Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
-
-                if (internalStringMatch.Success)
-                {
-                    string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index + internalStringMatch.Length), internalStringMatch);
-                    index += innerString.Length - 1;
-                }
-                else if (script[index] == '(')
-                {
-                    index++;
-                    GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
-                }
-                else if (script[index] == '{')
-                {
-                    index++;
-                    GetScriptBetweenCurlyBrackets(script, ref index);
-                }
-                else
-                {
-                    Match charMatch = internalCharRegex.Match(script.Substring(index));
-
-                    if (charMatch.Success)
-                        index += charMatch.Length;
-
-                    parsed = false;
-                }
-
-                return parsed;
-            }
-
-            void ExecuteIfList()
-            {
-                if (ifElseStatementsList.Count > 0)
-                {
-                    string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0], ref isBreak, ref isContinue, ref isReturn, lastResult) )?[1];
-
-                    if (!string.IsNullOrEmpty(ifScript))
-                        lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
-
-                    ifElseStatementsList.Clear();
-                }
-            }
-
-            void ExecuteTryList()
-            {
-                if (tryStatementsList.Count > 0)
-                {
-                    if (tryStatementsList.Count == 1)
-                    {
-                        throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
-                    }
-
-                    try
-                    {
-                        lastResult = ScriptEvaluate(tryStatementsList[0][0], ref isReturn, ref isBreak, ref isContinue);
-                    }
-                    catch (Exception exception)
-                    {
-                        bool atLeasOneCatch = false;
-
-                        foreach (List<string> catchStatement in tryStatementsList.Skip(1).TakeWhile(e => e[0].Equals("catch")))
-                        {
-                            if (catchStatement[1] != null)
-                            {
-                                string[] exceptionVariable = catchStatement[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                                string exceptionName = exceptionVariable[0];
-
-                                if (exceptionVariable.Length >= 2)
-                                {
-                                    if (!((ClassOrEnumType)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
-                                        continue;
-
-                                    exceptionName = exceptionVariable[1];
-                                }
-
-                                Variables[exceptionName] = exception;
-                            }
-
-                            lastResult = ScriptEvaluate(catchStatement[2], ref isReturn, ref isBreak, ref isContinue);
-                            atLeasOneCatch = true;
-                            break;
-                        }
-
-                        if (!atLeasOneCatch)
-                        {
-                            throw;
-                        }
-                    }
-                    finally
-                    {
-                        if (tryStatementsList.Last()[0].Equals("finally"))
-                        {
-                            lastResult = ScriptEvaluate(tryStatementsList.Last()[1], ref isReturn, ref isBreak, ref isContinue);
-                        }
-                    }
-
-                    tryStatementsList.Clear();
-                }
-            }
-
             void ExecuteBlocksStacks()
             {
-                ExecuteTryList();
-                ExecuteIfList();
+                ExecuteTryList(tryStatementsList, ref isBreak, ref isContinue, ref isReturn, ref lastResult);
+                ExecuteIfList(ifElseStatementsList, ref isBreak, ref isContinue, ref isReturn, ref lastResult);
             }
 
             int i = 0;
 
             while (!isReturn && !isBreak && !isContinue && i < script.Length)
             {
-                Match blockKeywordsBeginingMatch = null;
                 Match blockKeywordsWithoutParenthesesBeginningMatch = null;
 
+                Match blockKeywordsBeginingMatch;
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
                     && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
                         || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
@@ -1196,8 +1083,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                         while (i < script.Length && continueExpressionParsing)
                         {
-                            if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
-                            else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
+                            if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
+                            else if (script.Length - i >= 3 && script.Substring(i, 3).Equals("';'"))
                             {
                                 i += 2;
                             }
@@ -1288,7 +1175,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                 i++;
 
-                                Match nextIsEndOfExpressionMatch = null;
+                                Match nextIsEndOfExpressionMatch;
 
                                 if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
                                 {
@@ -1402,21 +1289,21 @@ namespace CodingSeb.ExpressionEvaluator
 
                     bool executed = false;
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(ref i)) { }
+                    if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
                     else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
                     {
                         i += 2;
                     }
                     else if (script[i] == ';')
                     {
-                        lastResult = ScriptExpressionEvaluate(ref i);
+                        lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         executed = true;
                     }
 
                     if (!OptionScriptNeedSemicolonAtTheEndOfLastExpression && i == script.Length - 1 && !executed)
                     {
                         i++;
-                        lastResult = ScriptExpressionEvaluate(ref i);
+                        lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         startOfExpression--;
                     }
 
@@ -1521,6 +1408,15 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Scripts
 
+        protected virtual object ScriptExpressionEvaluate(string script, ref int startOfExpression, ref int index, ref bool isBreak, ref bool isContinue, ref bool isReturn, object lastResult)
+        {
+            string expression = script.Substring(startOfExpression, index - startOfExpression);
+
+            startOfExpression = index + 1;
+
+            return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
+        }
+
         protected virtual object ManageJumpStatementsOrExpressionEval(string expression, ref bool isBreak, ref bool isContinue, ref bool isReturn, object lastResult)
         {
             expression = expression.Trim();
@@ -1556,6 +1452,120 @@ namespace CodingSeb.ExpressionEvaluator
             isReturn = ret;
 
             return Evaluate(expression);
+        }
+
+        protected virtual bool TryParseStringAndParenthisAndCurlyBrackets(string script, ref int index)
+        {
+            bool parsed = true;
+            Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));
+
+            if (internalStringMatch.Success)
+            {
+                string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(script.Substring(index + internalStringMatch.Length), internalStringMatch);
+                index += innerString.Length - 1;
+            }
+            else if (script[index] == '(')
+            {
+                index++;
+                GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
+            }
+            else if (script[index] == '{')
+            {
+                index++;
+                GetScriptBetweenCurlyBrackets(script, ref index);
+            }
+            else
+            {
+                Match charMatch = internalCharRegex.Match(script.Substring(index));
+
+                if (charMatch.Success)
+                    index += charMatch.Length;
+
+                parsed = false;
+            }
+
+            return parsed;
+        }
+
+        protected virtual void ExecuteIfList(List<List<string>> ifElseStatementsList, ref bool isBreak, ref bool isContinue, ref bool isReturn, ref object lastResult)
+        {
+            if (ifElseStatementsList.Count > 0)
+            {
+                bool tmpBreak = isBreak;
+                bool tmpContinue = isContinue;
+                bool tmpReturn = isReturn;
+                object tmpLastResult = lastResult;
+
+                string ifScript = ifElseStatementsList.Find(statement => (bool)ManageJumpStatementsOrExpressionEval(statement[0], ref tmpBreak, ref tmpContinue, ref tmpReturn, tmpLastResult))?[1];
+
+                isBreak = tmpBreak;
+                isContinue = tmpContinue;
+                isReturn = tmpReturn;
+                lastResult = tmpLastResult;
+
+                if (!string.IsNullOrEmpty(ifScript))
+                    lastResult = ScriptEvaluate(ifScript, ref isReturn, ref isBreak, ref isContinue);
+
+                ifElseStatementsList.Clear();
+            }
+        }
+
+        protected virtual void ExecuteTryList(List<List<string>> tryStatementsList, ref bool isBreak, ref bool isContinue, ref bool isReturn, ref object lastResult)
+        {
+            if (tryStatementsList.Count > 0)
+            {
+                if (tryStatementsList.Count == 1)
+                {
+                    throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
+                }
+
+                try
+                {
+                    lastResult = ScriptEvaluate(tryStatementsList[0][0], ref isReturn, ref isBreak, ref isContinue);
+                }
+                catch (Exception exception)
+                {
+                    bool atLeasOneCatch = false;
+
+                    foreach (List<string> catchStatement in tryStatementsList.Skip(1).TakeWhile(e => e[0].Equals("catch")))
+                    {
+                        if (catchStatement[1] != null)
+                        {
+                            string[] exceptionVariable = catchStatement[1].Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            string exceptionName = exceptionVariable[0];
+
+                            if (exceptionVariable.Length >= 2)
+                            {
+                                if (!((ClassOrEnumType)Evaluate(exceptionVariable[0])).Type.IsAssignableFrom(exception.GetType()))
+                                    continue;
+
+                                exceptionName = exceptionVariable[1];
+                            }
+
+                            Variables[exceptionName] = exception;
+                        }
+
+                        lastResult = ScriptEvaluate(catchStatement[2], ref isReturn, ref isBreak, ref isContinue);
+                        atLeasOneCatch = true;
+                        break;
+                    }
+
+                    if (!atLeasOneCatch)
+                    {
+                        throw;
+                    }
+                }
+                finally
+                {
+                    if (tryStatementsList.Last()[0].Equals("finally"))
+                    {
+                        lastResult = ScriptEvaluate(tryStatementsList.Last()[1], ref isReturn, ref isBreak, ref isContinue);
+                    }
+                }
+
+                tryStatementsList.Clear();
+            }
         }
 
         #endregion
