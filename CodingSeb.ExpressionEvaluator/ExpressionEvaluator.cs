@@ -71,7 +71,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
-        protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
+        protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
 
         /// <summary>
@@ -476,6 +476,17 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             },
             { "typeof", (self, args) => ((ClassOrEnumType)self.Evaluate(args[0])).Type },
+        };
+
+        /// <summary>
+        /// Specify for each possible imbricable type of opening brackets the corresponding closing bracket
+        /// By default : { "(" : ")", "{" : "}", "[", "]" }
+        /// </summary>
+        public IDictionary<string, string> ImbricableBracketsPairing { get; } = new Dictionary<string, string>()
+        {
+            { "(", ")" },
+            { "{", "}" },
+            { "[", "]" },
         };
 
         //protected readonly ObservableCollection<ScriptBlocksKeyword> scriptBlocksKeywords = new ObservableCollection<ScriptBlocksKeyword>()
@@ -1499,7 +1510,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return match.Value;
 
                 ret = true;
-                return match.Value.Contains("(") ? "(" : string.Empty;
+                return string.Empty;
             });
 
             isReturn = ret;
@@ -3399,7 +3410,7 @@ namespace CodingSeb.ExpressionEvaluator
             return currentScript;
         }
 
-        protected virtual List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expression, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
+        protected virtual List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expression, ref int i, bool checkSeparator, string separator = ",", string startToken = "(", string endToken = ")")
         {
             List<string> expressionsList = new List<string>();
 
@@ -3425,32 +3436,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    s = expression.Substring(i, 1);
-
-                    if (s.Equals(startChar))
-                    {
-                        bracketCount++;
-                    }
-                    else if (s.Equals("("))
-                    {
-                        i++;
-                        currentExpression += "(" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "(", ")").SingleOrDefault() + ")";
-                        continue;
-                    }
-                    else if (s.Equals("{"))
-                    {
-                        i++;
-                        currentExpression += "{" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "{", "}").SingleOrDefault() + "}";
-                        continue;
-                    }
-                    else if (s.Equals("["))
-                    {
-                        i++;
-                        currentExpression += "[" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "[", "]").SingleOrDefault() + "]";
-                        continue;
-                    }
-
-                    if (s.Equals(endChar))
+                    if (expression.Substring(i).StartsWith(endToken, StringComparisonForCasing))
                     {
                         bracketCount--;
                         if (bracketCount == 0)
@@ -3460,6 +3446,25 @@ namespace CodingSeb.ExpressionEvaluator
                             break;
                         }
                     }
+
+                    if (expression.Substring(i).StartsWith(startToken, StringComparisonForCasing))
+                    {
+                        bracketCount++;
+                        continue;
+                    }
+
+                    int index = i;
+                    string openingBracket = ImbricableBracketsPairing.Keys.FirstOrDefault(key => expression.Substring(index).StartsWith(key, StringComparisonForCasing));
+
+                    if (openingBracket != null)
+                    {
+                        i+= openingBracket.Length;
+                        string closingBrackets = ImbricableBracketsPairing[openingBracket];
+                        currentExpression += openingBracket + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, null, openingBracket, closingBrackets).SingleOrDefault() + closingBrackets;
+                        continue;
+                    }
+
+                    s = expression.Substring(i, 1);
 
                     if (checkSeparator && s.Equals(separator) && bracketCount == 1)
                     {
@@ -3476,7 +3481,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (bracketCount > 0)
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} '{endChar}' character {beVerb} missing in expression : [{expression}]");
+                throw new Exception($"{bracketCount} '{endToken}' character {beVerb} missing in expression : [{expression}]");
             }
 
             return expressionsList;

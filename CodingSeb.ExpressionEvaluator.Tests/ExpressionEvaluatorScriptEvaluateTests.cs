@@ -1076,6 +1076,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("variable assignation")
                     .Returns(2);
 
+                yield return new TestCaseData(Resources.Script0072, null, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("return")
+                    .SetCategory("parentheses")
+                    .SetCategory("variable assignation")
+                    .Returns(8);
+
                 ExpressionEvaluator evaluator = new ExpressionEvaluator()
                 {
                     OptionOnNoReturnKeywordFoundInScriptAction = OptionOnNoReturnKeywordFoundInScriptAction.ReturnNull
