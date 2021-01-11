@@ -10,6 +10,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
@@ -66,12 +67,20 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
 
         // For script only
-        protected static readonly Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s*)|\()", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Rebuild some Regex to detect blocks keywords in script
+        /// </summary>
+        protected void RefreshBlocksKeywordDetection()
+        {
+            blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        }
 
         #endregion
 
@@ -469,6 +478,11 @@ namespace CodingSeb.ExpressionEvaluator
             { "typeof", (self, args) => ((ClassOrEnumType)self.Evaluate(args[0])).Type },
         };
 
+        //protected readonly ObservableCollection<ScriptBlocksKeyword> scriptBlocksKeywords = new ObservableCollection<ScriptBlocksKeyword>()
+        //{
+
+        //};
+
         #endregion
 
         #region Caching
@@ -827,6 +841,45 @@ namespace CodingSeb.ExpressionEvaluator
         /// Default : true
         /// </summary>
         public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
+
+        private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
+        /// <summary>
+        /// To specify the character or string that begin the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
+        /// By default : <c>"("</c>
+        /// </summary>
+        public string OptionScriptBlocksKeywordsHeadStatementsStartBracket
+        {
+            get { return optionScriptBlocksKeywordsHeadStatementsStartBracket; }
+            set
+            {
+                optionScriptBlocksKeywordsHeadStatementsStartBracket = value;
+                RefreshBlocksKeywordDetection();
+            }
+        }
+
+        /// <summary>
+        /// To specify the character or string that end the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
+        /// By default : <c>")"</c>
+        /// </summary>
+        public string OptionScriptBlocksKeywordsHeadStatementsEndBracket { get; set; } = ")";
+
+        /// <summary>
+        /// To specify the character or string that separate the head statements and the block statements of script blocks keywords (if, else if, for, foreach while, do.. while)
+        /// By default : <c>":"</c>
+        /// </summary>
+        public string OptionScriptBlockKeywordsHeadStatementsAndBlockSeparator { get; set; } = ":";
+
+        /// <summary>
+        /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
+        /// By default : "{"
+        /// </summary>
+        public string OptionScriptBlockStartBrackets { get; set; } = "{";
+
+        /// <summary>
+        /// To specify the character or string that end a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
+        /// By default : "}"
+        /// </summary>
+        public string OptionScriptBlockEndBrackets { get; set; } = "}";
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
@@ -3927,6 +3980,16 @@ namespace CodingSeb.ExpressionEvaluator
         {
             return otherOperator != null && OperatorValue == otherOperator.OperatorValue;
         }
+    }
+
+    public partial class ScriptBlocksKeyword
+    {
+        public ScriptBlocksKeyword(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; set; }
     }
 
     public static partial class OperatorsEvaluationsExtensions
