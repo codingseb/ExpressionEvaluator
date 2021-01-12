@@ -10,7 +10,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
@@ -3450,6 +3449,8 @@ namespace CodingSeb.ExpressionEvaluator
                     if (expression.Substring(i).StartsWith(startToken, StringComparisonForCasing))
                     {
                         bracketCount++;
+                        i += startToken.Length - 1;
+                        currentExpression += startToken;
                         continue;
                     }
 

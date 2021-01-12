@@ -1,0 +1,4 @@
+﻿/* Script0073 */
+var myVar = 8;
+
+returnmyVar;

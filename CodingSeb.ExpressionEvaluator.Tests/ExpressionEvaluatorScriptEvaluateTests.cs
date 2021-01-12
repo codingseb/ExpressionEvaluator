@@ -1611,6 +1611,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Exception");
 
                 #endregion
+
+                #region bad return
+
+                yield return new TestCaseData(new ExpressionEvaluator(), Resources.Script0073, typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("return")
+                    .SetCategory("Exception");
+
+                #endregion
             }
         }
 
@@ -1619,18 +1628,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
 
+            bool exceptionThrown = false;
+
             try
             {
                 evaluator.ScriptEvaluate(evaluator.RemoveComments(script));
             }
             catch(Exception exception)
             {
+                exceptionThrown = true;
                 exception.ShouldBeAssignableTo(exceptionType);
                 if (exceptionMessage != null)
                 {
                     exception.Message.ShouldBe(exceptionMessage);
                 }
             }
+
+            exceptionThrown.ShouldBeTrue();
 
             ToTestAfter?.Invoke();
         }

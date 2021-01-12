@@ -1249,11 +1249,23 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///   Looks up a localized string similar to /* Script0072 */
         ///var myVar = 8;
         ///
-        ///return (myVar);.
+        ///return( myVar );.
         /// </summary>
         public static string Script0072 {
             get {
                 return ResourceManager.GetString("Script0072", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0073 */
+        ///var myVar = 8;
+        ///
+        ///returnmyVar;.
+        /// </summary>
+        public static string Script0073 {
+            get {
+                return ResourceManager.GetString("Script0073", resourceCulture);
             }
         }
     }
