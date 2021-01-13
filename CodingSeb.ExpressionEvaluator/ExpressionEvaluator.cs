@@ -479,7 +479,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Specify for each possible imbricable type of opening brackets the corresponding closing bracket
-        /// By default : { "(" : ")", "{" : "}", "[", "]" }
+        /// Default value : { "(" : ")", "{" : "}", "[", "]" }
         /// </summary>
         public IDictionary<string, string> ImbricableBracketsPairing { get; } = new Dictionary<string, string>()
         {
@@ -580,7 +580,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// If <c>true</c> all evaluation are case sensitives.
         /// If <c>false</c> evaluations are case insensitive.
-        /// By default = true
+        /// Default value = true
         /// </summary>
         public bool OptionCaseSensitiveEvaluationActive
         {
@@ -611,7 +611,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
         /// If <c>false</c> Integers values without decimal and suffixes will be evaluate as int as in C# (Warning some operation can round values)
-        /// By default = false
+        /// Default value = false
         /// </summary>
         public bool OptionForceIntegerNumbersEvaluationsAsDoubleByDefault { get; set; }
 
@@ -643,7 +643,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Allow to change the decimal separator of numbers when parsing expressions.
-        /// By default "."
+        /// Default value "."
         /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
@@ -669,7 +669,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Allow to change the thousand separator of numbers when parsing expressions.
-        /// By default string.Empty
+        /// Default value string.Empty
         /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
@@ -693,14 +693,14 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Allow to change the separator of functions arguments.
-        /// By default ","
+        /// Default value ","
         /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
         /// </summary>
         public string OptionFunctionArgumentsSeparator { get; set; } = ",";
 
         /// <summary>
         /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.
-        /// By default ","
+        /// Default value ","
         /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
         /// </summary>
         public string OptionInitializersSeparator { get; set; } = ",";
@@ -708,14 +708,14 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure).
         /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available).
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
 
@@ -724,7 +724,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// if <c>true</c> allow to create instance of object with the Default function new(ClassNam,...).
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionNewFunctionEvaluationActive
         {
@@ -749,62 +749,62 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to call static methods on classes.
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionStaticMethodsCallActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get static properties on classes
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionStaticPropertiesGetActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to call instance methods on objects.
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionInstanceMethodsCallActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get instance properties on objects
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionInstancePropertiesGetActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow to get object at index or key like IndexedObject[indexOrKey]
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionIndexingActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow string interpretation with ""
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionStringEvaluationActive { get; set; } = true;
 
         /// <summary>
         /// if <c>true</c> allow char interpretation with ''
         /// if <c>false</c> unactive this functionality.
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionCharEvaluationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true
+        /// Default value : true
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionEvaluateFunctionActive { get; set; } = true;
@@ -812,27 +812,27 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
         /// If <c>false</c> unactive this functionality
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionVariableAssignationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
         /// If <c>false</c> unactive this functionality
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
         /// If <c>false</c> unactive this functionality
-        /// By default : true
+        /// Default value : true
         /// </summary>
         public bool OptionIndexingAssignationActive { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true
+        /// Default value : true
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
@@ -841,7 +841,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.
         /// If <c>ReturnNull</c> return null if no return keyword is met.
         /// If <c>ThrowSyntaxException</c> a exception is throw if no return keyword is met.
-        /// By default : ReturnAutomaticallyLastEvaluatedExpression;
+        /// Default value : ReturnAutomaticallyLastEvaluatedExpression;
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; }
 
@@ -855,7 +855,7 @@ namespace CodingSeb.ExpressionEvaluator
         private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
         /// <summary>
         /// To specify the character or string that begin the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
-        /// By default : <c>"("</c>
+        /// Default value : <c>"("</c>
         /// </summary>
         public string OptionScriptBlocksKeywordsHeadStatementsStartBracket
         {
@@ -869,27 +869,39 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// To specify the character or string that end the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
-        /// By default : <c>")"</c>
+        /// Default value : <c>")"</c>
         /// </summary>
-        public string OptionScriptBlocksKeywordsHeadStatementsEndBracket { get; set; } = ")";
+        public string OptionScriptBlocksKeywordsHeadExpressionEndBracket { get; set; } = ")";
 
         /// <summary>
         /// To specify the character or string that separate the head statements and the block statements of script blocks keywords (if, else if, for, foreach while, do.. while)
-        /// By default : <c>":"</c>
+        /// Default value : <c>":"</c>
         /// </summary>
-        public string OptionScriptBlockKeywordsHeadStatementsAndBlockSeparator { get; set; } = ":";
+        public string OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator { get; set; } = ":";
+
+        /// <summary>
+        /// Specify how to detect the separation between head expression and the block of code is made in script block keyword (if, else if, for, foreach while, do.. while)
+        /// Default value : <c>HeadBrackets</c>
+        /// </summary>
+        public SyntaxForHeadExpressionInScriptBlocksKeywords OptionSyntaxForHeadExpressionInScriptBlocksKeywords { get; set; } = SyntaxForHeadExpressionInScriptBlocksKeywords.HeadBrackets;
 
         /// <summary>
         /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
-        /// By default : "{"
+        /// Default value : <c>"{"</c>
         /// </summary>
         public string OptionScriptBlockStartBrackets { get; set; } = "{";
 
         /// <summary>
         /// To specify the character or string that end a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
-        /// By default : "}"
+        /// Default value : <c>"}"</c>
         /// </summary>
         public string OptionScriptBlockEndBrackets { get; set; } = "}";
+
+        /// <summary>
+        /// Specify the syntax to use to detect a block of code in script blocks keywords  (if, else if, for, foreach while, do.. while) and multiline lambda
+        /// Default value : OptionalBracketsForStartAndEndWhenSingleStatement
+        /// </summary>
+        public SyntaxForScriptBlocksIdentifier OptionSyntaxForScriptBlocksIdentifier { get; set; } = SyntaxForScriptBlocksIdentifier.OptionalBracketsForStartAndEndWhenSingleStatement;
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
@@ -3921,6 +3933,21 @@ namespace CodingSeb.ExpressionEvaluator
         ReturnAutomaticallyLastEvaluatedExpression,
         ReturnNull,
         ThrowSyntaxException
+    }
+
+    public enum SyntaxForHeadExpressionInScriptBlocksKeywords
+    {
+        HeadBrackets,
+        SeparatorBetweenHeadAndBlock,
+        Both,
+        Any
+    }
+
+    public enum SyntaxForScriptBlocksIdentifier
+    {
+        OptionalBracketsForStartAndEndWhenSingleStatement,
+        MandatoryBracketsForStartAndEnd,
+        Indentation
     }
 
     #endregion
