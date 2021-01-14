@@ -71,14 +71,22 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
+        protected Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
 
         /// <summary>
         /// Rebuild some Regex to detect blocks keywords in script
         /// </summary>
-        protected void RefreshBlocksKeywordDetection()
+        protected virtual void RefreshBlocksKeywordDetection()
         {
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        }
+
+        /// <summary>
+        /// Rebuild some Regex to detect end of expression
+        /// </summary>
+        protected virtual void RefreshEndOfExpressionDetection()
+        {
+            nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)" + Regex.Escape(OptionScriptEndOfExpression), RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         #endregion
@@ -845,9 +853,24 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; }
 
+        private string optionScriptEndOfExpression = ";";
         /// <summary>
-        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] after each expression.
-        /// If <c>false</c> Allow to omit the semicolon for the last expression of the script.
+        /// The character or string that is used to separate expressions in script.
+        /// Default value : ";"
+        /// </summary>
+        public string OptionScriptEndOfExpression
+        {
+            get { return optionScriptEndOfExpression; }
+            set
+            {
+                optionScriptEndOfExpression = value;
+                RefreshEndOfExpressionDetection();
+            }
+        }
+
+        /// <summary>
+        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] or the specified text in OptionScriptEndOfExpression after each expression.
+        /// If <c>false</c> Allow to omit the OptionScriptEndOfExpression for the last expression of the script.
         /// Default : true
         /// </summary>
         public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
@@ -1134,7 +1157,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
-                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";") : null;
+                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptEndOfExpression) : null;
 
                     if (blockKeywordsBeginingMatch.Success)
                         i++;
@@ -1159,14 +1182,15 @@ namespace CodingSeb.ExpressionEvaluator
                         while (i < script.Length && continueExpressionParsing)
                         {
                             if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
-                            else if (script.Length - i >= 3 && script.Substring(i, 3).Equals("';'"))
+                            else if (OptionScriptEndOfExpression.Length == 1 && script.Length - i >= 3 && script.Substring(i, 3).Equals($"'{OptionScriptEndOfExpression}'"))
                             {
                                 i += 2;
                             }
-                            else if (script[i] == ';')
+                            else if (script.Substring(i).StartsWith(OptionScriptEndOfExpression))
                             {
                                 subScript = script.Substring(startOfExpression, i + 1 - startOfExpression);
                                 continueExpressionParsing = false;
+                                i += OptionScriptEndOfExpression.Length - 1;
                             }
 
                             i++;
@@ -1246,7 +1270,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.Equals("while", StringComparisonForCasing))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
-                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";");
+                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptEndOfExpression);
 
                                 i++;
 
@@ -1274,7 +1298,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing. (After the do while condition)");
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"A [{OptionScriptEndOfExpression}] is missing. (After the do while condition)");
                                 }
                             }
                             else
@@ -1365,11 +1389,11 @@ namespace CodingSeb.ExpressionEvaluator
                     bool executed = false;
 
                     if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
-                    else if (script.Length - i > 2 && script.Substring(i, 3).Equals("';'"))
+                    else if (OptionScriptEndOfExpression.Length == 1 && script.Length - i >= 3 && script.Substring(i, 3).Equals($"'{OptionScriptEndOfExpression}'"))
                     {
                         i += 2;
                     }
-                    else if (script[i] == ';')
+                    else if (script.Substring(i).StartsWith(OptionScriptEndOfExpression))
                     {
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         executed = true;
@@ -1391,7 +1415,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedSemicolonAtTheEndOfLastExpression)
-                throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
+                throw new ExpressionEvaluatorSyntaxErrorException($"A [{OptionScriptEndOfExpression}] character is missing.");
 
             ExecuteBlocksStacks();
 
@@ -3447,7 +3471,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    if (expression.Substring(i).StartsWith(endToken, StringComparisonForCasing))
+                    subExpr = expression.Substring(i);
+
+                    if (subExpr.StartsWith(endToken, StringComparisonForCasing))
                     {
                         bracketCount--;
                         if (bracketCount == 0)
@@ -3458,7 +3484,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                     }
 
-                    if (expression.Substring(i).StartsWith(startToken, StringComparisonForCasing))
+                    if (subExpr.StartsWith(startToken, StringComparisonForCasing))
                     {
                         bracketCount++;
                         i += startToken.Length - 1;
@@ -3477,16 +3503,16 @@ namespace CodingSeb.ExpressionEvaluator
                         continue;
                     }
 
-                    s = expression.Substring(i, 1);
+                    subExpr = expression.Substring(i);
 
-                    if (checkSeparator && s.Equals(separator) && bracketCount == 1)
+                    if (checkSeparator && subExpr.StartsWith(separator) && bracketCount == 1)
                     {
                         expressionsList.Add(currentExpression);
                         currentExpression = string.Empty;
                     }
                     else
                     {
-                        currentExpression += s;
+                        currentExpression += expression.Substring(i,1);
                     }
                 }
             }
