@@ -36,7 +36,7 @@ It is largely based on and inspired by the following resources [this post on st
 ## And with [ScriptEvaluate](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started#small-scripts) method
 * Small C# like script evaluation (Multi expressions separated by ; )
 * Some conditional and loop blocks [keywords](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#scripts-keywords) (if, while, for, foreach ...)
-* Multi-line (multi expression) Lambda expressions.
+* Multi-line (multi expression) Lambda expressions. (Can be use as method [See #72 Declare methods in scripts](https://github.com/codingseb/ExpressionEvaluator/issues/72))
 
 ## Resources
 * [Getting Started](https://github.com/codingseb/ExpressionEvaluator/wiki/Getting-Started)
@@ -67,3 +67,10 @@ The biggest difference of ExpressionEvaluator is that everything is evaluated on
 So it can be slower in some cases (sometimes not) but it also avoid a lot of memory leaks. 
 It already allow to evaluate some small scripts.
 If you don't want an another .dll file in your project, you only need to copy one [C# file](./CodingSeb.ExpressionEvaluator/ExpressionEvaluator.cs) in your project. And it's [MIT licence](./LICENSE.md)
+
+### Donate
+Expression Evaluator is free and will always be.  
+But if you want to say thanks for this lib with a donation or small sponsoring here you can :  
+[Donate](https://www.paypal.com/donate?hosted_button_id=7K467U3H4NVJG)
+
+Thank you anyway for using ExpressionEvaluator

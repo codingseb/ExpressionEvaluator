@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.18.0 
+    Version : 1.4.18.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -18,6 +18,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 
 namespace CodingSeb.ExpressionEvaluator
 {
@@ -835,6 +836,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// Warning : This clearly break the encapsulation principle use this only if you know what you do.
         /// </summary>
         public bool OptionAllowNonPublicMembersAccess { get; set; }
+
+        /// <summary>
+        /// If <c>true</c> On unsuccessful call to an extension method, all defined overloads of that method are detected to resolve whether method is defined and called with wrong arguments or method is not defined.
+        /// If <c>false</c> Unsucessful call to an extension method will always result in "Method {name} is not defined on type {type}"
+        /// Default : true
+        /// </summary>
+        public bool OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound { get; set; } = true;
 
         #endregion
 
@@ -1954,6 +1962,33 @@ namespace CodingSeb.ExpressionEvaluator
                                             }
                                             else
                                             {
+                                                if (OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound)
+                                                {
+                                                    IEnumerable<MethodInfo> query = from type in StaticTypesForExtensionsMethods
+                                                        where 
+                                                              !type.IsGenericType &&
+                                                              type.IsSealed && 
+                                                              !type.IsNested  
+                                                        from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                                                        where method.IsDefined(typeof(ExtensionAttribute), false)
+                                                        where method.GetParameters()[0].ParameterType == objType // static extMethod(this outType, ...)
+                                                        select method;
+
+                                                    if (query.Any())
+                                                    {
+                                                        string fnArgsPrint = string.Join(",", funcArgs);
+                                                        string fnOverloadsPrint = "";
+
+                                                        foreach (MethodInfo mi in query)
+                                                        {
+                                                            ParameterInfo[] parInfo = mi.GetParameters();
+                                                            fnOverloadsPrint += string.Join(",", parInfo.Select(x => x.ParameterType.FullName ?? x.ParameterType.Name)) + "\n";
+                                                        } 
+                                                        
+                                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] extension method \"{varFuncName}\" has no overload for arguments: {fnArgsPrint}. Candidates: {fnOverloadsPrint}");
+                                                    }
+                                                }
+
                                                 throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
                                             }
                                         }
