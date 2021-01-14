@@ -1965,10 +1965,10 @@ namespace CodingSeb.ExpressionEvaluator
                                                 if (OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound)
                                                 {
                                                     IEnumerable<MethodInfo> query = from type in StaticTypesForExtensionsMethods
-                                                        where 
+                                                        where
                                                               !type.IsGenericType &&
-                                                              type.IsSealed && 
-                                                              !type.IsNested  
+                                                              type.IsSealed &&
+                                                              !type.IsNested
                                                         from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                                         where method.IsDefined(typeof(ExtensionAttribute), false)
                                                         where method.GetParameters()[0].ParameterType == objType // static extMethod(this outType, ...)
@@ -1983,8 +1983,8 @@ namespace CodingSeb.ExpressionEvaluator
                                                         {
                                                             ParameterInfo[] parInfo = mi.GetParameters();
                                                             fnOverloadsPrint += string.Join(",", parInfo.Select(x => x.ParameterType.FullName ?? x.ParameterType.Name)) + "\n";
-                                                        } 
-                                                        
+                                                        }
+
                                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] extension method \"{varFuncName}\" has no overload for arguments: {fnArgsPrint}. Candidates: {fnOverloadsPrint}");
                                                     }
                                                 }
