@@ -853,12 +853,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; }
 
-        private string optionScriptEndOfExpression = ";";
+        private string[] optionScriptEndOfExpression = new[] { ";" };
         /// <summary>
-        /// The character or string that is used to separate expressions in script.
-        /// Default value : ";"
+        /// An array of string that are used to separate expressions in script.
+        /// Default value : {";"}
         /// </summary>
-        public string OptionScriptEndOfExpression
+        public string[] OptionScriptEndOfExpression
         {
             get { return optionScriptEndOfExpression; }
             set
