@@ -68,7 +68,7 @@ namespace CodingSeb.ExpressionEvaluator
         // For script only
         protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected static readonly Regex blockKeywordsWithoutParenthesesBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)[;]", RegexOptions.Compiled);
@@ -883,7 +883,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// Specify how to detect the separation between head expression and the block of code is made in script block keyword (if, else if, for, foreach while, do.. while)
         /// Default value : <c>HeadBrackets</c>
         /// </summary>
-        public SyntaxForHeadExpressionInScriptBlocksKeywords OptionSyntaxForHeadExpressionInScriptBlocksKeywords { get; set; } = SyntaxForHeadExpressionInScriptBlocksKeywords.HeadBrackets;
+        public SyntaxForHeadExpressionInScriptBlocksKeywords OptionSyntaxForHeadExpressionInScriptBlocksKeywords { get; set; }
 
         /// <summary>
         /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
@@ -901,7 +901,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// Specify the syntax to use to detect a block of code in script blocks keywords  (if, else if, for, foreach while, do.. while) and multiline lambda
         /// Default value : OptionalBracketsForStartAndEndWhenSingleStatement
         /// </summary>
-        public SyntaxForScriptBlocksIdentifier OptionSyntaxForScriptBlocksIdentifier { get; set; } = SyntaxForScriptBlocksIdentifier.OptionalBracketsForStartAndEndWhenSingleStatement;
+        public SyntaxForScriptBlocksIdentifier OptionSyntaxForScriptBlocksIdentifier { get; set; }
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
@@ -1130,7 +1130,7 @@ namespace CodingSeb.ExpressionEvaluator
                 Match blockKeywordsBeginingMatch;
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
                     && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
-                        || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutParenthesesBeginningRegex.Match(script.Substring(i))).Success))
+                        || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutHeadStatementBeginningRegex.Match(script.Substring(i))).Success))
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
