@@ -4,19 +4,18 @@
     <Company>Coding Seb</Company>
     <Product>CodingSeb.ExpressionEvaluator.Tests</Product>
     <Copyright>Copyright © Coding Seb 2018</Copyright>
-    <TargetFrameworks>net45;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net47;netcoreapp2.1</TargetFrameworks>
     <UserSecretsId>c4ac27fa-8b9c-4784-a284-7a9a06320537</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="NUnit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
+    <PackageReference Include="NUnit" Version="3.13.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Shouldly" Version="3.0.2" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="Shouldly" Version="4.0.3" />
+  </ItemGroup><ItemGroup>
     <Compile Update="OthersTests.cs" />
     <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
