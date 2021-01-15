@@ -896,7 +896,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// If <c>false</c> Allow to omit the OptionScriptEndOfExpression for the last expression of the script.
         /// Default : true
         /// </summary>
-        public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
+        public bool OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression { get; set; } = true;
 
         private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
         /// <summary>
@@ -1426,7 +1426,7 @@ namespace CodingSeb.ExpressionEvaluator
                         executed = true;
                     }
 
-                    if (!OptionScriptNeedSemicolonAtTheEndOfLastExpression && i == script.Length - 1 && !executed)
+                    if (!OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression && i == script.Length - 1 && !executed)
                     {
                         i++;
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
@@ -1436,12 +1436,12 @@ namespace CodingSeb.ExpressionEvaluator
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                     tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
-                    if (OptionScriptNeedSemicolonAtTheEndOfLastExpression || i < script.Length)
+                    if (OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression || i < script.Length)
                         i++;
                 }
             }
 
-            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedSemicolonAtTheEndOfLastExpression)
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression)
                 throw new ExpressionEvaluatorSyntaxErrorException($"An end of expression [{string.Join(",", OptionScriptEndOfExpression.Select(s=> "\"" + Regex.Escape(s) + "\""))}] token is missing.");
 
             ExecuteBlocksStacks();

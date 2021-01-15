@@ -1165,7 +1165,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator evaluatorForNoSemicolonAtTheEnd = new ExpressionEvaluator()
                 {
-                    OptionScriptNeedSemicolonAtTheEndOfLastExpression = false
+                    OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false
                 };
 
                 yield return new TestCaseData(Resources.Script0061, evaluatorForNoSemicolonAtTheEnd, null, null, null)
@@ -1424,12 +1424,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator01 = new ExpressionEvaluator()
                 {
                     OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
-                    OptionScriptNeedSemicolonAtTheEndOfLastExpression = false
+                    OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false
                 };
 
                 yield return new TestCaseData(Resources.Script0074, flexibleScriptSyntaxEvaluator01, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptEndOfExpression")
                     .Returns(8);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
@@ -1513,7 +1514,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Better Than C#")
                     .Returns("Result Hey 9, 5");
 
-                yield return new TestCaseData(Resources.Script0066, new ExpressionEvaluator { OptionScriptNeedSemicolonAtTheEndOfLastExpression = false }, null, null, null)
+                yield return new TestCaseData(Resources.Script0066, new ExpressionEvaluator { OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false }, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("primaryTyped variable")
                     .SetCategory("string")
@@ -1524,7 +1525,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionScriptNeedSemicolonAtTheEndOfLastExpression")
                     .Returns("0,1,2,3,4,");
 
-                yield return new TestCaseData(Resources.Script0070, new ExpressionEvaluator { OptionScriptNeedSemicolonAtTheEndOfLastExpression = false }, null, null, null)
+                yield return new TestCaseData(Resources.Script0070, new ExpressionEvaluator { OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false }, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("new Exception must not throw the exception")
                     .Returns(3);

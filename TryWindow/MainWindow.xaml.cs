@@ -38,7 +38,7 @@ namespace TryWindow
 
             ExpressionEvaluator evaluator = new ExpressionEvaluator()
             {
-                OptionScriptNeedSemicolonAtTheEndOfLastExpression = NeedSemicolonAtTheEndCheckBox.IsChecked.GetValueOrDefault(),
+                OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = NeedSemicolonAtTheEndCheckBox.IsChecked.GetValueOrDefault(),
             };
 
             if (UseCachesCheckbox.IsChecked ?? false)
