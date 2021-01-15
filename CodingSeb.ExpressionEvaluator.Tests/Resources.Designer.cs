@@ -1282,14 +1282,34 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0074 */
-        ///var myVar = 8
+        ///   Looks up a localized string similar to /* Script0075 */
+        ///var myVar = 8;
         ///
-        ///return myVar.
+        ///if myVar &gt; 7: 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
         /// </summary>
         public static string Script0075 {
             get {
                 return ResourceManager.GetString("Script0075", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0076 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7:
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0076 {
+            get {
+                return ResourceManager.GetString("Script0076", resourceCulture);
             }
         }
     }

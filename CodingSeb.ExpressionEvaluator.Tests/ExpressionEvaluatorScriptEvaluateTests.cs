@@ -1435,13 +1435,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
                 {
-                    OptionSyntaxForHeadExpressionInScriptBlocksKeywords = SyntaxForHeadExpressionInScriptBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
                 };
 
                 yield return new TestCaseData(Resources.Script0075, flexibleScriptSyntaxEvaluator02, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .Returns(8);
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0076, flexibleScriptSyntaxEvaluator02, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .Returns(20);
 
                 #endregion
 

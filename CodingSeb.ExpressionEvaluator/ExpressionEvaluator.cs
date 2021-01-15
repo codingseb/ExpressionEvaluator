@@ -81,10 +81,10 @@ namespace CodingSeb.ExpressionEvaluator
             string optional = string.Empty;
             string startBracketDetection = string.Empty;
 
-            if (OptionSyntaxForHeadExpressionInScriptBlocksKeywords == SyntaxForHeadExpressionInScriptBlocksKeywords.Any)
+            if (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any)
                 optional = "?";
 
-            if(OptionSyntaxForHeadExpressionInScriptBlocksKeywords != SyntaxForHeadExpressionInScriptBlocksKeywords.SeparatorBetweenHeadAndBlock)
+            if(OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
                 startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
 
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -925,11 +925,20 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator { get; set; } = ":";
 
+        private SyntaxForHeadStatementInBlocksKeywords optionScriptSyntaxForHeadStatementInBlocksKeywords;
         /// <summary>
         /// Specify how to detect the separation between head expression and the block of code is made in script block keyword (if, else if, for, foreach while, do.. while)
         /// Default value : <c>HeadBrackets</c>
         /// </summary>
-        public SyntaxForHeadExpressionInScriptBlocksKeywords OptionSyntaxForHeadExpressionInScriptBlocksKeywords { get; set; }
+        public SyntaxForHeadStatementInBlocksKeywords OptionScriptSyntaxForHeadStatementInBlocksKeywords
+        {
+            get { return optionScriptSyntaxForHeadStatementInBlocksKeywords; }
+            set
+            {
+                optionScriptSyntaxForHeadStatementInBlocksKeywords = value;
+                RefreshBlocksKeywordDetection();
+            }
+        }
 
         /// <summary>
         /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
@@ -1172,18 +1181,29 @@ namespace CodingSeb.ExpressionEvaluator
             while (!isReturn && !isBreak && !isContinue && i < script.Length)
             {
                 Match blockKeywordsWithoutParenthesesBeginningMatch = null;
+                Match blockKeywordsBeginingMatch = null;
 
-                Match blockKeywordsBeginingMatch;
                 if (script.Substring(startOfExpression, i - startOfExpression).Trim().Equals(string.Empty)
                     && ((blockKeywordsBeginingMatch = blockKeywordsBeginningRegex.Match(script.Substring(i))).Success
                         || (blockKeywordsWithoutParenthesesBeginningMatch = blockKeywordsWithoutHeadStatementBeginningRegex.Match(script.Substring(i))).Success))
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
-                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator) : null;
+                    List<string> keywordParameters = null;
 
                     if (blockKeywordsBeginingMatch.Success)
+                    {
+                        if (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
+                        {
+                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator, null, OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator);
+                        }
+                        else
+                        {
+                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator, OptionScriptBlocksKeywordsHeadStatementsStartBracket, OptionScriptBlocksKeywordsHeadExpressionEndBracket);
+                        }
+
                         i++;
+                    }
 
                     Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
 
@@ -1231,7 +1251,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
+                            ifElseStatementsList.Add(new List<string>() { keywordParameters[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.ElseIf;
                         }
                     }
@@ -1255,7 +1275,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            tryStatementsList.Add(new List<string>() { "catch", keywordAttributes.Count > 0 ? keywordAttributes[0] : null, subScript });
+                            tryStatementsList.Add(new List<string>() { "catch", keywordParameters.Count > 0 ? keywordParameters[0] : null, subScript });
                             tryBlockEvaluatedState = TryBlockEvaluatedState.Catch;
                         }
                     }
@@ -1277,7 +1297,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (keyword.Equals("if", StringComparisonForCasing))
                         {
-                            ifElseStatementsList.Add(new List<string>() { keywordAttributes[0], subScript });
+                            ifElseStatementsList.Add(new List<string>() { keywordParameters[0], subScript });
                             ifBlockEvaluatedState = IfBlockEvaluatedState.If;
                             tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
                         }
@@ -1293,7 +1313,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.Equals("while", StringComparisonForCasing))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
-                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator);
+                                keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator);
 
                                 i++;
 
@@ -1317,7 +1337,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             isContinue = false;
                                         }
                                     }
-                                    while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0], ref isBreak, ref isContinue, ref isReturn, lastResult));
+                                    while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordParameters[0], ref isBreak, ref isContinue, ref isReturn, lastResult));
                                 }
                                 else
                                 {
@@ -1331,7 +1351,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("while", StringComparisonForCasing))
                         {
-                            while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[0], ref isBreak, ref isContinue, ref isReturn, lastResult))
+                            while (!isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordParameters[0], ref isBreak, ref isContinue, ref isReturn, lastResult))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -1350,11 +1370,11 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             void forAction(int index)
                             {
-                                if (keywordAttributes.Count > index && !keywordAttributes[index].Trim().Equals(string.Empty))
-                                    ManageJumpStatementsOrExpressionEval(keywordAttributes[index], ref isBreak, ref isContinue, ref isReturn, lastResult);
+                                if (keywordParameters.Count > index && !keywordParameters[index].Trim().Equals(string.Empty))
+                                    ManageJumpStatementsOrExpressionEval(keywordParameters[index], ref isBreak, ref isContinue, ref isReturn, lastResult);
                             }
 
-                            for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordAttributes[1], ref isBreak, ref isContinue, ref isReturn, lastResult); forAction(2))
+                            for (forAction(0); !isReturn && (bool)ManageJumpStatementsOrExpressionEval(keywordParameters[1], ref isBreak, ref isContinue, ref isReturn, lastResult); forAction(2))
                             {
                                 lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
@@ -1371,7 +1391,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else if (keyword.Equals("foreach", StringComparisonForCasing))
                         {
-                            Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordAttributes[0]);
+                            Match foreachParenthisEvaluationMatch = foreachParenthisEvaluationRegex.Match(keywordParameters[0]);
 
                             if (!foreachParenthisEvaluationMatch.Success)
                             {
@@ -3514,7 +3534,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                     }
 
-                    if (subExpr.StartsWith(startToken, StringComparisonForCasing))
+                    if (startToken != null && subExpr.StartsWith(startToken, StringComparisonForCasing))
                     {
                         bracketCount++;
                         i += startToken.Length - 1;
@@ -3991,7 +4011,7 @@ namespace CodingSeb.ExpressionEvaluator
         ThrowSyntaxException
     }
 
-    public enum SyntaxForHeadExpressionInScriptBlocksKeywords
+    public enum SyntaxForHeadStatementInBlocksKeywords
     {
         HeadBrackets,
         SeparatorBetweenHeadAndBlock,
