@@ -1432,6 +1432,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("FlexibleScriptSyntax")
                     .Returns(8);
 
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
+                {
+                    OptionSyntaxForHeadExpressionInScriptBlocksKeywords = SyntaxForHeadExpressionInScriptBlocksKeywords.SeparatorBetweenHeadAndBlock
+                };
+
+                yield return new TestCaseData(Resources.Script0075, flexibleScriptSyntaxEvaluator02, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .Returns(8);
+
                 #endregion
 
                 #region For Bug correction (no regression)

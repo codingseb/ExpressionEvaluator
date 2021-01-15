@@ -66,7 +66,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
 
         // For script only
-        protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)[(]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)(?<startBracket>\()", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
@@ -78,7 +78,16 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         protected virtual void RefreshBlocksKeywordDetection()
         {
-            blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket), RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            string optional = string.Empty;
+            string startBracketDetection = string.Empty;
+
+            if (OptionSyntaxForHeadExpressionInScriptBlocksKeywords == SyntaxForHeadExpressionInScriptBlocksKeywords.Any)
+                optional = "?";
+
+            if(OptionSyntaxForHeadExpressionInScriptBlocksKeywords != SyntaxForHeadExpressionInScriptBlocksKeywords.SeparatorBetweenHeadAndBlock)
+                startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
+
+            blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         /// <summary>
@@ -1411,7 +1420,6 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
                     {
-
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         i += nextIsEndOfExpressionMatch.Length - 1;
                         startOfExpression += nextIsEndOfExpressionMatch.Length - 1;
