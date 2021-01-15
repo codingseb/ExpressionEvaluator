@@ -71,7 +71,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
-        protected Regex nextIsEndOfExpressionRegex = new Regex(@"^(?>\s*)(;)", RegexOptions.Compiled);
+        protected Regex nextIsEndOfExpressionRegex = new Regex("^(;)", RegexOptions.Compiled);
 
         /// <summary>
         /// Rebuild some Regex to detect blocks keywords in script
@@ -86,7 +86,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         protected virtual void RefreshEndOfExpressionDetection()
         {
-            nextIsEndOfExpressionRegex = new Regex($@"^(?>\s*)({string.Join("|", OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            nextIsEndOfExpressionRegex = new Regex($"^({string.Join("|", OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         #endregion
@@ -876,6 +876,13 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Specify to skip the evaluation of an empty expression in scripts otherwise it will throw an exception.
+        /// Default value : true;
+        /// For example when two semicolon ;; are present or when there are empty line with OptionScriptEndOfExpression set to end of line characters { "\r\n", "\r", "\n" }
+        /// </summary>
+        public bool OptionScriptSkipEmptyExpressions { get; set; } = true;
+
+        /// <summary>
         /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] or the specified text in OptionScriptEndOfExpression after each expression.
         /// If <c>false</c> Allow to omit the OptionScriptEndOfExpression for the last expression of the script.
         /// Default : true
@@ -1404,6 +1411,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
                     {
+
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         i += nextIsEndOfExpressionMatch.Length - 1;
                         startOfExpression += nextIsEndOfExpressionMatch.Length - 1;
@@ -1524,7 +1532,10 @@ namespace CodingSeb.ExpressionEvaluator
 
             startOfExpression = index + 1;
 
-            return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
+            if (OptionScriptSkipEmptyExpressions && string.IsNullOrWhiteSpace(expression))
+                return lastResult;
+            else
+                return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
         }
 
         protected virtual object ManageJumpStatementsOrExpressionEval(string expression, ref bool isBreak, ref bool isContinue, ref bool isReturn, object lastResult)

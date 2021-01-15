@@ -1419,6 +1419,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Flexible script syntax
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator01 = new ExpressionEvaluator()
+                {
+                    OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    OptionScriptNeedSemicolonAtTheEndOfLastExpression = false
+                };
+
+                yield return new TestCaseData(Resources.Script0074, flexibleScriptSyntaxEvaluator01, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .Returns(8);
+
+                #endregion
+
                 #region For Bug correction (no regression)
 
                 yield return new TestCaseData(Resources.Script0049, null, null, null, null)
