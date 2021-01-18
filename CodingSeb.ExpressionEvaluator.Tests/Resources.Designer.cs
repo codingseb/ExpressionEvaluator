@@ -1312,5 +1312,69 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0076", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0077 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7): 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0077 {
+            get {
+                return ResourceManager.GetString("Script0077", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0078 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7):
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0078 {
+            get {
+                return ResourceManager.GetString("Script0078", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0079 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7) 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0079 {
+            get {
+                return ResourceManager.GetString("Script0079", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0080 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0080 {
+            get {
+                return ResourceManager.GetString("Script0080", resourceCulture);
+            }
+        }
     }
 }

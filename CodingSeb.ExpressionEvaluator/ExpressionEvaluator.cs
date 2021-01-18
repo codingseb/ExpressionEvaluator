@@ -67,6 +67,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // For script only
         protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)(?<startBracket>\()", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected Regex blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>:)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
@@ -88,6 +89,7 @@ namespace CodingSeb.ExpressionEvaluator
                 startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
 
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator + ")", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         /// <summary>
@@ -1193,13 +1195,24 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (blockKeywordsBeginingMatch.Success)
                     {
-                        if (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
+                        if (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                            || (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any && !blockKeywordsBeginingMatch.Groups["startBracket"].Success))
                         {
                             keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator, null, OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator);
                         }
                         else
                         {
                             keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionScriptBlockKeywordsHeadSubExpressionsSeparator, OptionScriptBlocksKeywordsHeadStatementsStartBracket, OptionScriptBlocksKeywordsHeadExpressionEndBracket);
+
+                            if(OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.HeadBrackets)
+                            {
+                                Match blockKeywordsHeadAndBodySeparatorMatch = blockKeywordsHeadAndBodySeparatorRegex.Match(script.Substring(i + 1));
+
+                                if (OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Both && !blockKeywordsHeadAndBodySeparatorMatch.Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"A Separator Token [{OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator}] was expected after the [{keyword}] keyword head expression");
+
+                                i += blockKeywordsHeadAndBodySeparatorMatch.Length;
+                            }
                         }
 
                         i++;
@@ -2711,7 +2724,7 @@ namespace CodingSeb.ExpressionEvaluator
             string s = expression.Substring(i, 1);
 
             if (s.Equals(")"))
-                throw new Exception($"To much ')' characters are defined in expression : [{expression}] : no corresponding '(' fund.");
+                throw new ExpressionEvaluatorSyntaxErrorException($"To much ')' characters are defined in expression : [{expression}] : no corresponding '(' fund.");
 
             if (s.Equals("("))
             {
@@ -2797,7 +2810,7 @@ namespace CodingSeb.ExpressionEvaluator
                 if (bracketCount > 0)
                 {
                     string beVerb = bracketCount == 1 ? "is" : "are";
-                    throw new Exception($"{bracketCount} ']' character {beVerb} missing in expression : [{expression}]");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} ']' character {beVerb} missing in expression : [{expression}]");
                 }
 
                 dynamic left = stack.Pop();
@@ -2967,7 +2980,7 @@ namespace CodingSeb.ExpressionEvaluator
                             if (bracketCount > 0)
                             {
                                 string beVerb = bracketCount == 1 ? "is" : "are";
-                                throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expression}]");
+                                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} '}}' character {beVerb} missing in expression : [{expression}]");
                             }
                             resultString.Append(Evaluate(innerExp.ToString()));
                         }
@@ -3489,7 +3502,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (bracketCount > 0)
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} '" + "}" + $"' character {beVerb} missing in script at : [{index}]");
+                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} '" + "}" + $"' character {beVerb} missing in script at : [{index}]");
             }
 
             return currentScript;
@@ -3570,7 +3583,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (bracketCount > 0)
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} '{endToken}' character {beVerb} missing in expression : [{expression}]");
+                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} '{endToken}' character {beVerb} missing in expression : [{expression}]");
             }
 
             return expressionsList;

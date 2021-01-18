@@ -1441,11 +1441,83 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(Resources.Script0075, flexibleScriptSyntaxEvaluator02, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
                     .Returns(20);
 
                 yield return new TestCaseData(Resources.Script0076, flexibleScriptSyntaxEvaluator02, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0077, flexibleScriptSyntaxEvaluator02, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0078, flexibleScriptSyntaxEvaluator02, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
+                    .Returns(20);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator03 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Any
+                };
+
+                yield return new TestCaseData(Resources.Script0075, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0076, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0077, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0078, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0079, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0080, flexibleScriptSyntaxEvaluator03, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Any")
+                    .Returns(20);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator04 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                };
+
+                yield return new TestCaseData(Resources.Script0077, flexibleScriptSyntaxEvaluator04, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0078, flexibleScriptSyntaxEvaluator04, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
                     .Returns(20);
 
                 #endregion
@@ -1601,6 +1673,85 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionOnNoReturnKeywordFoundInScriptAction = ThrowSyntaxException");
 
                 #endregion
+
+                #endregion
+
+                #region Flexible script syntax that must throw Exception
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator01 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.HeadBrackets
+                };
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator01, Resources.Script0075.Replace("[infos]", "HeadBrackets"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.HeadBrackets")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator01, Resources.Script0076.Replace("[infos]", "HeadBrackets"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.HeadBrackets")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator01, Resources.Script0077.Replace("[infos]", "HeadBrackets"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.HeadBrackets")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator01, Resources.Script0078.Replace("[infos]", "HeadBrackets"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.HeadBrackets")
+                    .SetCategory("Exception");
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                };
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator02, Resources.Script0079.Replace("[infos]", "SeparatorBetweenHeadAndBlock"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator02, Resources.Script0080.Replace("[infos]", "SeparatorBetweenHeadAndBlock"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock")
+                    .SetCategory("Exception");
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator03 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                };
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator03, Resources.Script0075.Replace("[infos]", "Both"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator03, Resources.Script0076.Replace("[infos]", "Both"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator03, Resources.Script0079.Replace("[infos]", "Both"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
+                    .SetCategory("Exception");
+
+                yield return new TestCaseData(flexibleScriptSyntaxEvaluator03, Resources.Script0080.Replace("[infos]", "Both"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("SyntaxForHeadStatementInBlocksKeywords.Both")
+                    .SetCategory("Exception");
 
                 #endregion
 

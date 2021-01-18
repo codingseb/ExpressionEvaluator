@@ -1,7 +1,7 @@
-﻿/* Script0076 [infos]*/
+﻿/* Script0080 [infos]*/
 var myVar = 8;
 
-if myVar > 7:
+if (myVar > 7)
 {
 	myVar = 20;
 }
