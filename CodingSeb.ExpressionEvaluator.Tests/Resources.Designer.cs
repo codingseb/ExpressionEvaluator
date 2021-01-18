@@ -1457,10 +1457,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0084 */
+        ///   Looks up a localized string similar to /* Script0086 */
         ///var myVar = 8;
         ///
-        ///if {myVar &gt; 7}
+        ///if &lt;[myVar &gt; 7]&gt;
         ///	myVar = 20;
         ///
         ///return myVar;.
@@ -1472,10 +1472,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0083 */
+        ///   Looks up a localized string similar to /* Script0087 */
         ///var myVar = 8;
         ///
-        ///if {myVar &gt; 7}
+        ///if &lt;[myVar &gt; 7]&gt;
         ///{
         ///	myVar = 20;
         ///}
@@ -1485,6 +1485,55 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         public static string Script0087 {
             get {
                 return ResourceManager.GetString("Script0087", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0088 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 =&gt;
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0088 {
+            get {
+                return ResourceManager.GetString("Script0088", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0089 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 =&gt;
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0089 {
+            get {
+                return ResourceManager.GetString("Script0089", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0090 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)
+        ///(
+        ///	myVar = 20;
+        ///)
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0090 {
+            get {
+                return ResourceManager.GetString("Script0090", resourceCulture);
             }
         }
     }

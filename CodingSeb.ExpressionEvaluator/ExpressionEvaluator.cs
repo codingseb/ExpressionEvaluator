@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.18.0 
+    Version : 1.4.18.2 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -89,7 +89,7 @@ namespace CodingSeb.ExpressionEvaluator
                 startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
 
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator + ")", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + Regex.Escape(OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator) + ")", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         }
 
         /// <summary>
@@ -958,7 +958,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// Specify the syntax to use to detect a block of code in script blocks keywords  (if, else if, for, foreach while, do.. while) and multiline lambda
         /// Default value : OptionalBracketsForStartAndEndWhenSingleStatement
         /// </summary>
-        public SyntaxForScriptBlocksIdentifier OptionSyntaxForScriptBlocksIdentifier { get; set; }
+        public SyntaxForScriptBlocksIdentifier OptionScriptSyntaxForBlocksIdentifier { get; set; }
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)

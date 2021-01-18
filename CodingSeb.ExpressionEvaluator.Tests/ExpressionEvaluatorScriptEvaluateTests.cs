@@ -1592,6 +1592,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionScriptBlocksKeywordsHeadStatementsStartAndEndBracket")
                     .Returns(20);
 
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator08 = new ExpressionEvaluator()
+                {
+                    OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "=>",
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                };
+
+                yield return new TestCaseData(Resources.Script0088, flexibleScriptSyntaxEvaluator08, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0089, flexibleScriptSyntaxEvaluator08, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator")
+                    .Returns(20);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator09 = new ExpressionEvaluator()
+                {
+                    OptionScriptBlockStartBrackets = "(",
+                    OptionScriptBlockEndBrackets = ")"
+                };
+
+                yield return new TestCaseData(Resources.Script0090, flexibleScriptSyntaxEvaluator09, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockStartAndEndBrackets")
+                    .Returns(20);
+
+
                 #endregion
 
                 #region For Bug correction (no regression)
