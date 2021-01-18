@@ -1,0 +1,7 @@
+﻿/* Script0081 [infos]*/
+var myVar = 8;
+
+if (myVar > 7)  : 
+	myVar = 20;
+
+return myVar;

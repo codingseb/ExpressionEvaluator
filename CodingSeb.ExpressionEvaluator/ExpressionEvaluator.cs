@@ -3539,6 +3539,7 @@ namespace CodingSeb.ExpressionEvaluator
                     if (subExpr.StartsWith(endToken, StringComparisonForCasing))
                     {
                         bracketCount--;
+                        i += endToken.Length - 1;
                         if (bracketCount == 0)
                         {
                             if (!currentExpression.Trim().Equals(string.Empty))

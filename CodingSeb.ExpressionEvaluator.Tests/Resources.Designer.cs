@@ -1282,7 +1282,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0075 */
+        ///   Looks up a localized string similar to /* Script0075 [infos]*/
         ///var myVar = 8;
         ///
         ///if myVar &gt; 7: 
@@ -1297,7 +1297,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0076 */
+        ///   Looks up a localized string similar to /* Script0076 [infos]*/
         ///var myVar = 8;
         ///
         ///if myVar &gt; 7:
@@ -1314,7 +1314,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0077 */
+        ///   Looks up a localized string similar to /* Script0077 [infos]*/
         ///var myVar = 8;
         ///
         ///if (myVar &gt; 7): 
@@ -1329,7 +1329,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0078 */
+        ///   Looks up a localized string similar to /* Script0078 [infos]*/
         ///var myVar = 8;
         ///
         ///if (myVar &gt; 7):
@@ -1346,7 +1346,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0079 */
+        ///   Looks up a localized string similar to /* Script0079 [infos]*/
         ///var myVar = 8;
         ///
         ///if (myVar &gt; 7) 
@@ -1361,7 +1361,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /* Script0080 */
+        ///   Looks up a localized string similar to /* Script0080 [infos]*/
         ///var myVar = 8;
         ///
         ///if (myVar &gt; 7)
@@ -1374,6 +1374,117 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         public static string Script0080 {
             get {
                 return ResourceManager.GetString("Script0080", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0081 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)  : 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0081 {
+            get {
+                return ResourceManager.GetString("Script0081", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0082 */
+        ///var myVar = 8;
+        ///
+        ///if|myVar &gt; 7| 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0082 {
+            get {
+                return ResourceManager.GetString("Script0082", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0083 */
+        ///var myVar = 8;
+        ///
+        ///if |myVar &gt; 7|
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0083 {
+            get {
+                return ResourceManager.GetString("Script0083", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0084 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0084 {
+            get {
+                return ResourceManager.GetString("Script0084", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0083 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0085 {
+            get {
+                return ResourceManager.GetString("Script0085", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0084 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0086 {
+            get {
+                return ResourceManager.GetString("Script0086", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0083 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0087 {
+            get {
+                return ResourceManager.GetString("Script0087", resourceCulture);
             }
         }
     }

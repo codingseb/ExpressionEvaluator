@@ -1,0 +1,7 @@
+﻿/* Script0084 */
+var myVar = 8;
+
+if {myVar > 7}
+	myVar = 20;
+
+return myVar;
