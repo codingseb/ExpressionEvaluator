@@ -1622,6 +1622,32 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("OptionScriptBlockStartAndEndBrackets")
                     .Returns(20);
 
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator10 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
+                    OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "then",
+                    OptionScriptBlockStartBracket = "begin",
+                    OptionScriptBlockEndBracket = "end"
+                };
+
+                yield return new TestCaseData(Resources.Script0091, flexibleScriptSyntaxEvaluator10, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockStartAndEndBrackets")
+                    .SetCategory("OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator")
+                    .SetCategory("SeparatorBetweenHeadAndBlock")
+                    .SetCategory("PascalSyntax")
+                    .Returns(20);
+
+                yield return new TestCaseData(Resources.Script0092, flexibleScriptSyntaxEvaluator10, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockStartAndEndBrackets")
+                    .SetCategory("OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator")
+                    .SetCategory("SeparatorBetweenHeadAndBlock")
+                    .SetCategory("PascalSyntax")
+                    .Returns(20);
+
 
                 #endregion
 

@@ -1256,7 +1256,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         while (i < script.Length && continueExpressionParsing)
                         {
-                            if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
+                            if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
                             else if (script.Length - i >= 3 && OptionScriptEndOfExpression.Any( o =>  o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
                             {
                                 i += 2;
@@ -1465,7 +1465,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     Match nextIsEndOfExpressionMatch;
 
-                    if (TryParseStringAndParenthisAndCurlyBrackets(script, ref i)) { }
+                    if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
                     else if (script.Length - i >= 3 && OptionScriptEndOfExpression.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
                     {
                         i += 2;
@@ -1635,7 +1635,7 @@ namespace CodingSeb.ExpressionEvaluator
             return Evaluate(expression);
         }
 
-        protected virtual bool TryParseStringAndParenthisAndCurlyBrackets(string script, ref int index)
+        protected virtual bool TryParseStringAndParenthesesAndCurlyBrackets(string script, ref int index)
         {
             bool parsed = true;
             Match internalStringMatch = stringBeginningRegex.Match(script.Substring(index));

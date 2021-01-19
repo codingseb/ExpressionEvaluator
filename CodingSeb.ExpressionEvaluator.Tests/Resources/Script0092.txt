@@ -1,0 +1,10 @@
+﻿/* Script0092 */
+var myVar = 8;
+
+if myVar > 7 then
+begin
+	myVar = 20;
+	var ItIsThe_end_OfWorkingWell = myVar + 2;
+end
+
+return myVar;

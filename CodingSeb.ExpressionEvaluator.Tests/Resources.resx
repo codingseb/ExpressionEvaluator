@@ -388,4 +388,10 @@
   <data name="Script0090" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>resources\script0090.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="Script0091" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0091.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="Script0092" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>resources\script0092.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>
