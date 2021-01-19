@@ -1612,8 +1612,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator09 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlockStartBrackets = "(",
-                    OptionScriptBlockEndBrackets = ")"
+                    OptionScriptBlockStartBracket = "(",
+                    OptionScriptBlockEndBracket = ")"
                 };
 
                 yield return new TestCaseData(Resources.Script0090, flexibleScriptSyntaxEvaluator09, null, null, null)
