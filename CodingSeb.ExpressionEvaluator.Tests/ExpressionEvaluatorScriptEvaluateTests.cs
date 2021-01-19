@@ -1648,6 +1648,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("PascalSyntax")
                     .Returns(20);
 
+                yield return new TestCaseData(Resources.Script0093, flexibleScriptSyntaxEvaluator10, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionScriptBlockStartAndEndBrackets")
+                    .SetCategory("OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator")
+                    .SetCategory("SeparatorBetweenHeadAndBlock")
+                    .SetCategory("PascalSyntax")
+                    .Returns(20);
 
                 #endregion
 

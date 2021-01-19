@@ -3527,7 +3527,8 @@ namespace CodingSeb.ExpressionEvaluator
             if (bracketCount > 0)
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} '" + "}" + $"' character {beVerb} missing in script at : [{index}]");
+                string singularPlurial = bracketCount == 1 ? "" : "s";
+                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} [{endBracket}] (end of block) token{singularPlurial} {beVerb} missing in script at : [{index}]");
             }
 
             return currentScript;
@@ -3537,7 +3538,6 @@ namespace CodingSeb.ExpressionEvaluator
         {
             List<string> expressionsList = new List<string>();
 
-            string s;
             string currentExpression = string.Empty;
             int bracketCount = 1;
             for (; i < expression.Length; i++)

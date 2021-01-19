@@ -1561,7 +1561,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///if myVar &gt; 7 then
         ///begin
         ///	myVar = 20;
-        ///	var ItIsTheEndOfWorkingWell = myVar + 2;
+        ///	var ItIsThe_end_OfWorkingWell = myVar + 2;
         ///end
         ///
         ///return myVar;.
@@ -1569,6 +1569,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         public static string Script0092 {
             get {
                 return ResourceManager.GetString("Script0092", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0093 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 then
+        ///begin
+        ///	myVar = 20;
+        ///	var ItIsThe_begining_OfProblems = myVar + 2;
+        ///end
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0093 {
+            get {
+                return ResourceManager.GetString("Script0093", resourceCulture);
             }
         }
     }

@@ -1,0 +1,10 @@
+﻿/* Script0093 */
+var myVar = 8;
+
+if myVar > 7 then
+begin
+	myVar = 20;
+	var ItIsThe_begining_OfProblems = myVar + 2;
+end
+
+return myVar;
