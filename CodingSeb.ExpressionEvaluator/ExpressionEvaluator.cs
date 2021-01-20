@@ -68,8 +68,10 @@ namespace CodingSeb.ExpressionEvaluator
         // For script only
         protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)(?<startBracket>\()", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected Regex blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>:)", RegexOptions.Compiled);
-        protected Regex blockBeginningRegex = new Regex(@"^(?>\s*)[{]", RegexOptions.Compiled);
+        protected Regex blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>[{])", RegexOptions.Compiled);
         protected Regex nextIsEndOfExpressionRegex = new Regex("^(;)", RegexOptions.Compiled);
+        protected static readonly Regex wordTypeTokenDetectionRegex = new Regex(@"^(?>[\p{L}_0-9]+)$", RegexOptions.Compiled);
+        protected static readonly Regex wordTypeTokenBoundaryValidation = new Regex(@"[^\p{L}_0-9.]");
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
@@ -95,6 +97,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected virtual void RefreshBlockDetection()
         {
             blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionScriptBlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockStartBracket);
+            blockEndBracketIsAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockEndBracket);
         }
 
         /// <summary>
@@ -104,6 +108,9 @@ namespace CodingSeb.ExpressionEvaluator
         {
             nextIsEndOfExpressionRegex = new Regex($"^({string.Join("|", OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
+
+        protected bool isBlockStartBracketAWord = false;
+        protected bool blockEndBracketIsAWord = false;
 
         protected RegexOptions CompiledRegexOptionAndIfNecessaryIgnoreCase => OptionCaseSensitiveEvaluationActive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
@@ -967,11 +974,20 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        private string optionScriptBlockEndBracket = "}";
         /// <summary>
         /// To specify the character or string that end a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
         /// Default value : <c>"}"</c>
         /// </summary>
-        public string OptionScriptBlockEndBracket { get; set; } = "}";
+        public string OptionScriptBlockEndBracket
+        {
+            get { return optionScriptBlockEndBracket; }
+            set
+            {
+                optionScriptBlockEndBracket = value;
+                RefreshBlockDetection();
+            }
+        }
 
         /// <summary>
         /// Specify the syntax to use to detect a block of code in script blocks keywords  (if, else if, for, foreach while, do.. while) and multiline lambda
@@ -1241,7 +1257,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                     string subScript = string.Empty;
 
-                    if (blockBeginningMatch.Success)
+                    if (blockBeginningMatch.Success &&
+                        (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, i + blockBeginningMatch.Groups["startBracket"].Index - 1, i + blockBeginningMatch.Length)))
                     {
                         i += blockBeginningMatch.Length;
 
@@ -3478,6 +3495,14 @@ namespace CodingSeb.ExpressionEvaluator
                 objType = obj.GetType();
                 return InstanceBindingFlag;
             }
+        }
+
+        protected bool ValidateKeywordBoundaries(string script, int startBoundary, int endBoundary)
+        {
+            return startBoundary >= 0 &&
+                wordTypeTokenBoundaryValidation.IsMatch(script.Substring(startBoundary, 1)) &&
+                endBoundary < script.Length &&
+                wordTypeTokenBoundaryValidation.IsMatch(script.Substring(startBoundary, 1));
         }
 
         protected virtual string GetScriptBetweenCurlyBrackets(string parentScript, ref int index, string startBracket = "{", string endBracket = "}")
