@@ -98,7 +98,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionScriptBlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
             isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockStartBracket);
-            blockEndBracketIsAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockEndBracket);
+            isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockEndBracket);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         protected bool isBlockStartBracketAWord = false;
-        protected bool blockEndBracketIsAWord = false;
+        protected bool isBlockEndBracketAWord = false;
 
         protected RegexOptions CompiledRegexOptionAndIfNecessaryIgnoreCase => OptionCaseSensitiveEvaluationActive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
@@ -1262,7 +1262,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         i += blockBeginningMatch.Length;
 
-                        subScript = GetScriptBetweenCurlyBrackets(script, ref i, OptionScriptBlockStartBracket, OptionScriptBlockEndBracket);
+                        subScript = GetScriptBetweenBlockBrackets(script, ref i);
 
                         i++;
                     }
@@ -1667,10 +1667,10 @@ namespace CodingSeb.ExpressionEvaluator
                 index++;
                 GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
             }
-            else if (script[index] == '{')
+            else if (script.Substring(index).StartsWith(OptionScriptBlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, index - 1, index + OptionScriptBlockStartBracket.Length)))
             {
-                index++;
-                GetScriptBetweenCurlyBrackets(script, ref index);
+                index+=OptionScriptBlockStartBracket.Length;
+                GetScriptBetweenBlockBrackets(script, ref index);
             }
             else
             {
@@ -3502,10 +3502,10 @@ namespace CodingSeb.ExpressionEvaluator
             return startBoundary >= 0 &&
                 wordTypeTokenBoundaryValidation.IsMatch(script.Substring(startBoundary, 1)) &&
                 endBoundary < script.Length &&
-                wordTypeTokenBoundaryValidation.IsMatch(script.Substring(startBoundary, 1));
+                wordTypeTokenBoundaryValidation.IsMatch(script.Substring(endBoundary, 1));
         }
 
-        protected virtual string GetScriptBetweenCurlyBrackets(string parentScript, ref int index, string startBracket = "{", string endBracket = "}")
+        protected virtual string GetScriptBetweenBlockBrackets(string parentScript, ref int index)
         {
             string s;
             string currentScript = string.Empty;
@@ -3530,15 +3530,15 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     s = parentScript.Substring(index);
 
-                    if (s.StartsWith(startBracket))
+                    if (s.StartsWith(OptionScriptBlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionScriptBlockStartBracket.Length)))
                     {
                         bracketCount++;
-                        index += startBracket.Length - 1;
+                        index += OptionScriptBlockStartBracket.Length - 1;
                     }
-                    else if (s.StartsWith(endBracket))
+                    else if (s.StartsWith(OptionScriptBlockEndBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionScriptBlockEndBracket.Length)))
                     {
                         bracketCount--;
-                        index += endBracket.Length - 1;
+                        index += OptionScriptBlockEndBracket.Length - 1;
                         if (bracketCount == 0)
                             break;
                     }
@@ -3553,7 +3553,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
                 string singularPlurial = bracketCount == 1 ? "" : "s";
-                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} [{endBracket}] (end of block) token{singularPlurial} {beVerb} missing in script at : [{index}]");
+                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} [{OptionScriptBlockEndBracket}] (end of block) token{singularPlurial} {beVerb} missing in script at : [{index}]");
             }
 
             return currentScript;

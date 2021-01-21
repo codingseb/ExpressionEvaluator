@@ -1630,6 +1630,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionScriptBlockEndBracket = "end"
                 };
 
+                flexibleScriptSyntaxEvaluator10.ImbricableBracketsPairing["begin"] = "end";
+
                 yield return new TestCaseData(Resources.Script0091, flexibleScriptSyntaxEvaluator10, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
