@@ -54,7 +54,6 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
         protected Regex instanceCreationKeywordRegexPattern = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.Compiled);
         protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
@@ -757,12 +756,21 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
+        private bool optionInlineNamespacesEvaluationActive = true;
         /// <summary>
         /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure).
         /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available).
         /// Default value : true
         /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
+        public bool OptionInlineNamespacesEvaluationActive
+        {
+            get { return optionInlineNamespacesEvaluationActive; }
+            set
+            {
+                optionInlineNamespacesEvaluationActive = value;
+                RefreshInstanceCreationKeywordRegexPattern();
+            }
+        }
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
