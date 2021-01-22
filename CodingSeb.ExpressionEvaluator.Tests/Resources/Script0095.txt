@@ -4,4 +4,9 @@ myList = create List<int>()
 	2
 };
 
-return myList[0];
+myDict = new Dictionary<string, int>
+{
+	{"ten", 10 }
+};
+
+return myList[0] + myDict["ten"];

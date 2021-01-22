@@ -110,7 +110,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual void RefreshInstanceCreationKeywordRegexPattern()
         {
-            instanceCreationKeywordRegexPattern = new Regex("^"+ OptionKeywordForInstanceCreation  + @"(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            instanceCreationKeywordRegexPattern = new Regex("^("+ string.Join("|", OptionNewKeywordAliases.Select(o => Regex.Escape(o))) + @")(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected RegexOptions CompiledRegexOptionAndIfNecessaryIgnoreCase => OptionCaseSensitiveEvaluationActive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled;
@@ -798,16 +798,17 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
+        private string[] optionNewKeywordAliases = new[] { "new" };
         /// <summary>
-        /// To specify the keyword/operator that is used to create instance of object.
-        /// Default value : "new"
+        /// To replace or specify aliases of the new keyword for creation of object instances
+        /// Default value : {"new"}
         /// </summary>
-        public string OptionKeywordForInstanceCreation
+        public string[] OptionNewKeywordAliases
         {
-            get { return optionKeywordForInstanceCreation; }
+            get { return optionNewKeywordAliases; }
             set
             {
-                optionKeywordForInstanceCreation = value;
+                optionNewKeywordAliases = value;
                 RefreshInstanceCreationKeywordRegexPattern();
             }
         }
@@ -1562,7 +1563,6 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         private IList<ParsingMethodDelegate> parsingMethods;
-        private string optionKeywordForInstanceCreation = "new";
 
         protected virtual IList<ParsingMethodDelegate> ParsingMethods => parsingMethods ?? (parsingMethods = new List<ParsingMethodDelegate>()
         {
