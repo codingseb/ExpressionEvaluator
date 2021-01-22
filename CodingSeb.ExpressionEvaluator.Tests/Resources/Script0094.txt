@@ -1,0 +1,7 @@
+﻿/* Script0094 */
+myList = -> List<int>()
+{
+	2
+};
+
+return myList[0];

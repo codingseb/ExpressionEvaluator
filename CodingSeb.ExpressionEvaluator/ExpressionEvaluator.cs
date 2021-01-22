@@ -55,6 +55,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected Regex instanceCreationKeywordRegexPattern = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.Compiled);
         protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
@@ -97,8 +98,6 @@ namespace CodingSeb.ExpressionEvaluator
         protected virtual void RefreshBlockDetection()
         {
             blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionScriptBlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
-            isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockStartBracket);
-            isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(OptionScriptBlockEndBracket);
         }
 
         /// <summary>
@@ -109,8 +108,10 @@ namespace CodingSeb.ExpressionEvaluator
             nextIsEndOfExpressionRegex = new Regex($"^({string.Join("|", OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
-        protected bool isBlockStartBracketAWord = false;
-        protected bool isBlockEndBracketAWord = false;
+        protected virtual void RefreshInstanceCreationKeywordRegexPattern()
+        {
+            instanceCreationKeywordRegexPattern = new Regex("^"+ OptionKeywordForInstanceCreation  + @"(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+        }
 
         protected RegexOptions CompiledRegexOptionAndIfNecessaryIgnoreCase => OptionCaseSensitiveEvaluationActive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
@@ -631,6 +632,7 @@ namespace CodingSeb.ExpressionEvaluator
                 RefreshBlockDetection();
                 RefreshBlocksKeywordDetection();
                 RefreshEndOfExpressionDetection();
+                RefreshInstanceCreationKeywordRegexPattern();
             }
         }
 
@@ -797,6 +799,20 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
         /// <summary>
+        /// To specify the keyword/operator that is used to create instance of object.
+        /// Default value : "new"
+        /// </summary>
+        public string OptionKeywordForInstanceCreation
+        {
+            get { return optionKeywordForInstanceCreation; }
+            set
+            {
+                optionKeywordForInstanceCreation = value;
+                RefreshInstanceCreationKeywordRegexPattern();
+            }
+        }
+
+        /// <summary>
         /// if <c>true</c> allow to call static methods on classes.
         /// if <c>false</c> unactive this functionality.
         /// Default value : true
@@ -959,21 +975,24 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private string optionScriptBlockStartBrackets = "{";
+        protected bool isBlockStartBracketAWord;
+        private string optionScriptBlockStartBracket = "{";
         /// <summary>
         /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
         /// Default value : <c>"{"</c>
         /// </summary>
         public string OptionScriptBlockStartBracket
         {
-            get { return optionScriptBlockStartBrackets; }
+            get { return optionScriptBlockStartBracket; }
             set
             {
-                optionScriptBlockStartBrackets = value;
+                optionScriptBlockStartBracket = value;
+                isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
                 RefreshBlockDetection();
             }
         }
 
+        protected bool isBlockEndBracketAWord;
         private string optionScriptBlockEndBracket = "}";
         /// <summary>
         /// To specify the character or string that end a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
@@ -985,7 +1004,7 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 optionScriptBlockEndBracket = value;
-                RefreshBlockDetection();
+                isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
             }
         }
 
@@ -1543,6 +1562,7 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         private IList<ParsingMethodDelegate> parsingMethods;
+        private string optionKeywordForInstanceCreation = "new";
 
         protected virtual IList<ParsingMethodDelegate> ParsingMethods => parsingMethods ?? (parsingMethods = new List<ParsingMethodDelegate>()
         {
@@ -1860,7 +1880,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!OptionNewKeywordEvaluationActive)
                 return false;
 
-            Match instanceCreationMatch = Regex.Match(expression.Substring(i), InstanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+            Match instanceCreationMatch = instanceCreationKeywordRegexPattern.Match(expression.Substring(i));
 
             if (instanceCreationMatch.Success
                 && (stack.Count == 0
@@ -4098,7 +4118,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     public partial class ExpressionOperator : IEquatable<ExpressionOperator>
     {
-        protected static uint indexer = 0;
+        protected static uint indexer;
 
         protected ExpressionOperator()
         {

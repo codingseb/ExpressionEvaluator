@@ -1659,6 +1659,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("PascalSyntax")
                     .Returns(20);
 
+                yield return new TestCaseData(Resources.Script0094, new ExpressionEvaluator() {OptionKeywordForInstanceCreation = "->" }, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionKeywordForInstanceCreation")
+                    .Returns(2);
+
+                yield return new TestCaseData(Resources.Script0095, new ExpressionEvaluator() {OptionKeywordForInstanceCreation = "create" }, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory("OptionKeywordForInstanceCreation")
+                    .Returns(2);
+
                 #endregion
 
                 #region For Bug correction (no regression)

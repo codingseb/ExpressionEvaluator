@@ -1589,5 +1589,35 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
                 return ResourceManager.GetString("Script0093", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0094 */
+        ///myList = -&gt; List&lt;int&gt;()
+        ///{
+        ///	2
+        ///};
+        ///
+        ///return myList[0];.
+        /// </summary>
+        public static string Script0094 {
+            get {
+                return ResourceManager.GetString("Script0094", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0095 */
+        ///myList = create List&lt;int&gt;()
+        ///{
+        ///	2
+        ///};
+        ///
+        ///return myList[0];.
+        /// </summary>
+        public static string Script0095 {
+            get {
+                return ResourceManager.GetString("Script0095", resourceCulture);
+            }
+        }
     }
 }
