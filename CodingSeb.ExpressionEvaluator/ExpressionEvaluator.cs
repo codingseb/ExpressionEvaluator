@@ -71,7 +71,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected Regex blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>[{])", RegexOptions.Compiled);
         protected Regex nextIsEndOfExpressionRegex = new Regex("^(;)", RegexOptions.Compiled);
         protected static readonly Regex wordTypeTokenDetectionRegex = new Regex(@"^(?>[\p{L}_0-9]+)$", RegexOptions.Compiled);
-        protected static readonly Regex wordTypeTokenBoundaryValidation = new Regex(@"[^\p{L}_0-9.]");
+        protected static readonly Regex wordTypeTokenBoundaryValidation = new Regex(@"[^\p{L}_0-9.]", RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex blockKeywordsWithoutHeadStatementBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>else|do|try|finally)(?![\p{L}_0-9])", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex returnKeywordRegex = new Regex(@"^return((?>\s+)|(?=\())", RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.Compiled);
