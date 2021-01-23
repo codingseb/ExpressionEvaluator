@@ -2194,13 +2194,14 @@ namespace CodingSeb.ExpressionEvaluator
 
                     object Init(object element, List<string> initArgs)
                     {
-                        if (typeof(IEnumerable).IsAssignableFrom(type)
-                            && !typeof(IDictionary).IsAssignableFrom(type)
-                            && !typeof(ExpandoObject).IsAssignableFrom(type))
+                        if (typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && !typeof(ExpandoObject).IsAssignableFrom(type))
                         {
                             MethodInfo methodInfo = type.GetMethod("Add", BindingFlags.Public | BindingFlags.Instance);
 
-                            initArgs.ForEach(subExpr => methodInfo?.Invoke(element, new object[] { Evaluate(subExpr) }));
+                            foreach (string subExpr in initArgs)
+                            {
+                                methodInfo?.Invoke(element, new object[] {Evaluate(subExpr)});
+                            }
                         }
                         else if (typeof(IDictionary).IsAssignableFrom(type) && initArgs.All(subExpr => subExpr.TrimStart().StartsWith("{")) && !typeof(ExpandoObject).IsAssignableFrom(type))
                         {
@@ -4183,15 +4184,19 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual Type[] GetConcreteTypes(string genericsTypes)
         {
-            object[] rawResult = genericsDecodeRegex
-                .Matches(genericsEndOnlyOneTrim.Replace(genericsTypes.TrimStart(' ', '<'), ""))
-                .Cast<Match>()
-                .Select(match => GetTypeByFriendlyName(match.Groups["name"].Value, match.Groups["isgeneric"].Value, true))
-                .ToArray();
-
-            if (rawResult is Type[] rawResultAsTypeArray)
+            try
             {
-                return rawResultAsTypeArray;
+                Type[] rawResult = genericsDecodeRegex
+                    .Matches(genericsEndOnlyOneTrim.Replace(genericsTypes.TrimStart(' ', '<'), ""))
+                    .Cast<Match>()
+                    .Select(match => GetTypeByFriendlyName(match.Groups["name"].Value, match.Groups["isgeneric"].Value, true))
+                    .ToArray();
+                
+                return (Type[])rawResult;
+            }
+            catch (Exception e)
+            {
+                
             }
 
             return new[] {typeof(ExpressionEvaluatorError)};
@@ -4421,7 +4426,7 @@ namespace CodingSeb.ExpressionEvaluator
             return functionExists;
         }
 
-        protected virtual object GetTypeByFriendlyName(string typeName, string genericTypes = "", bool throwExceptionIfNotFound = false)
+        protected virtual Type GetTypeByFriendlyName(string typeName, string genericTypes = "", bool throwExceptionIfNotFound = false)
         {
             Type result = null;
             string formatedGenericTypes = string.Empty;
@@ -4480,7 +4485,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (OptionReturnOnErrorInsteadOfThrow)
                 {
-                    return new ExpressionEvaluatorError {Error = ExpressionEvaluatorErrors.GenericSyntaxError, Message = ""};
+                    return typeof(ExpressionEvaluatorError);
                 }
                 
                 throw;
