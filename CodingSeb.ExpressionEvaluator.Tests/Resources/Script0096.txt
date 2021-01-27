@@ -1,0 +1,11 @@
+﻿/* Script0096 indentation with 4 spaces*/
+var myVar = 1;
+var myVar2 = 2;
+
+while(myVar < 20)
+    myVar++;
+    if (myVar == 7)
+        myVar = 21;
+        myVar2++;
+
+return myVar + myVar2;

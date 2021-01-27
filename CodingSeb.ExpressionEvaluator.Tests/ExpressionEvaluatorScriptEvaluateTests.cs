@@ -1431,6 +1431,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
                     .SetCategory(nameof(ExpressionEvaluator.OptionScriptEndOfExpression))
+                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression))
                     .Returns(8);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
@@ -1682,6 +1683,64 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("FlexibleScriptSyntax")
                     .SetCategory(nameof(ExpressionEvaluator.OptionNewKeywordAliases))
                     .Returns(12);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator11 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation
+                };
+
+                yield return new TestCaseData(Resources.Script0096, flexibleScriptSyntaxEvaluator11, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
+                    .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Spaces))
+                    .Returns(24);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator12 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                    OptionScriptBlocksIndentation = ScriptBlocksIndentation.Tabulation
+                };
+
+                yield return new TestCaseData(Resources.Script0097, flexibleScriptSyntaxEvaluator12, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
+                    .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Tabulation))
+                    .Returns(24);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator13 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                    OptionScriptBlocksIndentationNumberOfSpaces = 2
+                };
+
+                yield return new TestCaseData(Resources.Script0098, flexibleScriptSyntaxEvaluator13, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
+                    .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Spaces))
+                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksIndentationNumberOfSpaces))
+                    .Returns(24);
+
+                ExpressionEvaluator flexibleScriptSyntaxEvaluator14 = new ExpressionEvaluator()
+                {
+                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
+                    OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false,
+                };
+
+                yield return new TestCaseData(Resources.Script0099, flexibleScriptSyntaxEvaluator14, null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("FlexibleScriptSyntax")
+                    .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
+                    .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Spaces))
+                    .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
+                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptEndOfExpression))
+                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression))
+                    .SetCategory("PythonSyntax")
+                    .Returns(24);
 
                 #endregion
 

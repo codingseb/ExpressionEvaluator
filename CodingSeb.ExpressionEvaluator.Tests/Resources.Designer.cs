@@ -1612,11 +1612,92 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         ///	2
         ///};
         ///
-        ///return myList[0];.
+        ///myDict = new Dictionary&lt;string, int&gt;
+        ///{
+        ///	{&quot;ten&quot;, 10 }
+        ///};
+        ///
+        ///return myList[0] + myDict[&quot;ten&quot;];.
         /// </summary>
         public static string Script0095 {
             get {
                 return ResourceManager.GetString("Script0095", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0096 indentation with 4 spaces*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///    myVar++;
+        ///    if (myVar == 7)
+        ///        myVar = 21;
+        ///        myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0096 {
+            get {
+                return ResourceManager.GetString("Script0096", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0097 indentation with tab*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///	myVar++;
+        ///	if (myVar == 7)
+        ///		myVar = 21;
+        ///		myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0097 {
+            get {
+                return ResourceManager.GetString("Script0097", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0098 indentation with 2 spaces*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///  myVar++;
+        ///  if (myVar == 7)
+        ///    myVar = 21;
+        ///    myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0098 {
+            get {
+                return ResourceManager.GetString("Script0098", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /* Script0099 python like syntax*/
+        ///myVar = 1
+        ///myVar2 = 2
+        ///
+        ///while myVar &lt; 20:
+        ///    myVar++
+        ///    if myVar == 7:
+        ///        myVar = 21
+        ///        myVar2++
+        ///
+        ///return myVar + myVar2.
+        /// </summary>
+        public static string Script0099 {
+            get {
+                return ResourceManager.GetString("Script0099", resourceCulture);
             }
         }
     }

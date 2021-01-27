@@ -70,6 +70,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected Regex blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)(?<startBracket>\()", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected Regex blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>:)", RegexOptions.Compiled);
         protected Regex blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>[{])", RegexOptions.Compiled);
+        protected Regex blockIndentationRegex = new Regex(@"^([\r\n]*(([ ]{4})+.*)([\r\n]|$)+)+", RegexOptions.Compiled);
+        protected Regex blockIndentationLevelTrimRegex = new Regex("^[ ]{4}", RegexOptions.Compiled | RegexOptions.Multiline);
         protected Regex nextIsEndOfExpressionRegex = new Regex("^(;)", RegexOptions.Compiled);
         protected static readonly Regex wordTypeTokenDetectionRegex = new Regex(@"^(?>[\p{L}_0-9]+)$", RegexOptions.Compiled);
         protected static readonly Regex wordTypeTokenBoundaryValidation = new Regex(@"[^\p{L}_0-9.]", RegexOptions.Compiled);
@@ -95,14 +97,19 @@ namespace CodingSeb.ExpressionEvaluator
             blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + Regex.Escape(OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
-        protected virtual void RefreshBlockDetection()
+        protected virtual void RefreshBlockStartDetection()
         {
             blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionScriptBlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
-        /// <summary>
-        /// Rebuild some Regex to detect end of expression
-        /// </summary>
+        protected virtual void RefreshIndentedBlockDetection()
+        {
+            string indentRegexPattern = OptionScriptBlocksIndentation == ScriptBlocksIndentation.Tabulation ? @"\t" : "[ ]{" + OptionScriptBlocksIndentationNumberOfSpaces + "}";
+
+            blockIndentationRegex = new Regex(@"^([\r\n]*((" + indentRegexPattern + @")+.*)([\r\n]|$)+)+", RegexOptions.Compiled);
+            blockIndentationLevelTrimRegex = new Regex("^" + indentRegexPattern, RegexOptions.Compiled | RegexOptions.Multiline);
+        }
+
         protected virtual void RefreshEndOfExpressionDetection()
         {
             nextIsEndOfExpressionRegex = new Regex($"^({string.Join("|", OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", CompiledRegexOptionAndIfNecessaryIgnoreCase);
@@ -634,7 +641,7 @@ namespace CodingSeb.ExpressionEvaluator
                 simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(simpleDoubleMathFuncsDictionary, StringComparerForCasing);
                 doubleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double, double>>(doubleDoubleMathFuncsDictionary, StringComparerForCasing);
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
-                RefreshBlockDetection();
+                RefreshBlockStartDetection();
                 RefreshBlocksKeywordDetection();
                 RefreshEndOfExpressionDetection();
                 RefreshInstanceCreationKeywordRegexPattern();
@@ -1004,7 +1011,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 optionScriptBlockStartBracket = value;
                 isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
-                RefreshBlockDetection();
+                RefreshBlockStartDetection();
             }
         }
 
@@ -1029,6 +1036,38 @@ namespace CodingSeb.ExpressionEvaluator
         /// Default value : OptionalBracketsForStartAndEndWhenSingleStatement
         /// </summary>
         public SyntaxForScriptBlocksIdentifier OptionScriptSyntaxForBlocksIdentifier { get; set; }
+
+        private ScriptBlocksIndentation optionScriptBlocksIndentation = ScriptBlocksIndentation.Spaces;
+        /// <summary>
+        /// Specify the kind of indentation to use when <c>OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation</c>.
+        /// When set to Spaces ensure to set also <c>OptionScriptBlocksIndentationNumberOfSpaces</c>
+        /// Default value : <c>ScriptBlocksIndentation.Spaces</c>
+        /// </summary>
+        public ScriptBlocksIndentation OptionScriptBlocksIndentation
+        {
+            get { return optionScriptBlocksIndentation; }
+            set
+            {
+                optionScriptBlocksIndentation = value;
+                RefreshIndentedBlockDetection();
+            }
+        }
+
+        private int optionScriptBlocksIndentationNumberOfSpaces = 4;
+        /// <summary>
+        /// set the number of spaces to use as an indentation when <c>OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation</c>
+        /// and <c>OptionScriptBlocksIndentation = ScriptBlocksIndentation.Spaces</c>
+        /// Default value : <c>4</c>
+        /// </summary>
+        public int OptionScriptBlocksIndentationNumberOfSpaces
+        {
+            get { return optionScriptBlocksIndentationNumberOfSpaces; }
+            set
+            {
+                optionScriptBlocksIndentationNumberOfSpaces = value;
+                RefreshIndentedBlockDetection();
+            }
+        }
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
@@ -1295,43 +1334,63 @@ namespace CodingSeb.ExpressionEvaluator
                         i++;
                     }
 
-                    Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
-
                     string subScript = string.Empty;
 
-                    if (blockBeginningMatch.Success &&
-                        (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, i + blockBeginningMatch.Groups["startBracket"].Index - 1, i + blockBeginningMatch.Length)))
+                    if (OptionScriptSyntaxForBlocksIdentifier == SyntaxForScriptBlocksIdentifier.Indentation)
                     {
-                        i += blockBeginningMatch.Length;
+                        Match blockIndentationMatch = blockIndentationRegex.Match(script.Substring(i));
+                        if (blockIndentationMatch.Success)
+                        {
+                            subScript = blockIndentationLevelTrimRegex.Replace(blockIndentationMatch.Value, string.Empty);
 
-                        subScript = GetScriptBetweenBlockBrackets(script, ref i);
-
-                        i++;
+                            i += blockIndentationMatch.Length;
+                        }
+                        else
+                        {
+                            throw new ExpressionEvaluatorSyntaxErrorException($"No indented block found after \"{keyword}\" keyword");
+                        }
                     }
                     else
                     {
-                        bool continueExpressionParsing = true;
-                        startOfExpression = i;
+                        Match blockBeginningMatch = blockBeginningRegex.Match(script.Substring(i));
 
-                        while (i < script.Length && continueExpressionParsing)
+                        if (blockBeginningMatch.Success &&
+                            (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, i + blockBeginningMatch.Groups["startBracket"].Index - 1, i + blockBeginningMatch.Length)))
                         {
-                            if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
-                            else if (script.Length - i >= 3 && OptionScriptEndOfExpression.Any( o =>  o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
-                            {
-                                i += 2;
-                            }
-                            else if (nextIsEndOfExpressionRegex.IsMatch(script.Substring(i)))
-                            {
-                                subScript = script.Substring(startOfExpression, i + 1 - startOfExpression);
-                                continueExpressionParsing = false;
-                                i += OptionScriptEndOfExpression.Length - 1;
-                            }
+                            i += blockBeginningMatch.Length;
+
+                            subScript = GetScriptBetweenBlockBrackets(script, ref i);
 
                             i++;
                         }
+                        else
+                        {
+                            if (OptionScriptSyntaxForBlocksIdentifier == SyntaxForScriptBlocksIdentifier.MandatoryBracketsForStartAndEnd)
+                                throw new ExpressionEvaluatorSyntaxErrorException($"$A block of code must be defined between \"{OptionScriptBlockStartBracket}\" and \"{OptionScriptBlockEndBracket}\" after a [{keyword}] keyword");
 
-                        if (subScript.Trim().Equals(string.Empty))
-                            throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
+                            bool continueExpressionParsing = true;
+                            startOfExpression = i;
+
+                            while (i < script.Length && continueExpressionParsing)
+                            {
+                                if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
+                                else if (script.Length - i >= 3 && OptionScriptEndOfExpression.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
+                                {
+                                    i += 2;
+                                }
+                                else if (nextIsEndOfExpressionRegex.IsMatch(script.Substring(i)))
+                                {
+                                    subScript = script.Substring(startOfExpression, i + 1 - startOfExpression);
+                                    continueExpressionParsing = false;
+                                    i += OptionScriptEndOfExpression.Length - 1;
+                                }
+
+                                i++;
+                            }
+
+                            if (subScript.Trim().Equals(string.Empty))
+                                throw new ExpressionEvaluatorSyntaxErrorException($"No instruction after [{keyword}] statement.");
+                        }
                     }
 
                     if (keyword.Equals("elseif", StringComparisonForCasing))
@@ -4157,6 +4216,12 @@ namespace CodingSeb.ExpressionEvaluator
         OptionalBracketsForStartAndEndWhenSingleStatement,
         MandatoryBracketsForStartAndEnd,
         Indentation
+    }
+
+    public enum ScriptBlocksIndentation
+    {
+        Tabulation,
+        Spaces
     }
 
     #endregion
