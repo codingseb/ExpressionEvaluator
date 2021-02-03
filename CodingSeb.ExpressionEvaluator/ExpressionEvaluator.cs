@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.18.1 
+    Version : 1.4.19.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1358,7 +1358,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword afte the [do] keyword and block");
+                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword after the [do] keyword and block");
                             }
                         }
                         else if (keyword.Equals("while", StringComparisonForCasing))
@@ -1965,10 +1965,10 @@ namespace CodingSeb.ExpressionEvaluator
                                                 if (OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound)
                                                 {
                                                     IEnumerable<MethodInfo> query = from type in StaticTypesForExtensionsMethods
-                                                        where 
+                                                        where
                                                               !type.IsGenericType &&
-                                                              type.IsSealed && 
-                                                              !type.IsNested  
+                                                              type.IsSealed &&
+                                                              !type.IsNested
                                                         from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                                                         where method.IsDefined(typeof(ExtensionAttribute), false)
                                                         where method.GetParameters()[0].ParameterType == objType // static extMethod(this outType, ...)
@@ -1983,8 +1983,8 @@ namespace CodingSeb.ExpressionEvaluator
                                                         {
                                                             ParameterInfo[] parInfo = mi.GetParameters();
                                                             fnOverloadsPrint += string.Join(",", parInfo.Select(x => x.ParameterType.FullName ?? x.ParameterType.Name)) + "\n";
-                                                        } 
-                                                        
+                                                        }
+
                                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] extension method \"{varFuncName}\" has no overload for arguments: {fnArgsPrint}. Candidates: {fnOverloadsPrint}");
                                                     }
                                                 }
@@ -2178,28 +2178,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         if (varFuncMatch.Groups["assignationOperator"].Success)
                                         {
-                                            if (stack.Count > 1)
-                                                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                            string rightExpression = expression.Substring(i);
-                                            i = expression.Length;
-
-                                            if (rightExpression.Trim().Equals(string.Empty))
-                                                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                            if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                            {
-                                                ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                                varValue = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
-                                            }
-                                            else
-                                            {
-                                                varValue = Evaluate(rightExpression);
-                                            }
-
-                                            stack.Clear();
-                                            stack.Push(varValue);
+                                            varValue = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => varValue, stack);
                                         }
                                         else if (varFuncMatch.Groups["postfixOperator"].Success)
                                         {
@@ -2309,31 +2288,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                 if (varFuncMatch.Groups["assignationOperator"].Success)
                                 {
-                                    if (stack.Count > 1)
-                                        throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                    string rightExpression = expression.Substring(i);
-                                    i = expression.Length;
-
-                                    if (rightExpression.Trim().Equals(string.Empty))
-                                        throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                    if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                    {
-                                        if (!Variables.ContainsKey(varFuncName))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"The variable[{varFuncName}] do not exists.");
-
-                                        ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                        cusVarValueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
-                                    }
-                                    else
-                                    {
-                                        cusVarValueToPush = Evaluate(rightExpression);
-                                    }
-
-                                    stack.Clear();
-                                    stack.Push(cusVarValueToPush);
+                                    cusVarValueToPush = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => cusVarValueToPush, stack);
                                 }
                                 else if (varFuncMatch.Groups["postfixOperator"].Success)
                                 {
@@ -2711,24 +2666,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        string rightExpression = expression.Substring(i);
-                        i = expression.Length;
-
-                        if (rightExpression.Trim().Equals(string.Empty))
-                            throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                        if (assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Success)
-                        {
-                            ExpressionOperator prefixOp = operatorsDictionary[assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Value];
-
-                            valueToPush = OperatorsEvaluations[0][op](left, right);
-
-                            valueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
-                        }
-                        else
-                        {
-                            valueToPush = Evaluate(rightExpression);
-                        }
+                        valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
 
                         if (left is IDictionary<string, object> dictionaryLeft)
                             dictionaryLeft[right] = valueToPush;
@@ -3044,6 +2982,41 @@ namespace CodingSeb.ExpressionEvaluator
         protected delegate bool ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
+
+        protected virtual object ManageKindOfAssignation(string expression, ref int index, Match match, Func<object> getCurrentValue, Stack<object> stack = null)
+        {
+            if (stack?.Count > 1)
+                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+
+            object result;
+            string rightExpression = expression.Substring(index);
+            index = expression.Length;
+
+            if (rightExpression.Trim().Equals(string.Empty))
+                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+            if (match.Groups["assignmentPrefix"].Success)
+            {
+                ExpressionOperator prefixOp = operatorsDictionary[match.Groups["assignmentPrefix"].Value];
+
+                result = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](getCurrentValue(), Evaluate(rightExpression));
+            }
+            else
+            {
+                result = Evaluate(rightExpression);
+            }
+
+            if (result is BubbleExceptionContainer exceptionContainer)
+                throw exceptionContainer.Exception;
+
+            if (stack != null)
+            {
+                stack.Clear();
+                stack.Push(result);
+            }
+
+            return result;
+        }
 
         protected virtual bool GetLambdaExpression(string expression, Stack<object> stack)
         {
