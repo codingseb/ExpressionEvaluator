@@ -1358,7 +1358,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword afte the [do] keyword and block");
+                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword after the [do] keyword and block");
                             }
                         }
                         else if (keyword.Equals("while", StringComparisonForCasing))
