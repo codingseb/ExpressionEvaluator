@@ -1,4 +1,5 @@
-﻿namespace CodingSeb.ExpressionEvaluator.Tests
+﻿#pragma warning disable 414
+namespace CodingSeb.ExpressionEvaluator.Tests
 {
     public class ClassWithNonPublicMembersAndMethods
     {
