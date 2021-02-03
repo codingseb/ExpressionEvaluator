@@ -2198,6 +2198,9 @@ namespace CodingSeb.ExpressionEvaluator
                                                 varValue = Evaluate(rightExpression);
                                             }
 
+                                            if (varValue is BubbleExceptionContainer exceptionContainer)
+                                                throw exceptionContainer.Exception;
+
                                             stack.Clear();
                                             stack.Push(varValue);
                                         }
@@ -2331,6 +2334,9 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         cusVarValueToPush = Evaluate(rightExpression);
                                     }
+
+                                    if (cusVarValueToPush is BubbleExceptionContainer exceptionContainer)
+                                        throw exceptionContainer.Exception;
 
                                     stack.Clear();
                                     stack.Push(cusVarValueToPush);
@@ -2729,6 +2735,9 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             valueToPush = Evaluate(rightExpression);
                         }
+
+                        if (valueToPush is BubbleExceptionContainer exceptionContainer)
+                            throw exceptionContainer.Exception;
 
                         if (left is IDictionary<string, object> dictionaryLeft)
                             dictionaryLeft[right] = valueToPush;

@@ -1509,6 +1509,48 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
+        #region Bug corrections
+
+        /// <summary>
+        /// To correct #81 Exception is assigned to variable
+        /// With simple variable
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#81")]
+        public void Evaluate_WithException_ThrowsExceptionAndDoesNotAssignItSimpleVariable()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables.Add("exceptionGenerator", new ExceptionGenerator());
+            Assert.Throws<ExpressionEvaluatorSyntaxErrorException>(() => evaluator.Evaluate("result = exceptionGenerator.ThrowAnException()"));
+
+            evaluator.Variables.ContainsKey("result").ShouldBeFalse();
+        }
+
+        /// <summary>
+        /// To correct #81 Exception is assigned to variable
+        /// With InObject
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#81")]
+        public void Evaluate_WithException_ThrowsExceptionAndDoesNotAssignItInObject()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            ObjectContainer objectContainer = new ObjectContainer();
+
+            evaluator.Variables.Add("exceptionGenerator", new ExceptionGenerator());
+            evaluator.Variables.Add("objectContainer", objectContainer);
+            Assert.Throws<ExpressionEvaluatorSyntaxErrorException>(() => evaluator.Evaluate("objectContainer.AnObjectProperty = exceptionGenerator.ThrowAnException()"));
+
+            objectContainer.AnObjectProperty.ShouldBeOfType(typeof(int));
+            objectContainer.AnObjectProperty.ShouldBe(10);
+        }
+
+        #endregion
+
         #region EvaluateWithSpecificEvaluator
 
         #region TestCasesEvaluateWithSpecificEvaluator
