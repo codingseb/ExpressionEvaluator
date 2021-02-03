@@ -1179,7 +1179,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("expObj.NullValue ?? \"A\"", ExpandoObjectVariables, true).SetCategory("ExpandoObject").SetCategory("Instance Property").Returns("A");
                 #endregion
 
-
                 #endregion
 
                 #region Delegates as a variable
@@ -1494,7 +1493,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(evaluator, "false || 1/0>0", typeof(DivideByZeroException)).SetCategory("Conditional Or, positive left operand (should lead to exception associativity)");
                 yield return new TestCaseData(evaluator, "true && (true && 1/0>0)", typeof(DivideByZeroException)).SetCategory("Conditional And, positive left operand (should lead to exception)");
                 yield return new TestCaseData(evaluator, "false || (false || 1/0>0)", typeof(DivideByZeroException)).SetCategory("Conditional Or, positive left operand (should lead to exception associativity)");
-                
+
                 #endregion
             }
         }
@@ -1638,9 +1637,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Integer Numbers default types");
 
                 yield return new TestCaseData(new ExpressionEvaluator
-                    {
-                        OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
-                    }
+                {
+                    OptionForceIntegerNumbersEvaluationsAsDoubleByDefault = false
+                }
                     , "(130-120)/(2*250)"
                     , null)
                     .Returns(0)
@@ -2021,12 +2020,12 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 yield return new TestCaseData(xExpressionEvaluator1
                     , "true || true"
-                    , new Func<Exception, object> (exception =>
-                    {
-                        exception.ShouldNotBeOfType<ExpressionEvaluatorSyntaxErrorException>();
+                    , new Func<Exception, object>(exception =>
+                   {
+                       exception.ShouldNotBeOfType<ExpressionEvaluatorSyntaxErrorException>();
 
-                        return true;
-                    }))
+                       return true;
+                   }))
                     .Returns(true)
                     .SetCategory("ExpressionEvaluator extend")
                     .SetCategory("inherits ExpressionEvaluator")
@@ -2160,7 +2159,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     , "Persons.Sum(x=>x.Number)"
                     , null)
                     .Returns(23.22m)
-                    .SetCategory("Bug resolution"); 
+                    .SetCategory("Bug resolution");
 
                 yield return new TestCaseData(new ExpressionEvaluator() { Context = new { Persons } }
                     , "Persons.Average(x=>x.Number)"
