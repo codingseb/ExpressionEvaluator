@@ -2492,28 +2492,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     {
                                         if (varFuncMatch.Groups["assignationOperator"].Success)
                                         {
-                                            if (stack.Count > 1)
-                                                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                            string rightExpression = expression.Substring(i);
-                                            i = expression.Length;
-
-                                            if (rightExpression.Trim().Equals(string.Empty))
-                                                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                            if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                            {
-                                                ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                                varValue = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](varValue, Evaluate(rightExpression));
-                                            }
-                                            else
-                                            {
-                                                varValue = Evaluate(rightExpression);
-                                            }
-
-                                            stack.Clear();
-                                            stack.Push(varValue);
+                                            varValue = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => varValue, stack);
                                         }
                                         else if (varFuncMatch.Groups["postfixOperator"].Success)
                                         {
@@ -2623,31 +2602,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                 if (varFuncMatch.Groups["assignationOperator"].Success)
                                 {
-                                    if (stack.Count > 1)
-                                        throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
-
-                                    string rightExpression = expression.Substring(i);
-                                    i = expression.Length;
-
-                                    if (rightExpression.Trim().Equals(string.Empty))
-                                        throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                                    if (varFuncMatch.Groups["assignmentPrefix"].Success)
-                                    {
-                                        if (!Variables.ContainsKey(varFuncName))
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"The variable[{varFuncName}] do not exists.");
-
-                                        ExpressionOperator op = operatorsDictionary[varFuncMatch.Groups["assignmentPrefix"].Value];
-
-                                        cusVarValueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(op))[op](cusVarValueToPush, Evaluate(rightExpression));
-                                    }
-                                    else
-                                    {
-                                        cusVarValueToPush = Evaluate(rightExpression);
-                                    }
-
-                                    stack.Clear();
-                                    stack.Push(cusVarValueToPush);
+                                    cusVarValueToPush = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => cusVarValueToPush, stack);
                                 }
                                 else if (varFuncMatch.Groups["postfixOperator"].Success)
                                 {
@@ -3025,24 +2980,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        string rightExpression = expression.Substring(i);
-                        i = expression.Length;
-
-                        if (rightExpression.Trim().Equals(string.Empty))
-                            throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
-                        if (assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Success)
-                        {
-                            ExpressionOperator prefixOp = operatorsDictionary[assignationOrPostFixOperatorMatch.Groups["assignmentPrefix"].Value];
-
-                            valueToPush = OperatorsEvaluations[0][op](left, right);
-
-                            valueToPush = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](valueToPush, Evaluate(rightExpression));
-                        }
-                        else
-                        {
-                            valueToPush = Evaluate(rightExpression);
-                        }
+                        valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
 
                         if (left is IDictionary<string, object> dictionaryLeft)
                             dictionaryLeft[right] = valueToPush;
@@ -3360,6 +3298,41 @@ namespace CodingSeb.ExpressionEvaluator
         protected delegate bool ParsingMethodDelegate(string expression, Stack<object> stack, ref int i);
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
+
+        protected virtual object ManageKindOfAssignation(string expression, ref int index, Match match, Func<object> getCurrentValue, Stack<object> stack = null)
+        {
+            if (stack?.Count > 1)
+                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+
+            object result;
+            string rightExpression = expression.Substring(index);
+            index = expression.Length;
+
+            if (rightExpression.Trim().Equals(string.Empty))
+                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+
+            if (match.Groups["assignmentPrefix"].Success)
+            {
+                ExpressionOperator prefixOp = operatorsDictionary[match.Groups["assignmentPrefix"].Value];
+
+                result = OperatorsEvaluations.ToList().Find(dict => dict.ContainsKey(prefixOp))[prefixOp](getCurrentValue(), Evaluate(rightExpression));
+            }
+            else
+            {
+                result = Evaluate(rightExpression);
+            }
+
+            if (result is BubbleExceptionContainer exceptionContainer)
+                throw exceptionContainer.Exception;
+
+            if (stack != null)
+            {
+                stack.Clear();
+                stack.Push(result);
+            }
+
+            return result;
+        }
 
         protected virtual bool GetLambdaExpression(string expression, Stack<object> stack)
         {
