@@ -2222,5 +2222,29 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         #endregion
+
+        #region method with out parameter
+
+        [Test]
+        public void MethodWithOutParameter()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["myDict"] = new Dictionary<string, object>
+            {
+                { "ANumber", 10 },
+            };
+
+            evaluator.Variables["x"] = null;
+
+            evaluator.Evaluate<bool>("myDict.TryGetValue(\"ANumber\",out x)").ShouldBeTrue();
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(10);
+        }
+
+        #endregion
     }
 }

@@ -53,6 +53,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
+        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref)\s*(?<varName>[\p{L}_](?>[\p{L}_0-9]*))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
@@ -1894,7 +1895,28 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    List<object> oArgs = funcArgs.ConvertAll(Evaluate);
+                                    int argIndex = 0;
+                                    List<OutOrRefArg> outOrRefArgs = new List<OutOrRefArg>();
+
+                                    List<object> oArgs = funcArgs.ConvertAll(arg =>
+                                    {
+                                        Match functionArgKeywordsMatch = functionArgKeywordsRegex.Match(arg);
+                                        object argValue;
+
+                                        if (functionArgKeywordsMatch.Success)
+                                        {
+                                            OutOrRefArg outOrRefArg = new OutOrRefArg() { Index = argIndex, VariableName = functionArgKeywordsMatch.Groups["varName"].Value };
+                                            outOrRefArgs.Add(outOrRefArg);
+                                            argValue = Evaluate(outOrRefArg.VariableName);
+                                        }
+                                        else
+                                        {
+                                            argValue = Evaluate(arg);
+                                        }
+
+                                        argIndex++;
+                                        return argValue;
+                                    });
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
                                     if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
@@ -1942,7 +1964,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         if (methodInfo != null)
                                         {
-                                            stack.Push(methodInfo.Invoke(isExtention ? null : obj, oArgs.ToArray()));
+                                            object[] argsArray = oArgs.ToArray();
+                                            stack.Push(methodInfo.Invoke(isExtention ? null : obj, argsArray));
+                                            outOrRefArgs.ForEach(outOrRefArg => variables[outOrRefArg.VariableName] = argsArray[outOrRefArg.Index]);
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                         && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
@@ -3642,6 +3666,12 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected class NullConditionalNullValue
         { }
+
+        protected class OutOrRefArg
+        {
+            public int Index { get; set; }
+            public string VariableName { get; set; }
+        }
 
         protected class DelegateEncaps
         {
