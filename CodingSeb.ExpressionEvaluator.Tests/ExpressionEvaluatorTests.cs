@@ -2223,9 +2223,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
-        #region method with out parameter
+        #region Method with out parameter
 
         [Test]
+        [Category("OutKeywordMethod")]
         public void MethodWithOutParameter()
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
@@ -2246,6 +2247,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         [Test]
+        [Category("OutKeywordMethod")]
         public void MethodWithOutParameterWithoutExistingVariable()
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();
@@ -2264,6 +2266,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         [Test]
+        [Category("OutKeywordMethod")]
         public void MethodWithOutParameterInlineVarDeclaration()
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator();

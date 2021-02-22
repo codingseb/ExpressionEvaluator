@@ -1,0 +1,7 @@
+﻿/* Script0101 */
+var dictionary = new Dictionary<string, object>();
+dictionary.Add("x", 5);
+object number = 10;
+if (dictionary.TryGetValue("x", out number))
+	return number;
+return 0;
