@@ -53,7 +53,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
-        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref)\s*(?<varName>[\p{L}_](?>[\p{L}_0-9]*))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<varName>[\p{L}_](?>[\p{L}_0-9]*))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
@@ -1907,6 +1907,18 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             OutOrRefArg outOrRefArg = new OutOrRefArg() { Index = argIndex, VariableName = functionArgKeywordsMatch.Groups["varName"].Value };
                                             outOrRefArgs.Add(outOrRefArg);
+
+                                            if (functionArgKeywordsMatch.Groups["typeName"].Success)
+                                            {
+                                                Type fixedType = ((ClassOrEnumType)Evaluate(functionArgKeywordsMatch.Groups["typeName"].Value)).Type;
+
+                                                variables[outOrRefArg.VariableName] = new StronglyTypedVariable() { Type = fixedType, Value = GetDefaultValueOfType(fixedType) };
+                                            }
+                                            else if (!variables.ContainsKey(outOrRefArg.VariableName))
+                                            {
+                                                variables[outOrRefArg.VariableName] = null;
+                                            }
+
                                             argValue = Evaluate(outOrRefArg.VariableName);
                                         }
                                         else
@@ -1917,6 +1929,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         argIndex++;
                                         return argValue;
                                     });
+
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
                                     if (!OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
@@ -1952,7 +1965,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             oArgs.Insert(0, obj);
                                             objType = obj.GetType();
-                                            //obj = null;
+
                                             object extentionObj = null;
                                             for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                             {
@@ -1966,7 +1979,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             object[] argsArray = oArgs.ToArray();
                                             stack.Push(methodInfo.Invoke(isExtention ? null : obj, argsArray));
-                                            outOrRefArgs.ForEach(outOrRefArg => variables[outOrRefArg.VariableName] = argsArray[outOrRefArg.Index]);
+                                            outOrRefArgs.ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                         && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
@@ -2297,7 +2310,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 Variables[varFuncName] = new StronglyTypedVariable
                                 {
                                     Type = classOrEnum.Type,
-                                    Value = !varFuncMatch.Groups["assignationOperator"].Success && classOrEnum.Type.IsValueType ? Activator.CreateInstance(classOrEnum.Type) : null,
+                                    Value = GetDefaultValueOfType(classOrEnum.Type),
                                 };
                             }
 
@@ -2331,27 +2344,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                 if (assign)
                                 {
-                                    if (Variables.ContainsKey(varFuncName) && Variables[varFuncName] is StronglyTypedVariable stronglyTypedVariable)
-                                    {
-                                        if (cusVarValueToPush == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
-                                        {
-                                            throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
-                                        }
-
-                                        Type typeToAssign = cusVarValueToPush?.GetType();
-                                        if (typeToAssign == null || stronglyTypedVariable.Type.IsAssignableFrom(typeToAssign))
-                                        {
-                                            stronglyTypedVariable.Value = cusVarValueToPush;
-                                        }
-                                        else
-                                        {
-                                            throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Variables[varFuncName] = cusVarValueToPush;
-                                    }
+                                    AssignVariable(varFuncName, cusVarValueToPush);
                                 }
                             }
                             else if (varFuncMatch.Groups["assignationOperator"].Success)
@@ -3042,6 +3035,33 @@ namespace CodingSeb.ExpressionEvaluator
             return result;
         }
 
+        protected virtual void AssignVariable(string varName, object value)
+        {
+            if (Variables.ContainsKey(varName) && Variables[varName] is StronglyTypedVariable stronglyTypedVariable)
+            {
+                if (value == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
+                {
+                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
+                }
+
+                Type typeToAssign = value?.GetType();
+                if (typeToAssign == null || stronglyTypedVariable.Type.IsAssignableFrom(typeToAssign))
+                {
+                    stronglyTypedVariable.Value = value;
+                }
+                else
+                {
+                    throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                }
+            }
+            else
+            {
+                Variables[varName] = value;
+            }
+        }
+
+        protected virtual object GetDefaultValueOfType(Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
+
         protected virtual bool GetLambdaExpression(string expression, Stack<object> stack)
         {
             Match lambdaExpressionMatch = lambdaExpressionRegex.Match(expression);
@@ -3238,7 +3258,15 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
                         {
-                            modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                            if (methodInfoToCast.GetParameters()[a].ParameterType.IsByRef)
+                            {
+                                if(!methodInfoToCast.GetParameters()[a].ParameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
+                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType.GetElementType());
+                            }
+                            else
+                            {
+                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                            }
                         }
                     }
                     catch

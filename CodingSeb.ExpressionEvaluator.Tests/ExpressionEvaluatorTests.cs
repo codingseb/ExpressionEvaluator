@@ -2245,6 +2245,42 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .ShouldBe(10);
         }
 
+        [Test]
+        public void MethodWithOutParameterWithoutExistingVariable()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["myDict"] = new Dictionary<string, object>
+            {
+                { "ANumber", 10 },
+            };
+
+            evaluator.Evaluate<bool>("myDict.TryGetValue(\"ANumber\",out x)").ShouldBeTrue();
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(10);
+        }
+
+        [Test]
+        public void MethodWithOutParameterInlineVarDeclaration()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["myDict"] = new Dictionary<string, object>
+            {
+                { "ANumber", 10 },
+            };
+
+            evaluator.Evaluate<bool>("myDict.TryGetValue(\"ANumber\",out int x)").ShouldBeTrue();
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(10);
+        }
+
         #endregion
     }
 }
