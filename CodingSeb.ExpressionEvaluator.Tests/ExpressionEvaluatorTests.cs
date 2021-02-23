@@ -2371,5 +2371,95 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         #endregion
+
+        #region Method with in parameter
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameter()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Variables["x"] = 3;
+
+            evaluator.Evaluate("refObj.AddOneOnIn(in x)")
+                .ShouldBe(4);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(3);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterWithoutExistingVariable()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnIn(in x)")
+                .ShouldBe(1);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeNull();
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterInlineVarDeclaration()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnIn(in int x)")
+                .ShouldBe(1);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(0);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterWithoutExistingVariableAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnIn(in x = 4)")
+                .ShouldBe(5);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(4);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterInlineVarDeclarationAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnIn(in int x = 6)")
+                .ShouldBe(7);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(6);
+        }
+
+        #endregion
     }
 }

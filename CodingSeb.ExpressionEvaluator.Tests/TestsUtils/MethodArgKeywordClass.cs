@@ -6,5 +6,10 @@
         {
             i++;
         }
+
+        public int AddOneOnIn(in int i)
+        {
+            return i + 1;
+        }
     }
 }

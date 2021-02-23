@@ -53,7 +53,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
-        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
@@ -1896,7 +1896,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 else
                                 {
                                     int argIndex = 0;
-                                    List<OutOrRefArg> outOrRefArgs = new List<OutOrRefArg>();
+                                    List<ArgKeywordsEncaps> argsWithKeywords = new List<ArgKeywordsEncaps>();
 
                                     List<object> oArgs = funcArgs.ConvertAll(arg =>
                                     {
@@ -1905,18 +1905,24 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         if (functionArgKeywordsMatch.Success)
                                         {
-                                            OutOrRefArg outOrRefArg = new OutOrRefArg() { Index = argIndex, VariableName = functionArgKeywordsMatch.Groups["varName"].Value };
-                                            outOrRefArgs.Add(outOrRefArg);
+                                            ArgKeywordsEncaps argKeywordEncaps = new ArgKeywordsEncaps()
+                                            {
+                                                Index = argIndex,
+                                                Keyword = functionArgKeywordsMatch.Groups["keyword"].Value,
+                                                VariableName = functionArgKeywordsMatch.Groups["varName"].Value
+                                            };
+
+                                            argsWithKeywords.Add(argKeywordEncaps);
 
                                             if (functionArgKeywordsMatch.Groups["typeName"].Success)
                                             {
                                                 Type fixedType = ((ClassOrEnumType)Evaluate(functionArgKeywordsMatch.Groups["typeName"].Value)).Type;
 
-                                                variables[outOrRefArg.VariableName] = new StronglyTypedVariable() { Type = fixedType, Value = GetDefaultValueOfType(fixedType) };
+                                                variables[argKeywordEncaps.VariableName] = new StronglyTypedVariable() { Type = fixedType, Value = GetDefaultValueOfType(fixedType) };
                                             }
-                                            else if (!variables.ContainsKey(outOrRefArg.VariableName))
+                                            else if (!variables.ContainsKey(argKeywordEncaps.VariableName))
                                             {
-                                                variables[outOrRefArg.VariableName] = null;
+                                                variables[argKeywordEncaps.VariableName] = null;
                                             }
 
                                             argValue = Evaluate(functionArgKeywordsMatch.Groups["toEval"].Value);
@@ -1979,7 +1985,9 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             object[] argsArray = oArgs.ToArray();
                                             stack.Push(methodInfo.Invoke(isExtention ? null : obj, argsArray));
-                                            outOrRefArgs.ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index]));
+                                            argsWithKeywords
+                                                .FindAll(argWithKeyword => argWithKeyword.Keyword.Equals("out", StringComparisonForCasing) || argWithKeyword.Keyword.Equals("ref", StringComparisonForCasing))
+                                                .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                         && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
@@ -3695,9 +3703,10 @@ namespace CodingSeb.ExpressionEvaluator
         protected class NullConditionalNullValue
         { }
 
-        protected class OutOrRefArg
+        protected class ArgKeywordsEncaps
         {
             public int Index { get; set; }
+            public string Keyword { get; set; }
             public string VariableName { get; set; }
         }
 
