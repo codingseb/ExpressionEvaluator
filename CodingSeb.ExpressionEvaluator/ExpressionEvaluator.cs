@@ -56,8 +56,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
-        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9"+ (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
+        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -1944,7 +1944,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                     // Standard Instance or public method find
-                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes);
+                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords);
 
                                     // if not found check if obj is an expandoObject or similar
                                     if (obj is IDynamicMetaObjectProvider
@@ -1976,7 +1976,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                             {
                                                 Type type = StaticTypesForExtensionsMethods[e];
-                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes);
+                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, true);
                                                 isExtention = methodInfo != null;
                                             }
                                         }
@@ -1987,7 +1987,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             stack.Push(methodInfo.Invoke(isExtention ? null : obj, argsArray));
                                             argsWithKeywords
                                                 .FindAll(argWithKeyword => argWithKeyword.Keyword.Equals("out", StringComparisonForCasing) || argWithKeyword.Keyword.Equals("ref", StringComparisonForCasing))
-                                                .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index]));
+                                                .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index + (isExtention ? 1 : 0)]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                         && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
@@ -2010,14 +2010,14 @@ namespace CodingSeb.ExpressionEvaluator
                                                 if (OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound)
                                                 {
                                                     IEnumerable<MethodInfo> query = from type in StaticTypesForExtensionsMethods
-                                                        where
-                                                              !type.IsGenericType &&
-                                                              type.IsSealed &&
-                                                              !type.IsNested
-                                                        from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                                                        where method.IsDefined(typeof(ExtensionAttribute), false)
-                                                        where method.GetParameters()[0].ParameterType == objType // static extMethod(this outType, ...)
-                                                        select method;
+                                                                                    where
+                                                                                          !type.IsGenericType &&
+                                                                                          type.IsSealed &&
+                                                                                          !type.IsNested
+                                                                                    from method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+                                                                                    where method.IsDefined(typeof(ExtensionAttribute), false)
+                                                                                    where method.GetParameters()[0].ParameterType == objType // static extMethod(this outType, ...)
+                                                                                    select method;
 
                                                     if (query.Any())
                                                     {
@@ -3120,16 +3120,19 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes)
+        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes, List<ArgKeywordsEncaps> argsWithKeywords, bool testForExtention = false)
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
+
+            bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
+                    && (m.GetParameters().Length == modifiedArgs.Count || m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false));
 
             if (OptionFluidPrefixingActive
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
                     || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, testForExtention);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -3146,13 +3149,21 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            if (args.Contains(null))
+            List<MethodInfo> methodInfos = type.GetMethods(flag)
+                .Where(methodByNameFilter)
+                .OrderByDescending(m => m.GetParameters().Length)
+                .ToList();
+
+            if (methodInfos.Count == 1 && !(methodInfos[0].GetParameters().LastOrDefault()?.IsDefined(typeof(ParamArrayAttribute), false) ?? false))
             {
-                methodInfo = type.GetMethod(func, flag);
-            }
-            else
-            {
-                methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+                if (args.Contains(null))
+                {
+                    methodInfo = type.GetMethod(func, flag);
+                }
+                else
+                {
+                    methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+                }
             }
 
             if (methodInfo != null)
@@ -3161,10 +3172,6 @@ namespace CodingSeb.ExpressionEvaluator
             }
             else
             {
-                List<MethodInfo> methodInfos = type.GetMethods(flag)
-                .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
-                .ToList();
-
                 // For Linq methods that are overloaded and implement possibly lambda arguments
                 try
                 {
@@ -3198,7 +3205,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 catch { }
 
-                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
+                for (int m = 0; methodInfo == null && m < methodInfos.Count; m++)
                 {
                     modifiedArgs = new List<object>(args);
 
@@ -3223,7 +3230,14 @@ namespace CodingSeb.ExpressionEvaluator
 
             bool parametersCastOK = true;
 
-            for (int a = 0; a < modifiedArgs.Count; a++)
+            // To manage empty params argument
+            if ((methodInfoToCast.GetParameters().LastOrDefault()?.IsDefined(typeof(ParamArrayAttribute), false) ?? false)
+                && methodInfoToCast.GetParameters().Length == modifiedArgs.Count + 1)
+            {
+                modifiedArgs.Add(Activator.CreateInstance(methodInfoToCast.GetParameters().Last().ParameterType, new object[] { 0 }));
+            }
+
+            for (int a = 0; a < modifiedArgs.Count && parametersCastOK; a++)
             {
                 Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
                 string paramTypeName = parameterType.Name;
@@ -3264,16 +3278,29 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     try
                     {
-                        if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        // To manage params argument
+                        if (methodInfoToCast.GetParameters().Length == a + 1
+                            && methodInfoToCast.GetParameters()[a].IsDefined(typeof(ParamArrayAttribute), false)
+                            && parameterType != modifiedArgs[a]?.GetType()
+                            && parameterType.GetElementType() is Type elementType
+                            && modifiedArgs.Skip(a).All(arg => arg == null || elementType.IsAssignableFrom(arg.GetType())))
                         {
-                            if (methodInfoToCast.GetParameters()[a].ParameterType.IsByRef)
+                            int numberOfElements = modifiedArgs.Count - a;
+                            var paramsArray = Array.CreateInstance(elementType, numberOfElements);
+                            modifiedArgs.Skip(a).ToArray().CopyTo(paramsArray, 0);
+                            modifiedArgs.RemoveRange(a, numberOfElements);
+                            modifiedArgs.Add(paramsArray);
+                        }
+                        else if (modifiedArgs[a] != null && !parameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        {
+                            if (parameterType.IsByRef)
                             {
-                                if(!methodInfoToCast.GetParameters()[a].ParameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
-                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType.GetElementType());
+                                if (!parameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
+                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType.GetElementType());
                             }
                             else
                             {
-                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
                             }
                         }
                     }
