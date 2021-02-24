@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.19f.0 
+    Version : 1.4.20.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -3154,7 +3154,6 @@ namespace CodingSeb.ExpressionEvaluator
                 || typeof(Delegate).IsAssignableFrom(p.ParameterType)
                 || p.IsDefined(typeof(ParamArrayAttribute))
                 || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
-
 
             bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
                     && (m.GetParameters().Length == modifiedArgs.Count || m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false))
