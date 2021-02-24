@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.19.0</Version>
-    <AssemblyVersion>1.4.19.0</AssemblyVersion>
-    <FileVersion>1.4.19.0</FileVersion>
+    <Version>1.4.20.0</Version>
+    <AssemblyVersion>1.4.20.0</AssemblyVersion>
+    <FileVersion>1.4.20.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,9 +19,8 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Correction of the bug Exceptions are assigned to variables
-* List of corresponding extensions methods in exception when wrong override is used
-* Text correction in exception</PackageReleaseNotes>
+    <PackageReleaseNotes>* Add support for ref, out and in keyword in methods calls
+* Add support for calling method with params array parameters</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>

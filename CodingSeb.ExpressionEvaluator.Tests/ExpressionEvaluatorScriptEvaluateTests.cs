@@ -1410,6 +1410,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("List function")
                     .Returns("[6,4,10,6,10,4]");
 
+                yield return new TestCaseData(Resources.Script0100, new ExpressionEvaluator(), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("OutKeywordMethod")
+                    .Returns(5);
+
+                yield return new TestCaseData(Resources.Script0101, new ExpressionEvaluator(), null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("OutKeywordMethod")
+                    .Returns(5);
+
                 #endregion
 
                 #region For Bug correction (no regression)
