@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.19.0 
+    Version : 1.4.19f.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -3124,9 +3124,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
-
-            bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
-                    && (m.GetParameters().Length == modifiedArgs.Count || m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false));
+            Type typeCopy = type;
 
             if (OptionFluidPrefixingActive
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
@@ -3149,74 +3147,68 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            bool parameterValidate(ParameterInfo p) => p.Position >= modifiedArgs.Count
+                || (testForExtention && p.Position == 0)
+                || modifiedArgs[p.Position] == null
+                || p.ParameterType.IsAssignableFrom(modifiedArgs[p.Position].GetType())
+                || typeof(Delegate).IsAssignableFrom(p.ParameterType)
+                || p.IsDefined(typeof(ParamArrayAttribute))
+                || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
+
+
+            bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
+                    && (m.GetParameters().Length == modifiedArgs.Count || m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false))
+                    && (typeCopy == typeof(Enumerable) || m.GetParameters().All(parameterValidate));
+
             List<MethodInfo> methodInfos = type.GetMethods(flag)
                 .Where(methodByNameFilter)
                 .OrderByDescending(m => m.GetParameters().Length)
                 .ToList();
 
-            if (methodInfos.Count == 1 && !(methodInfos[0].GetParameters().LastOrDefault()?.IsDefined(typeof(ParamArrayAttribute), false) ?? false))
+            // For Linq methods that are overloaded and implement possibly lambda arguments
+            try
             {
-                if (args.Contains(null))
+                if (methodInfos.Count > 1
+                    && type == typeof(Enumerable)
+                    && args.Count == 2
+                    && args[1] is InternalDelegate internalDelegate
+                    && args[0] is IEnumerable enumerable
+                    && enumerable.GetEnumerator() is IEnumerator enumerator
+                    && enumerator.MoveNext()
+                    && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
                 {
-                    methodInfo = type.GetMethod(func, flag);
+                    Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
+
+                    methodInfo = methodInfos.Find(m =>
+                    {
+                        ParameterInfo[] parameterInfos = m.GetParameters();
+
+                        return parameterInfos.Length == 2
+                            && parameterInfos[1].ParameterType.Name.StartsWith("Func")
+                            && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
+                            && genericTypesArgs.Length == 2
+                            && genericTypesArgs[1] == lambdaResultType;
+                    });
+
+                    if (methodInfo != null)
+                    {
+                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                    }
                 }
-                else
-                {
-                    methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
-                }
+            }
+            catch { }
+
+            for (int m = 0; methodInfo == null && m < methodInfos.Count; m++)
+            {
+                modifiedArgs = new List<object>(args);
+
+                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
             }
 
             if (methodInfo != null)
             {
-                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes, inferedGenericsTypes);
-            }
-            else
-            {
-                // For Linq methods that are overloaded and implement possibly lambda arguments
-                try
-                {
-                    if (methodInfos.Count > 1
-                        && type == typeof(Enumerable)
-                        && args.Count == 2
-                        && args[1] is InternalDelegate internalDelegate
-                        && args[0] is IEnumerable enumerable
-                        && enumerable.GetEnumerator() is IEnumerator enumerator
-                        && enumerator.MoveNext()
-                        && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
-                    {
-                        Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
-
-                        methodInfo = methodInfos.Find(m =>
-                        {
-                            ParameterInfo[] parameterInfos = m.GetParameters();
-
-                            return parameterInfos.Length == 2
-                                && parameterInfos[1].ParameterType.Name.StartsWith("Func")
-                                && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
-                                && genericTypesArgs.Length == 2
-                                && genericTypesArgs[1] == lambdaResultType;
-                        });
-
-                        if (methodInfo != null)
-                        {
-                            methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
-                        }
-                    }
-                }
-                catch { }
-
-                for (int m = 0; methodInfo == null && m < methodInfos.Count; m++)
-                {
-                    modifiedArgs = new List<object>(args);
-
-                    methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
-                }
-
-                if (methodInfo != null)
-                {
-                    args.Clear();
-                    args.AddRange(modifiedArgs);
-                }
+                args.Clear();
+                args.AddRange(modifiedArgs);
             }
 
             return methodInfo;
