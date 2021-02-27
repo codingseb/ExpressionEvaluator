@@ -28,6 +28,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             result = string.Join(separator, values);
         }
+
+        public bool ReturnTrue(double dValue, params string[] values)
+        {
+            return true;
+        }
     }
 
     public static class MethodArgKeywordClassExtension
