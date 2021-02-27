@@ -1548,6 +1548,19 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             objectContainer.AnObjectProperty.ShouldBe(10);
         }
 
+        /// <summary>
+        /// To correct #87 Parameter type mismatch is causing missing methods
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#87")]
+        public void Evaluate_ParameterTypeMismatchAutoAdapt()
+        {
+            var evaluator = new ExpressionEvaluator();
+            evaluator.Evaluate("DateTime.Now.AddDays(1)")
+                .ShouldBeOfType<DateTime>();
+        }
+
         #endregion
 
         #region EvaluateWithSpecificEvaluator
@@ -2238,6 +2251,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     , "\",\".UseAsSepForJoin(ref x, 2, 3.5, null, \"Hello\", true) ?? x"
                     , null)
                     .Returns("2,3.5,,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2)"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("ParamsKeywordMethod");
+                
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2, \"Hello\")"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("ParamsKeywordMethod");
+                
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2, \"Hello\", \"Test\")"
+                    , null)
+                    .Returns(true)
                     .SetCategory("ParamsKeywordMethod");
 
                 #endregion

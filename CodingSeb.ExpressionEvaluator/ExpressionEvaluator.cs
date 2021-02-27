@@ -130,6 +130,21 @@ namespace CodingSeb.ExpressionEvaluator
             { "void", typeof(void) }
         };
 
+        // Based on https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2012/y5b434w4(v=vs.110)?redirectedfrom=MSDN
+        protected static readonly IDictionary<Type, Type[]> implicitCastDict = new Dictionary<Type, Type[]>
+        {
+            { typeof(sbyte), new Type[] { typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(byte), new Type[] { typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(short), new Type[] { typeof(int), typeof(long),  typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(ushort), new Type[] { typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(int), new Type[] { typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(uint), new Type[] {typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(long), new Type[] { typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(char), new Type[] { typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(float), new Type[] { typeof(double) } },
+            { typeof(ulong), new Type[] { typeof(float), typeof(double), typeof(decimal) } },
+        };
+
         protected static readonly IDictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
         {
             { "f", (number, culture) => float.Parse(number, NumberStyles.Any, culture) },
@@ -3150,14 +3165,15 @@ namespace CodingSeb.ExpressionEvaluator
             bool parameterValidate(ParameterInfo p) => p.Position >= modifiedArgs.Count
                 || (testForExtention && p.Position == 0)
                 || modifiedArgs[p.Position] == null
-                || p.ParameterType.IsAssignableFrom(modifiedArgs[p.Position].GetType())
+                || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)
                 || typeof(Delegate).IsAssignableFrom(p.ParameterType)
                 || p.IsDefined(typeof(ParamArrayAttribute))
                 || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
 
             bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
-                    && (m.GetParameters().Length == modifiedArgs.Count || m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false))
-                    && (typeCopy == typeof(Enumerable) || m.GetParameters().All(parameterValidate));
+                    && (m.GetParameters().Length == modifiedArgs.Count
+                        || (m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
+                            && m.GetParameters().All(parameterValidate)));
 
             List<MethodInfo> methodInfos = type.GetMethods(flag)
                 .Where(methodByNameFilter)
@@ -3211,6 +3227,12 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             return methodInfo;
+        }
+
+        protected virtual bool IsCastable(Type fromType, Type toType)
+        {
+            return toType.IsAssignableFrom(fromType)
+                || (implicitCastDict.ContainsKey(fromType) && implicitCastDict[fromType].Contains(toType));
         }
 
         protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)

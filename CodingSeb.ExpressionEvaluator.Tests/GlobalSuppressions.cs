@@ -11,3 +11,5 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Redundancy", "RCS1213:Remove unused member declaration.", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:CodingSeb.ExpressionEvaluator.Tests")]
 [assembly: SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:CodingSeb.ExpressionEvaluator.Tests")]
 [assembly: SuppressMessage("Design", "RCS1170:Use read-only auto-implemented property.", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:CodingSeb.ExpressionEvaluator.Tests")]
+[assembly: SuppressMessage("Redundancy", "RCS1163:Unused parameter.", Justification = "<Pending>", Scope = "member", Target = "~M:CodingSeb.ExpressionEvaluator.Tests.MethodArgKeywordClass.ReturnTrue(System.Double,System.String[])~System.Boolean")]
+[assembly: SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>", Scope = "member", Target = "~M:CodingSeb.ExpressionEvaluator.Tests.MethodArgKeywordClass.ReturnTrue(System.Double,System.String[])~System.Boolean")]
