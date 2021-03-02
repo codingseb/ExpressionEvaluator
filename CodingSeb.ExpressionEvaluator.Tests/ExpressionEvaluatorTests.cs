@@ -1548,6 +1548,19 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             objectContainer.AnObjectProperty.ShouldBe(10);
         }
 
+        /// <summary>
+        /// To correct #87 Parameter type mismatch is causing missing methods
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#87")]
+        public void Evaluate_ParameterTypeMismatchAutoAdapt()
+        {
+            var evaluator = new ExpressionEvaluator();
+            evaluator.Evaluate("DateTime.Now.AddDays(1)")
+                .ShouldBeOfType<DateTime>();
+        }
+
         #endregion
 
         #region EvaluateWithSpecificEvaluator
@@ -2143,6 +2156,123 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Method with params parameter
+
+                ExpressionEvaluator evaluatorForParamsTests()
+                {
+                    ExpressionEvaluator ee = new ExpressionEvaluator(new Dictionary<string, object>()
+                    {
+                        { "paramsObj", new MethodArgKeywordClass() }
+                    });
+
+                    ee.StaticTypesForExtensionsMethods.Add(typeof(MethodArgKeywordClassExtension));
+                    return ee;
+                }
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf(1, 2)"
+                    , null)
+                    .Returns(3)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf(1, 2, 3)"
+                    , null)
+                    .Returns(6)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf(1,2,3,4)"
+                    , null)
+                    .Returns(10)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf2()"
+                    , null)
+                    .Returns(0)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf2(1)"
+                    , null)
+                    .Returns(1)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.SumOf2(1,2,3,4)"
+                    , null)
+                    .Returns(10)
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "string.Join(\",\", 2, 3.5, \"Hello\", true)"
+                    , null)
+                    .Returns("2,3.5,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "string.Join(\",\", 2, 3.5, null, \"Hello\", true)"
+                    , null)
+                    .Returns("2,3.5,,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "\",\".UseAsSepForJoin(2, 3.5, \"Hello\", true)"
+                    , null)
+                    .Returns("2,3.5,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "\",\".UseAsSepForJoin(2, 3.5, null, \"Hello\", true)"
+                    , null)
+                    .Returns("2,3.5,,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.Join(out x, \",\", 2, 3.5, \"Hello\", true) ?? x"
+                    , null)
+                    .Returns("2,3.5,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.Join(out x, \",\", 2, 3.5, null, \"Hello\", true) ?? x"
+                    , null)
+                    .Returns("2,3.5,,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "\",\".UseAsSepForJoin(ref string x, 2, 3.5, \"Hello\", true) ?? x"
+                    , null)
+                    .Returns("2,3.5,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "\",\".UseAsSepForJoin(ref x, 2, 3.5, null, \"Hello\", true) ?? x"
+                    , null)
+                    .Returns("2,3.5,,Hello,True")
+                    .SetCategory("ParamsKeywordMethod");
+
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2)"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("ParamsKeywordMethod");
+                
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2, \"Hello\")"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("ParamsKeywordMethod");
+                
+                yield return new TestCaseData(evaluatorForParamsTests()
+                    , "paramsObj.ReturnTrue(2, \"Hello\", \"Test\")"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("ParamsKeywordMethod");
+
+                #endregion
+
                 #region Bug resolution
 
                 yield return new TestCaseData(new ExpressionEvaluator()
@@ -2285,5 +2415,182 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         #endregion
+
+        #region Method with ref parameter
+
+        [Test]
+        [Category("RefKeywordMethod")]
+        public void MethodWithRefParameter()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Variables["x"] = 3;
+
+            evaluator.Evaluate("refObj.AddOneOnRef(ref x)");
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(4);
+        }
+
+        [Test]
+        [Category("RefKeywordMethod")]
+        public void MethodWithRefParameterWithoutExistingVariable()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnRef(ref x)");
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(1);
+        }
+
+        [Test]
+        [Category("RefKeywordMethod")]
+        public void MethodWithRefParameterInlineVarDeclaration()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnRef(ref int x)");
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(1);
+        }
+
+        [Test]
+        [Category("RefKeywordMethod")]
+        public void MethodWithRefParameterWithoutExistingVariableAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnRef(ref x = 4)");
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(5);
+        }
+
+        [Test]
+        [Category("RefKeywordMethod")]
+        public void MethodWithRefParameterInlineVarDeclarationAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["refObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("refObj.AddOneOnRef(ref int x = 6)");
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(7);
+        }
+
+        #endregion
+
+        #region Method with in parameter
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameter()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Variables["x"] = 3;
+
+            evaluator.Evaluate("inObj.AddOneOnIn(in x)")
+                .ShouldBe(4);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(3);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterWithoutExistingVariable()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("inObj.AddOneOnIn(in x)")
+                .ShouldBe(1);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeNull();
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterInlineVarDeclaration()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("inObj.AddOneOnIn(in int x)")
+                .ShouldBe(1);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(0);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterWithoutExistingVariableAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("inObj.AddOneOnIn(in x = 4)")
+                .ShouldBe(5);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<int>()
+                .ShouldBe(4);
+        }
+
+        [Test]
+        [Category("InKeywordMethod")]
+        public void MethodWithInParameterInlineVarDeclarationAndInit()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Evaluate("inObj.AddOneOnIn(in int x = 6)")
+                .ShouldBe(7);
+
+            evaluator.Variables.ShouldContainKey("x");
+            evaluator.Variables["x"]
+                .ShouldBeOfType<StronglyTypedVariable>()
+                .Value.ShouldBe(6);
+        }
+
+        #endregion
+
     }
 }

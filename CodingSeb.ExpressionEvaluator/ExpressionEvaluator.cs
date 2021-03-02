@@ -1,7 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.19.1 
-    Version : 1.4.19.0 
+    Version : 1.4.21.1 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -54,7 +53,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex lambdaExpressionRegex = new Regex(@"^(?>\s*)(?<args>((?>\s*)[(](?>\s*)([\p{L}_](?>[\p{L}_0-9]*)(?>\s*)([,](?>\s*)[\p{L}_][\p{L}_0-9]*(?>\s*))*)?[)])|[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)=>(?<expression>.*)$", RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
-        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<varName>[\p{L}_](?>[\p{L}_0-9]*))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected Regex instanceCreationKeywordRegex = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.Compiled);
@@ -182,6 +181,21 @@ namespace CodingSeb.ExpressionEvaluator
             { "ulong", typeof(ulong) },
             { "ulong?", typeof(ulong?) },
             { "void", typeof(void) }
+        };
+
+        // Based on https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2012/y5b434w4(v=vs.110)?redirectedfrom=MSDN
+        protected static readonly IDictionary<Type, Type[]> implicitCastDict = new Dictionary<Type, Type[]>
+        {
+            { typeof(sbyte), new Type[] { typeof(short), typeof(int), typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(byte), new Type[] { typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(short), new Type[] { typeof(int), typeof(long),  typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(ushort), new Type[] { typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(int), new Type[] { typeof(long), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(uint), new Type[] {typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(long), new Type[] { typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(char), new Type[] { typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal) } },
+            { typeof(float), new Type[] { typeof(double) } },
+            { typeof(ulong), new Type[] { typeof(float), typeof(double), typeof(decimal) } },
         };
 
         protected static readonly IDictionary<string, Func<string, CultureInfo, object>> numberSuffixToParse = new Dictionary<string, Func<string, CultureInfo, object>>(StringComparer.OrdinalIgnoreCase) // Always Case insensitive, like in C#
@@ -2211,7 +2225,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 else
                                 {
                                     int argIndex = 0;
-                                    List<OutOrRefArg> outOrRefArgs = new List<OutOrRefArg>();
+                                    List<ArgKeywordsEncaps> argsWithKeywords = new List<ArgKeywordsEncaps>();
 
                                     List<object> oArgs = funcArgs.ConvertAll(arg =>
                                     {
@@ -2220,21 +2234,27 @@ namespace CodingSeb.ExpressionEvaluator
 
                                         if (functionArgKeywordsMatch.Success)
                                         {
-                                            OutOrRefArg outOrRefArg = new OutOrRefArg() { Index = argIndex, VariableName = functionArgKeywordsMatch.Groups["varName"].Value };
-                                            outOrRefArgs.Add(outOrRefArg);
+                                            ArgKeywordsEncaps argKeywordEncaps = new ArgKeywordsEncaps()
+                                            {
+                                                Index = argIndex,
+                                                Keyword = functionArgKeywordsMatch.Groups["keyword"].Value,
+                                                VariableName = functionArgKeywordsMatch.Groups["varName"].Value
+                                            };
+
+                                            argsWithKeywords.Add(argKeywordEncaps);
 
                                             if (functionArgKeywordsMatch.Groups["typeName"].Success)
                                             {
                                                 Type fixedType = ((ClassOrEnumType)Evaluate(functionArgKeywordsMatch.Groups["typeName"].Value)).Type;
 
-                                                variables[outOrRefArg.VariableName] = new StronglyTypedVariable() { Type = fixedType, Value = GetDefaultValueOfType(fixedType) };
+                                                variables[argKeywordEncaps.VariableName] = new StronglyTypedVariable() { Type = fixedType, Value = GetDefaultValueOfType(fixedType) };
                                             }
-                                            else if (!variables.ContainsKey(outOrRefArg.VariableName))
+                                            else if (!variables.ContainsKey(argKeywordEncaps.VariableName))
                                             {
-                                                variables[outOrRefArg.VariableName] = null;
+                                                variables[argKeywordEncaps.VariableName] = null;
                                             }
 
-                                            argValue = Evaluate(outOrRefArg.VariableName);
+                                            argValue = Evaluate(functionArgKeywordsMatch.Groups["toEval"].Value);
                                         }
                                         else
                                         {
@@ -2253,7 +2273,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                     // Standard Instance or public method find
-                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes);
+                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords);
 
                                     // if not found check if obj is an expandoObject or similar
                                     if (obj is IDynamicMetaObjectProvider
@@ -2285,7 +2305,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                             {
                                                 Type type = StaticTypesForExtensionsMethods[e];
-                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes);
+                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, true);
                                                 isExtention = methodInfo != null;
                                             }
                                         }
@@ -2294,7 +2314,9 @@ namespace CodingSeb.ExpressionEvaluator
                                         {
                                             object[] argsArray = oArgs.ToArray();
                                             stack.Push(methodInfo.Invoke(isExtention ? null : obj, argsArray));
-                                            outOrRefArgs.ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index]));
+                                            argsWithKeywords
+                                                .FindAll(argWithKeyword => argWithKeyword.Keyword.Equals("out", StringComparisonForCasing) || argWithKeyword.Keyword.Equals("ref", StringComparisonForCasing))
+                                                .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index + (isExtention ? 1 : 0)]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
                                         && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
@@ -3429,16 +3451,17 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes)
+        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes, List<ArgKeywordsEncaps> argsWithKeywords, bool testForExtention = false)
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
+            Type typeCopy = type;
 
             if (OptionFluidPrefixingActive
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
                     || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, testForExtention);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -3455,73 +3478,77 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            if (args.Contains(null))
+            bool parameterValidate(ParameterInfo p) => p.Position >= modifiedArgs.Count
+                || (testForExtention && p.Position == 0)
+                || modifiedArgs[p.Position] == null
+                || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)
+                || typeof(Delegate).IsAssignableFrom(p.ParameterType)
+                || p.IsDefined(typeof(ParamArrayAttribute))
+                || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
+
+            bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
+                    && (m.GetParameters().Length == modifiedArgs.Count
+                        || (m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
+                            && m.GetParameters().All(parameterValidate)));
+
+            List<MethodInfo> methodInfos = type.GetMethods(flag)
+                .Where(methodByNameFilter)
+                .OrderByDescending(m => m.GetParameters().Length)
+                .ToList();
+
+            // For Linq methods that are overloaded and implement possibly lambda arguments
+            try
             {
-                methodInfo = type.GetMethod(func, flag);
+                if (methodInfos.Count > 1
+                    && type == typeof(Enumerable)
+                    && args.Count == 2
+                    && args[1] is InternalDelegate internalDelegate
+                    && args[0] is IEnumerable enumerable
+                    && enumerable.GetEnumerator() is IEnumerator enumerator
+                    && enumerator.MoveNext()
+                    && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
+                {
+                    Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
+
+                    methodInfo = methodInfos.Find(m =>
+                    {
+                        ParameterInfo[] parameterInfos = m.GetParameters();
+
+                        return parameterInfos.Length == 2
+                            && parameterInfos[1].ParameterType.Name.StartsWith("Func")
+                            && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
+                            && genericTypesArgs.Length == 2
+                            && genericTypesArgs[1] == lambdaResultType;
+                    });
+
+                    if (methodInfo != null)
+                    {
+                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                    }
+                }
             }
-            else
+            catch { }
+
+            for (int m = 0; methodInfo == null && m < methodInfos.Count; m++)
             {
-                methodInfo = type.GetMethod(func, flag, null, args.ConvertAll(arg => arg.GetType()).ToArray(), null);
+                modifiedArgs = new List<object>(args);
+
+                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
             }
 
             if (methodInfo != null)
             {
-                methodInfo = MakeConcreteMethodIfGeneric(methodInfo, genericsTypes, inferedGenericsTypes);
-            }
-            else
-            {
-                List<MethodInfo> methodInfos = type.GetMethods(flag)
-                .Where(m => m.Name.Equals(func, StringComparisonForCasing) && m.GetParameters().Length == modifiedArgs.Count)
-                .ToList();
-
-                // For Linq methods that are overloaded and implement possibly lambda arguments
-                try
-                {
-                    if (methodInfos.Count > 1
-                        && type == typeof(Enumerable)
-                        && args.Count == 2
-                        && args[1] is InternalDelegate internalDelegate
-                        && args[0] is IEnumerable enumerable
-                        && enumerable.GetEnumerator() is IEnumerator enumerator
-                        && enumerator.MoveNext()
-                        && methodInfos.Any(m => m.GetParameters().Any(p => p.ParameterType.Name.StartsWith("Func"))))
-                    {
-                        Type lambdaResultType = internalDelegate.Invoke(enumerator.Current).GetType();
-
-                        methodInfo = methodInfos.Find(m =>
-                        {
-                            ParameterInfo[] parameterInfos = m.GetParameters();
-
-                            return parameterInfos.Length == 2
-                                && parameterInfos[1].ParameterType.Name.StartsWith("Func")
-                                && parameterInfos[1].ParameterType.GenericTypeArguments is Type[] genericTypesArgs
-                                && genericTypesArgs.Length == 2
-                                && genericTypesArgs[1] == lambdaResultType;
-                        });
-
-                        if (methodInfo != null)
-                        {
-                            methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
-                        }
-                    }
-                }
-                catch { }
-
-                for (int m = 0; m < methodInfos.Count && methodInfo == null; m++)
-                {
-                    modifiedArgs = new List<object>(args);
-
-                    methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
-                }
-
-                if (methodInfo != null)
-                {
-                    args.Clear();
-                    args.AddRange(modifiedArgs);
-                }
+                args.Clear();
+                args.AddRange(modifiedArgs);
             }
 
             return methodInfo;
+        }
+
+        protected virtual bool IsCastable(Type fromType, Type toType)
+        {
+            return toType.IsAssignableFrom(fromType)
+                || (implicitCastDict.ContainsKey(fromType) && implicitCastDict[fromType].Contains(toType));
         }
 
         protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
@@ -3532,7 +3559,14 @@ namespace CodingSeb.ExpressionEvaluator
 
             bool parametersCastOK = true;
 
-            for (int a = 0; a < modifiedArgs.Count; a++)
+            // To manage empty params argument
+            if ((methodInfoToCast.GetParameters().LastOrDefault()?.IsDefined(typeof(ParamArrayAttribute), false) ?? false)
+                && methodInfoToCast.GetParameters().Length == modifiedArgs.Count + 1)
+            {
+                modifiedArgs.Add(Activator.CreateInstance(methodInfoToCast.GetParameters().Last().ParameterType, new object[] { 0 }));
+            }
+
+            for (int a = 0; a < modifiedArgs.Count && parametersCastOK; a++)
             {
                 Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
                 string paramTypeName = parameterType.Name;
@@ -3573,16 +3607,29 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     try
                     {
-                        if (!methodInfoToCast.GetParameters()[a].ParameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        // To manage params argument
+                        if (methodInfoToCast.GetParameters().Length == a + 1
+                            && methodInfoToCast.GetParameters()[a].IsDefined(typeof(ParamArrayAttribute), false)
+                            && parameterType != modifiedArgs[a]?.GetType()
+                            && parameterType.GetElementType() is Type elementType
+                            && modifiedArgs.Skip(a).All(arg => arg == null || elementType.IsAssignableFrom(arg.GetType())))
                         {
-                            if (methodInfoToCast.GetParameters()[a].ParameterType.IsByRef)
+                            int numberOfElements = modifiedArgs.Count - a;
+                            var paramsArray = Array.CreateInstance(elementType, numberOfElements);
+                            modifiedArgs.Skip(a).ToArray().CopyTo(paramsArray, 0);
+                            modifiedArgs.RemoveRange(a, numberOfElements);
+                            modifiedArgs.Add(paramsArray);
+                        }
+                        else if (modifiedArgs[a] != null && !parameterType.IsAssignableFrom(modifiedArgs[a].GetType()))
+                        {
+                            if (parameterType.IsByRef)
                             {
-                                if(!methodInfoToCast.GetParameters()[a].ParameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
-                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType.GetElementType());
+                                if (!parameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
+                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType.GetElementType());
                             }
                             else
                             {
-                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], methodInfoToCast.GetParameters()[a].ParameterType);
+                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
                             }
                         }
                     }
@@ -4025,9 +4072,10 @@ namespace CodingSeb.ExpressionEvaluator
         protected class NullConditionalNullValue
         { }
 
-        protected class OutOrRefArg
+        protected class ArgKeywordsEncaps
         {
             public int Index { get; set; }
+            public string Keyword { get; set; }
             public string VariableName { get; set; }
         }
 
