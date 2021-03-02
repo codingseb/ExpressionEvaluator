@@ -33,6 +33,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             return true;
         }
+
+        public int GetTheDefaultValue(int defaultValue = 10)
+        {
+            return defaultValue;
+        }
+
+        public string GetTheDefaultValue(string text, int defaultValue = 20)
+        {
+            return text + defaultValue.ToString();
+        }
     }
 
     public static class MethodArgKeywordClassExtension
