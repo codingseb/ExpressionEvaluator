@@ -33,6 +33,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             return true;
         }
+
+        public int GetTheDefaultValue(int defaultValue = 10)
+        {
+            return defaultValue;
+        }
+
+        public string GetTheDefaultValue(string text, int defaultValue = 20)
+        {
+            return text + defaultValue.ToString();
+        }
+
+        public void SumOf(out string result, string text = "default value is ", int defaultValue = 30)
+        {
+            result = text + defaultValue.ToString();
+        }
+
+        public int SumOf(int val1 = 19, int val2 = 21)
+        {
+            return val1 + val2;
+        }
     }
 
     public static class MethodArgKeywordClassExtension
