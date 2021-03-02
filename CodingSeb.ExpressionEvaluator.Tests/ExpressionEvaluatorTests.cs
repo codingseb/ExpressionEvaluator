@@ -2158,7 +2158,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #region Method with params parameter
 
-                ExpressionEvaluator evaluatorForParamsTests()
+                ExpressionEvaluator evaluatorForMethodArgs()
                 {
                     ExpressionEvaluator ee = new ExpressionEvaluator(new Dictionary<string, object>()
                     {
@@ -2169,107 +2169,171 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     return ee;
                 }
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf(1, 2)"
                     , null)
                     .Returns(3)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf(1, 2, 3)"
                     , null)
                     .Returns(6)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf(1,2,3,4)"
                     , null)
                     .Returns(10)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf2()"
                     , null)
                     .Returns(0)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf2(1)"
                     , null)
                     .Returns(1)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.SumOf2(1,2,3,4)"
                     , null)
                     .Returns(10)
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "string.Join(\",\", 2, 3.5, \"Hello\", true)"
                     , null)
                     .Returns("2,3.5,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "string.Join(\",\", 2, 3.5, null, \"Hello\", true)"
                     , null)
                     .Returns("2,3.5,,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "\",\".UseAsSepForJoin(2, 3.5, \"Hello\", true)"
                     , null)
                     .Returns("2,3.5,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "\",\".UseAsSepForJoin(2, 3.5, null, \"Hello\", true)"
                     , null)
                     .Returns("2,3.5,,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.Join(out x, \",\", 2, 3.5, \"Hello\", true) ?? x"
                     , null)
                     .Returns("2,3.5,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.Join(out x, \",\", 2, 3.5, null, \"Hello\", true) ?? x"
                     , null)
                     .Returns("2,3.5,,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "\",\".UseAsSepForJoin(ref string x, 2, 3.5, \"Hello\", true) ?? x"
                     , null)
                     .Returns("2,3.5,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "\",\".UseAsSepForJoin(ref x, 2, 3.5, null, \"Hello\", true) ?? x"
                     , null)
                     .Returns("2,3.5,,Hello,True")
                     .SetCategory("ParamsKeywordMethod");
 
-                yield return new TestCaseData(evaluatorForParamsTests()
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.ReturnTrue(2)"
                     , null)
                     .Returns(true)
                     .SetCategory("ParamsKeywordMethod");
-                
-                yield return new TestCaseData(evaluatorForParamsTests()
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.ReturnTrue(2, \"Hello\")"
                     , null)
                     .Returns(true)
                     .SetCategory("ParamsKeywordMethod");
-                
-                yield return new TestCaseData(evaluatorForParamsTests()
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
                     , "paramsObj.ReturnTrue(2, \"Hello\", \"Test\")"
                     , null)
                     .Returns(true)
                     .SetCategory("ParamsKeywordMethod");
+
+                #endregion
+
+                #region Method parameters with default value
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.GetTheDefaultValue()"
+                    , null)
+                    .Returns(10)
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.GetTheDefaultValue(15)"
+                    , null)
+                    .Returns(15)
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.GetTheDefaultValue(\"default value is \")"
+                    , null)
+                    .Returns("default value is 20")
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.GetTheDefaultValue(\"given value is \", 25)"
+                    , null)
+                    .Returns("given value is 25")
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(out r) ?? r"
+                    , null)
+                    .Returns("default value is 30")
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(out r, \"half default value is \") ?? r"
+                    , null)
+                    .Returns("half default value is 30")
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(out r, \"given value is \", 35) ?? r"
+                    , null)
+                    .Returns("given value is 35")
+                    .SetCategory("DefaultValueMethod");
+
+                yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf()"
+                    , null)
+                    .Returns(40)
+                    .SetCategory("DefaultValueMethod");
+
+               yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(22)"
+                    , null)
+                    .Returns(43)
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(22, 23)"
+                    , null)
+                    .Returns(45)
+                    .SetCategory("DefaultValueMethod");
 
                 #endregion
 

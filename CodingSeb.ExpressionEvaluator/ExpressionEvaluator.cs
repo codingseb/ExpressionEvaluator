@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.21.0 
+    Version : 1.4.22.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -3172,6 +3172,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
                     && (m.GetParameters().Length == modifiedArgs.Count
+                        || (m.GetParameters().Length > modifiedArgs.Count && m.GetParameters().Take(modifiedArgs.Count).All(p => modifiedArgs[p.Position] == null || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)) && m.GetParameters().Skip(modifiedArgs.Count).All(p => p.HasDefaultValue))
                         || (m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
                             && m.GetParameters().All(parameterValidate)));
 
@@ -3248,6 +3249,10 @@ namespace CodingSeb.ExpressionEvaluator
                 && methodInfoToCast.GetParameters().Length == modifiedArgs.Count + 1)
             {
                 modifiedArgs.Add(Activator.CreateInstance(methodInfoToCast.GetParameters().Last().ParameterType, new object[] { 0 }));
+            }
+            else if(methodInfoToCast.GetParameters().Length > modifiedArgs.Count)
+            {
+                modifiedArgs.AddRange(methodInfoToCast.GetParameters().Skip(modifiedArgs.Count).Select(p => p.DefaultValue));
             }
 
             for (int a = 0; a < modifiedArgs.Count && parametersCastOK; a++)
