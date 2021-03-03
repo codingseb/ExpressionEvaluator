@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.22.0 
+    Version : 1.4.23.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -859,6 +859,13 @@ namespace CodingSeb.ExpressionEvaluator
         /// Default : true
         /// </summary>
         public bool OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound { get; set; } = true;
+
+        /// <summary>
+        /// If <c>true</c> Allow to define multi expression lambda in Expressions (not in script)<para/>
+        /// If <c>false</c> Can only define simple expression lambda if not in script
+        /// <para>Default value : <c>true</c></para>
+        /// </summary>
+        public bool OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate { get; set; } = true;
 
         #endregion
 
@@ -3096,6 +3103,8 @@ namespace CodingSeb.ExpressionEvaluator
                     .Cast<Match>().ToList()
                     .ConvertAll(argMatch => argMatch.Value);
 
+                bool inScriptAtDeclaration = inScript;
+
                 stack.Push(new InternalDelegate((object[] args) =>
                 {
                     var vars = new Dictionary<string, object>(variables);
@@ -3112,10 +3121,10 @@ namespace CodingSeb.ExpressionEvaluator
 
                     object result = null;
 
-                    if (inScript && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
+                    if ((OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate || inScriptAtDeclaration) 
+                        && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
                     {
                         result = ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
-                        inScript = true;
                     }
                     else
                     {
