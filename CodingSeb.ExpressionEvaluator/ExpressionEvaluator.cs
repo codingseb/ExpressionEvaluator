@@ -913,7 +913,7 @@ namespace CodingSeb.ExpressionEvaluator
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Counts stack initialisations to determine if the expression enty point was reached. In that case the transported exception should be thrown.
+        /// Counts stack initialisations to determine if the expression entry point was reached. In that case the transported exception should be thrown.
         /// </summary>
         private int evaluationStackCount;
 
