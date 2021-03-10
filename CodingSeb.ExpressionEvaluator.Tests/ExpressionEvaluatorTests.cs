@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
@@ -1284,9 +1285,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             }
         }
 
-        [TestCase("ClassForTest1.Add(1, 5)", ExpectedResult = 6, Category = "On the fly method")]
-        [TestCase("ClassForTest1.Add(1, 5.0)", ExpectedResult = 6, Category = "On the fly method")]
-        public object OnTheFlyEvaluation2(string expression)
+        [TestCase("ClassForTest1.Add(1, 5)", ExpectedResult = 6)]
+        [TestCase("ClassForTest1.Add(1, 5.0)", ExpectedResult = 6)]
+        public object OnTheFlyCastEvaluation(string expression)
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator(new ContextObject1());
 
@@ -1307,6 +1308,27 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             if (e.ParameterType == typeof(ClassForTest2) && e.OriginalArg is double originalArgDouble)
             {
                 e.Argument = new ClassForTest2((int) originalArgDouble);
+            }
+        }
+
+        [TestCase("2[\"Test\"]", ExpectedResult = "Test,Test")]
+        [TestCase("3[\"Hello\"]", ExpectedResult = "Hello,Hello,Hello")]
+        public object OnTheFlyIndexingEvaluation(string expression)
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator(new ContextObject1());
+
+            evaluator.PreEvaluateIndexing += Evaluator_PreEvaluateIndexing;
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            return evaluator.Evaluate(expression);
+        }
+
+        private void Evaluator_PreEvaluateIndexing(object sender, IndexingPreEvaluationEventArg e)
+        {
+            if(e.This is int intValue && e.EvaluateArg() is string text)
+            {
+                e.Value = string.Join(",", Enumerable.Repeat(text, intValue));
             }
         }
 
@@ -1499,6 +1521,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     { "P1var", "P1" },
                     { "myObj", new ClassForTest1() },
                     { "nullVar", null },
+                    { "myArray", new int[] {1, 2, 3} },
                 });
 
                 evaluator.PreEvaluateVariable += (sender, e) =>
@@ -1513,11 +1536,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         e.CancelEvaluation = true;
                 };
 
+                evaluator.PreEvaluateIndexing += (sender, e) =>
+                {
+                    if (e.This is int[])
+                        e.CancelEvaluation = true;
+                };
+
                 yield return new TestCaseData(evaluator, "Pi", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
                 yield return new TestCaseData(evaluator, "P1var", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
                 yield return new TestCaseData(evaluator, "myObj.PropertyThatWillFailed", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Var");
                 yield return new TestCaseData(evaluator, "myObj.Add3To(5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
                 yield return new TestCaseData(evaluator, "Abs(-5)", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFly canceled Func");
+                yield return new TestCaseData(evaluator, "myArray[1]", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("OnTheFlyCanceledIndexing");
                 #endregion
 
                 #region Bugs corrections
@@ -1536,7 +1566,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCaseSource(nameof(TestCasesForExceptionThrowingEvaluation))]
         public void ExceptionThrowingEvaluation(ExpressionEvaluator evaluator, string expression, Type exceptionType)
         {
-            Assert.Catch(exceptionType, () => evaluator.Evaluate(expression));
+            Exception e = null;
+            object result = null;
+
+            try
+            {
+                result = evaluator.Evaluate(expression);
+            }
+            catch(Exception exception)
+            {
+                e = exception;
+            }
+
+            result.ShouldBeNull();
+            e.ShouldNotBeNull().ShouldBeOfType(exceptionType);
         }
 
         #endregion

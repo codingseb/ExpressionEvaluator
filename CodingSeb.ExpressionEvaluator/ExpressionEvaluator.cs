@@ -903,7 +903,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Custom and on the fly variables and methods
+        #region Custom and on the fly evaluation
 
         /// <summary>
         /// If set, this object is used to use it's fields, properties and methods as global variables and functions
@@ -958,12 +958,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// Allow to define a function or method and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
-
-        /// <summary>
-        /// Is fired if no indexing were found.
-        /// Allow to define an indexing and the corresponding value on the fly.
-        /// </summary>
-        public event EventHandler<IndexingEvaluationEventArg> EvaluateIndexing;
 
         /// <summary>
         /// Is fired when a parameter is not of the correct type for the function.
@@ -1554,7 +1548,7 @@ namespace CodingSeb.ExpressionEvaluator
             EvaluateOperators,
             EvaluateChar,
             EvaluateParenthis,
-            EvaluateIndexingOperator,
+            EvaluateIndexing,
             EvaluateString,
             EvaluateTernaryConditionalOperator,
         });
@@ -2644,7 +2638,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool EvaluateIndexingOperator(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateIndexing(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionIndexingActive)
                 return false;
@@ -2700,58 +2694,69 @@ namespace CodingSeb.ExpressionEvaluator
                     return true;
                 }
 
-                //IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(innerExp.ToString(), this, left);
+                IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(innerExp.ToString(), this, left);
 
-                //PreEvaluateIndexing?.Invoke(this, indexingPreEvaluationEventArg);
+                PreEvaluateIndexing?.Invoke(this, indexingPreEvaluationEventArg);
 
-                dynamic right = Evaluate(innerExp.ToString());
-                ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
-
-                if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
-                    right = (int)right;
-
-                Match assignationOrPostFixOperatorMatch = null;
-
-                dynamic valueToPush = null;
-
-                if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                if (indexingPreEvaluationEventArg.CancelEvaluation)
                 {
-                    i += assignationOrPostFixOperatorMatch.Length + 1;
-
-                    bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
-                    string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
-
-                    if (stack.Count > 1)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
-
-                    if (op == ExpressionOperator.IndexingWithNullConditional)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
-
-                    if (postFixOperator)
-                    {
-                        if (left is IDictionary<string, object> dictionaryLeft)
-                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
-                        else
-                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
-                    }
-                    else
-                    {
-                        valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
-
-                        if (left is IDictionary<string, object> dictionaryLeft)
-                            dictionaryLeft[right] = valueToPush;
-                        else
-                            left[right] = valueToPush;
-
-                        stack.Clear();
-                    }
+                    throw new ExpressionEvaluatorSyntaxErrorException($"[{left.GetType()}] can not be indexed.");
+                }
+                else if (indexingPreEvaluationEventArg.HasValue)
+                {
+                    stack.Push(indexingPreEvaluationEventArg.Value);
                 }
                 else
                 {
-                    valueToPush = OperatorsEvaluations[0][op](left, right);
-                }
+                    dynamic right = Evaluate(innerExp.ToString());
+                    ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
 
-                stack.Push(valueToPush);
+                    if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
+                        right = (int)right;
+
+                    Match assignationOrPostFixOperatorMatch = null;
+
+                    dynamic valueToPush = null;
+
+                    if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                    {
+                        i += assignationOrPostFixOperatorMatch.Length + 1;
+
+                        bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
+                        string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
+
+                        if (stack.Count > 1)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
+
+                        if (op == ExpressionOperator.IndexingWithNullConditional)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
+
+                        if (postFixOperator)
+                        {
+                            if (left is IDictionary<string, object> dictionaryLeft)
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
+                            else
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                        }
+                        else
+                        {
+                            valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
+
+                            if (left is IDictionary<string, object> dictionaryLeft)
+                                dictionaryLeft[right] = valueToPush;
+                            else
+                                left[right] = valueToPush;
+
+                            stack.Clear();
+                        }
+                    }
+                    else
+                    {
+                        valueToPush = OperatorsEvaluations[0][op](left, right);
+                    }
+
+                    stack.Push(valueToPush);
+                }
 
                 return true;
             }
@@ -4428,12 +4433,13 @@ namespace CodingSeb.ExpressionEvaluator
         public bool CancelEvaluation { get; set; }
     }
 
+
     /// <summary>
     /// Infos about the indexing that is currently evaluate
     /// </summary>
-    public partial class IndexingEvaluationEventArg : EventArgs
+    public partial class IndexingPreEvaluationEventArg : EventArgs
     {
-        public IndexingEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
+        public IndexingPreEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
         {
             Arg = arg;
             This = onInstance;
@@ -4492,16 +4498,6 @@ namespace CodingSeb.ExpressionEvaluator
         {
             return Evaluator.Evaluate<T>(Arg);
         }
-    }
-
-    /// <summary>
-    /// Infos about the indexing that is currently evaluate
-    /// </summary>
-    public partial class IndexingPreEvaluationEventArg : IndexingEvaluationEventArg
-    {
-        public IndexingPreEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
-            : base(arg, evaluator, onInstance)
-        { }
 
         /// <summary>
         /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
