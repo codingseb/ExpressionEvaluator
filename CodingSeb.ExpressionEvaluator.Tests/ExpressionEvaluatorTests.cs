@@ -1284,6 +1284,32 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             }
         }
 
+        [TestCase("ClassForTest1.Add(1, 5)", ExpectedResult = 6, Category = "On the fly method")]
+        [TestCase("ClassForTest1.Add(1, 5.0)", ExpectedResult = 6, Category = "On the fly method")]
+        public object OnTheFlyEvaluation2(string expression)
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator(new ContextObject1());
+
+            evaluator.EvaluateParameterCast += Evaluator_EvaluateParameterCast;
+
+            evaluator.Namespaces.Add("CodingSeb.ExpressionEvaluator.Tests");
+
+            return evaluator.Evaluate(expression);
+        }
+
+        private void Evaluator_EvaluateParameterCast(object sender, ParameterCastEvaluationEventArg e)
+        {
+            if (e.ParameterType == typeof(ClassForTest2) && e.OriginalArg is int originalArgInt)
+            {
+                e.Argument = new ClassForTest2(originalArgInt);
+            }
+
+            if (e.ParameterType == typeof(ClassForTest2) && e.OriginalArg is double originalArgDouble)
+            {
+                e.Argument = new ClassForTest2((int) originalArgDouble);
+            }
+        }
+
         #endregion
 
         #endregion

@@ -952,6 +952,12 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
+        /// <summary>
+        /// Is fired when a parameter ist not the correct type for the function.
+        /// Allow to define a custom parameter cast for the function to work on the fly.
+        /// </summary>
+        public event EventHandler<ParameterCastEvaluationEventArg> EvaluateParameterCast;
+
         #endregion
 
         #region Constructors and overridable Inits methods
@@ -3333,7 +3339,25 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     catch
                     {
-                        parametersCastOK = false;
+                        try
+                        {
+                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg =
+                                new ParameterCastEvaluationEventArg(parameterType, modifiedArgs[a]);
+                            EvaluateParameterCast.Invoke(this, parameterCastEvaluationEventArg);
+                            if (parameterCastEvaluationEventArg.FunctionModifiedArgument)
+                            {
+                                modifiedArgs[a] = parameterCastEvaluationEventArg.Argument;
+                            }
+                            else
+                            {
+                                parametersCastOK = false;
+                            }
+                        }
+                        catch
+                        {
+                            parametersCastOK = false;
+                        }
+
                     }
                 }
             }
@@ -4375,6 +4399,54 @@ namespace CodingSeb.ExpressionEvaluator
         /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
         /// </summary>
         public bool CancelEvaluation { get; set; }
+    }
+
+    /// <summary>
+    /// Class ParameterCastEvaluationEventArg.
+    /// Implements the <see cref="System.EventArgs" /></summary>
+    /// <seealso cref="System.EventArgs" />
+    public partial class ParameterCastEvaluationEventArg : EventArgs
+    {
+        /// <summary>
+        /// The required type of the parameter
+        /// </summary>
+        public Type ParameterType { get; }
+
+        /// <summary>
+        /// The original argument
+        /// </summary>
+        public object OriginalArg { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ParameterCastEvaluationEventArg" /> class.
+        /// </summary>
+        /// <param name="parameterType">Type of the parameter.</param>
+        /// <param name="originalArg">The original argument.</param>
+        public ParameterCastEvaluationEventArg(Type parameterType, object originalArg)
+        {
+            ParameterType = parameterType;
+            OriginalArg = originalArg;
+        }
+
+        private object modifiedArgument;
+
+        /// <summary>
+        /// To set the modified argument
+        /// </summary>
+        public object Argument
+        {
+            get { return modifiedArgument; }
+            set
+            {
+                modifiedArgument = value;
+                FunctionModifiedArgument = true;
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> the argument has been modified, if <c>false</c> it means that the argument can't be of the given type.
+        /// </summary>
+        public bool FunctionModifiedArgument { get; set; }
     }
 
     #endregion
