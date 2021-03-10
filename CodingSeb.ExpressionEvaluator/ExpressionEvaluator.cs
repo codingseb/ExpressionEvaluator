@@ -927,6 +927,18 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Is fired just before an expression is evaluate.
+        /// Allow to redefine the expression to evaluate or to force a result value.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluating;
+
+        /// <summary>
+        /// Is fired just before to return the expression evaluation.
+        /// Allow to modify on the fly the result of the evaluation.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluated;
+
+        /// <summary>
         /// Is fired before a variable, field or property resolution.
         /// Allow to define a variable and the corresponding value on the fly.
         /// Allow also to cancel the evaluation of this variable (consider it does'nt exists)
@@ -1564,25 +1576,51 @@ namespace CodingSeb.ExpressionEvaluator
 
             Stack<object> stack = new Stack<object>();
             evaluationStackCount++;
+            object result;
+
             try
             {
-                if (GetLambdaExpression(expression, stack))
-                    return stack.Pop();
+                ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this);
 
-                for (int i = 0; i < expression.Length; i++)
+                ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
+
+                expression = expressionEvaluationEventArg.Expression;
+
+                if (expressionEvaluationEventArg.HasValue)
                 {
-                    if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
-                    {
-                        string s = expression.Substring(i, 1);
+                    result = expressionEvaluationEventArg.Value;
+                }
+                else
+                {
+                    if (GetLambdaExpression(expression, stack))
+                        return stack.Pop();
 
-                        if (!s.Trim().Equals(string.Empty))
+                    for (int i = 0; i < expression.Length; i++)
+                    {
+                        if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                            string s = expression.Substring(i, 1);
+
+                            if (!s.Trim().Equals(string.Empty))
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                            }
                         }
+                    }
+
+                    result = ProcessStack(stack);
+
+                    expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this, result);
+
+                    ExpressionEvaluated?.Invoke(this, expressionEvaluationEventArg);
+
+                    if (expressionEvaluationEventArg.HasValue)
+                    {
+                        result = expressionEvaluationEventArg.Value;
                     }
                 }
 
-                return ProcessStack(stack);
+                return result;
             }
             finally
             {
@@ -3015,6 +3053,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             return stack.Pop();
         }
+
         #endregion
 
         #region Remove comments
@@ -4292,6 +4331,50 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    public partial class ExpressionEvaluationEventArg : EventArgs
+    {
+        private object value;
+
+        public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator)
+        {
+            Expression = expression;
+            Evaluator = evaluator;
+        }
+
+        public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator, object value)
+        {
+            Expression = expression;
+            Evaluator = evaluator;
+            this.value = value;
+        }
+
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// The Expression that wil be evaluated.
+        /// Can be modified.
+        /// </summary>
+        public string Expression { get; set; }
+
+        /// <summary>
+        /// To set the return of the evaluation
+        /// </summary>
+        public object Value
+        {
+            get { return value; }
+            set
+            {
+                this.value = value;
+                HasValue = true;
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> the expression evaluation has been done, if <c>false</c> it means that the evaluation must continue.
+        /// </summary>
+        public bool HasValue { get; set; }
+    }
+
     /// <summary>
     /// Infos about the variable, attribut or property that is currently evaluate
     /// </summary>
@@ -4432,7 +4515,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool CancelEvaluation { get; set; }
     }
-
 
     /// <summary>
     /// Infos about the indexing that is currently evaluate

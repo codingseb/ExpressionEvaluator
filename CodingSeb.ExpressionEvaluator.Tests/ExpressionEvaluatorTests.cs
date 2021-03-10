@@ -992,7 +992,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
-
         #endregion
         public object DirectExpressionEvaluation(string expression)
         {
