@@ -3180,10 +3180,10 @@ namespace CodingSeb.ExpressionEvaluator
                 || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
 
             bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
-                    && (m.GetParameters().Length == modifiedArgs.Count
-                        || (m.GetParameters().Length > modifiedArgs.Count && m.GetParameters().Take(modifiedArgs.Count).All(p => modifiedArgs[p.Position] == null || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)) && m.GetParameters().Skip(modifiedArgs.Count).All(p => p.HasDefaultValue))
-                        || (m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
-                            && m.GetParameters().All(parameterValidate)));
+                        && (m.GetParameters().Length == modifiedArgs.Count
+                            || (m.GetParameters().Length > modifiedArgs.Count && m.GetParameters().Take(modifiedArgs.Count).All(p => modifiedArgs[p.Position] == null || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)) && m.GetParameters().Skip(modifiedArgs.Count).All(p => p.HasDefaultValue))
+                            || (m.GetParameters().Length > 0 && m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
+                                && m.GetParameters().All(parameterValidate)));
 
             List<MethodInfo> methodInfos = type.GetMethods(flag)
                 .Where(methodByNameFilter)

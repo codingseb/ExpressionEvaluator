@@ -985,6 +985,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
+        #region Bugs correction
+
+        [TestCase("new DateTime(1985,9,11).ToString(\"dd.MM.yyyy\")", ExpectedResult = "11.09.1985", Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
+
+        #endregion
+
+
         #endregion
         public object DirectExpressionEvaluation(string expression)
         {
