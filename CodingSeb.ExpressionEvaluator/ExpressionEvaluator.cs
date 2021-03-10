@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.23.0 
+    Version : 1.4.24.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -903,7 +903,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Custom and on the fly variables and methods
+        #region Custom and on the fly evaluation
 
         /// <summary>
         /// If set, this object is used to use it's fields, properties and methods as global variables and functions
@@ -913,12 +913,12 @@ namespace CodingSeb.ExpressionEvaluator
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
         /// <summary>
-        /// Counts stack initialisations to determine if the expression enty point was reached. In that case the transported exception should be thrown.
+        /// Counts stack initialisations to determine if the expression entry point was reached. In that case the transported exception should be thrown.
         /// </summary>
         private int evaluationStackCount;
 
         /// <summary>
-        /// The Values of the variable use in the expressions
+        /// The values of the variable use in the expressions
         /// </summary>
         public IDictionary<string, object> Variables
         {
@@ -927,34 +927,53 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Is Fired before a variable, field or property resolution.
+        /// Is fired just before an expression is evaluate.
+        /// Allow to redefine the expression to evaluate or to force a result value.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluating;
+
+        /// <summary>
+        /// Is fired just before to return the expression evaluation.
+        /// Allow to modify on the fly the result of the evaluation.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluated;
+
+        /// <summary>
+        /// Is fired before a variable, field or property resolution.
         /// Allow to define a variable and the corresponding value on the fly.
         /// Allow also to cancel the evaluation of this variable (consider it does'nt exists)
         /// </summary>
         public event EventHandler<VariablePreEvaluationEventArg> PreEvaluateVariable;
 
         /// <summary>
-        /// Is Fired before a function or method resolution.
+        /// Is fired before a function or method resolution.
         /// Allow to define a function or method and the corresponding value on the fly.
         /// Allow also to cancel the evaluation of this function (consider it does'nt exists)
         /// </summary>
         public event EventHandler<FunctionPreEvaluationEventArg> PreEvaluateFunction;
 
         /// <summary>
-        /// Is Fired if no variable, field or property were found
+        /// Is fired before a indexing resolution.
+        /// Allow to define an indexing and the corresponding value on the fly.
+        /// Allow also to cancel the evaluation of this indexing (consider it does'nt exists)
+        /// </summary>
+        public event EventHandler<IndexingPreEvaluationEventArg> PreEvaluateIndexing;
+
+        /// <summary>
+        /// Is fired if no variable, field or property were found
         /// Allow to define a variable and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
 
         /// <summary>
-        /// Is Fired if no function or method when were found.
+        /// Is fired if no function or method were found.
         /// Allow to define a function or method and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
         /// <summary>
-        /// Is fired when a parameter ist not the correct type for the function.
-        /// Allow to define a custom parameter cast for the function to work on the fly.
+        /// Is fired when a parameter is not of the correct type for the function.
+        /// Allow to define a custom parameter cast to make the function call work on the fly.
         /// </summary>
         public event EventHandler<ParameterCastEvaluationEventArg> EvaluateParameterCast;
 
@@ -1557,25 +1576,51 @@ namespace CodingSeb.ExpressionEvaluator
 
             Stack<object> stack = new Stack<object>();
             evaluationStackCount++;
+            object result;
+
             try
             {
-                if (GetLambdaExpression(expression, stack))
-                    return stack.Pop();
+                ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this);
 
-                for (int i = 0; i < expression.Length; i++)
+                ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
+
+                expression = expressionEvaluationEventArg.Expression;
+
+                if (expressionEvaluationEventArg.HasValue)
                 {
-                    if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
-                    {
-                        string s = expression.Substring(i, 1);
+                    result = expressionEvaluationEventArg.Value;
+                }
+                else
+                {
+                    if (GetLambdaExpression(expression, stack))
+                        return stack.Pop();
 
-                        if (!s.Trim().Equals(string.Empty))
+                    for (int i = 0; i < expression.Length; i++)
+                    {
+                        if (!ParsingMethods.Any(parsingMethod => parsingMethod(expression, stack, ref i)))
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                            string s = expression.Substring(i, 1);
+
+                            if (!s.Trim().Equals(string.Empty))
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                            }
                         }
+                    }
+
+                    result = ProcessStack(stack);
+
+                    expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this, result);
+
+                    ExpressionEvaluated?.Invoke(this, expressionEvaluationEventArg);
+
+                    if (expressionEvaluationEventArg.HasValue)
+                    {
+                        result = expressionEvaluationEventArg.Value;
                     }
                 }
 
-                return ProcessStack(stack);
+                return result;
             }
             finally
             {
@@ -1909,7 +1954,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+                                FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
 
                                 PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
@@ -2025,7 +2070,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                         else
                                         {
-                                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
+                                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
 
                                             EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -2089,7 +2134,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, null, genericsTypes, GetConcreteTypes);
+                        FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, funcArgs, this, null, genericsTypes, GetConcreteTypes);
 
                         PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
@@ -2115,7 +2160,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
                             EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -2687,54 +2732,69 @@ namespace CodingSeb.ExpressionEvaluator
                     return true;
                 }
 
-                dynamic right = Evaluate(innerExp.ToString());
-                ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
+                IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(innerExp.ToString(), this, left);
 
-                if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
-                    right = (int)right;
+                PreEvaluateIndexing?.Invoke(this, indexingPreEvaluationEventArg);
 
-                Match assignationOrPostFixOperatorMatch = null;
-
-                dynamic valueToPush = null;
-
-                if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                if (indexingPreEvaluationEventArg.CancelEvaluation)
                 {
-                    i += assignationOrPostFixOperatorMatch.Length + 1;
-
-                    bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
-                    string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
-
-                    if (stack.Count > 1)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
-
-                    if (op == ExpressionOperator.IndexingWithNullConditional)
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
-
-                    if (postFixOperator)
-                    {
-                        if (left is IDictionary<string, object> dictionaryLeft)
-                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
-                        else
-                            valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
-                    }
-                    else
-                    {
-                        valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
-
-                        if (left is IDictionary<string, object> dictionaryLeft)
-                            dictionaryLeft[right] = valueToPush;
-                        else
-                            left[right] = valueToPush;
-
-                        stack.Clear();
-                    }
+                    throw new ExpressionEvaluatorSyntaxErrorException($"[{left.GetType()}] can not be indexed.");
+                }
+                else if (indexingPreEvaluationEventArg.HasValue)
+                {
+                    stack.Push(indexingPreEvaluationEventArg.Value);
                 }
                 else
                 {
-                    valueToPush = OperatorsEvaluations[0][op](left, right);
-                }
+                    dynamic right = Evaluate(innerExp.ToString());
+                    ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
 
-                stack.Push(valueToPush);
+                    if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
+                        right = (int)right;
+
+                    Match assignationOrPostFixOperatorMatch = null;
+
+                    dynamic valueToPush = null;
+
+                    if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                    {
+                        i += assignationOrPostFixOperatorMatch.Length + 1;
+
+                        bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
+                        string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
+
+                        if (stack.Count > 1)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
+
+                        if (op == ExpressionOperator.IndexingWithNullConditional)
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
+
+                        if (postFixOperator)
+                        {
+                            if (left is IDictionary<string, object> dictionaryLeft)
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
+                            else
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                        }
+                        else
+                        {
+                            valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
+
+                            if (left is IDictionary<string, object> dictionaryLeft)
+                                dictionaryLeft[right] = valueToPush;
+                            else
+                                left[right] = valueToPush;
+
+                            stack.Clear();
+                        }
+                    }
+                    else
+                    {
+                        valueToPush = OperatorsEvaluations[0][op](left, right);
+                    }
+
+                    stack.Push(valueToPush);
+                }
 
                 return true;
             }
@@ -2993,6 +3053,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             return stack.Pop();
         }
+
         #endregion
 
         #region Remove comments
@@ -3127,7 +3188,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     object result = null;
 
-                    if ((OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate || inScriptAtDeclaration) 
+                    if ((OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate || inScriptAtDeclaration)
                         && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
                     {
                         result = ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
@@ -3186,10 +3247,10 @@ namespace CodingSeb.ExpressionEvaluator
                 || (p.ParameterType.IsByRef && argsWithKeywords.Any(a => a.Index == p.Position + (testForExtention ? 1 : 0)));
 
             bool methodByNameFilter(MethodInfo m) => m.Name.Equals(func, StringComparisonForCasing)
-                    && (m.GetParameters().Length == modifiedArgs.Count
-                        || (m.GetParameters().Length > modifiedArgs.Count && m.GetParameters().Take(modifiedArgs.Count).All(p => modifiedArgs[p.Position] == null || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)) && m.GetParameters().Skip(modifiedArgs.Count).All(p => p.HasDefaultValue))
-                        || (m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
-                            && m.GetParameters().All(parameterValidate)));
+                        && (m.GetParameters().Length == modifiedArgs.Count
+                            || (m.GetParameters().Length > modifiedArgs.Count && m.GetParameters().Take(modifiedArgs.Count).All(p => modifiedArgs[p.Position] == null || IsCastable(modifiedArgs[p.Position].GetType(), p.ParameterType)) && m.GetParameters().Skip(modifiedArgs.Count).All(p => p.HasDefaultValue))
+                            || (m.GetParameters().Length > 0 && m.GetParameters().Last().IsDefined(typeof(ParamArrayAttribute), false)
+                                && m.GetParameters().All(parameterValidate)));
 
             List<MethodInfo> methodInfos = type.GetMethods(flag)
                 .Where(methodByNameFilter)
@@ -3223,7 +3284,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (methodInfo != null)
                     {
-                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes, obj);
                     }
                 }
             }
@@ -3233,7 +3294,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 modifiedArgs = new List<object>(args);
 
-                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
+                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes, obj);
             }
 
             if (methodInfo != null)
@@ -3251,7 +3312,7 @@ namespace CodingSeb.ExpressionEvaluator
                 || (implicitCastDict.ContainsKey(fromType) && implicitCastDict[fromType].Contains(toType));
         }
 
-        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
+        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes, object onInstance = null)
         {
             MethodInfo methodInfo = null;
 
@@ -3265,7 +3326,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 modifiedArgs.Add(Activator.CreateInstance(methodInfoToCast.GetParameters().Last().ParameterType, new object[] { 0 }));
             }
-            else if(methodInfoToCast.GetParameters().Length > modifiedArgs.Count)
+            else if (methodInfoToCast.GetParameters().Length > modifiedArgs.Count)
             {
                 modifiedArgs.AddRange(methodInfoToCast.GetParameters().Skip(modifiedArgs.Count).Select(p => p.DefaultValue));
             }
@@ -3341,9 +3402,10 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         try
                         {
-                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg =
-                                new ParameterCastEvaluationEventArg(parameterType, modifiedArgs[a]);
-                            EvaluateParameterCast.Invoke(this, parameterCastEvaluationEventArg);
+                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfo, parameterType, modifiedArgs[a], a, this, onInstance);
+
+                            EvaluateParameterCast?.Invoke(this, parameterCastEvaluationEventArg);
+
                             if (parameterCastEvaluationEventArg.FunctionModifiedArgument)
                             {
                                 modifiedArgs[a] = parameterCastEvaluationEventArg.Argument;
@@ -3357,7 +3419,6 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             parametersCastOK = false;
                         }
-
                     }
                 }
             }
@@ -4003,7 +4064,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     public partial class ExpressionOperator : IEquatable<ExpressionOperator>
     {
-        protected static uint indexer = 0;
+        protected static uint indexer;
 
         protected ExpressionOperator()
         {
@@ -4191,6 +4252,9 @@ namespace CodingSeb.ExpressionEvaluator
         { }
     }
 
+    /// <summary>
+    /// Infos about the variable, attribut or property that is currently evaluate
+    /// </summary>
     public partial class VariableEvaluationEventArg : EventArgs
     {
         private readonly Func<string, Type[]> evaluateGenericTypes;
@@ -4267,6 +4331,53 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    public partial class ExpressionEvaluationEventArg : EventArgs
+    {
+        private object value;
+
+        public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator)
+        {
+            Expression = expression;
+            Evaluator = evaluator;
+        }
+
+        public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator, object value)
+        {
+            Expression = expression;
+            Evaluator = evaluator;
+            this.value = value;
+        }
+
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// The Expression that wil be evaluated.
+        /// Can be modified.
+        /// </summary>
+        public string Expression { get; set; }
+
+        /// <summary>
+        /// To set the return of the evaluation
+        /// </summary>
+        public object Value
+        {
+            get { return value; }
+            set
+            {
+                this.value = value;
+                HasValue = true;
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> the expression evaluation has been done, if <c>false</c> it means that the evaluation must continue.
+        /// </summary>
+        public bool HasValue { get; set; }
+    }
+
+    /// <summary>
+    /// Infos about the variable, attribut or property that is currently evaluate
+    /// </summary>
     public partial class VariablePreEvaluationEventArg : VariableEvaluationEventArg
     {
         public VariablePreEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
@@ -4279,17 +4390,18 @@ namespace CodingSeb.ExpressionEvaluator
         public bool CancelEvaluation { get; set; }
     }
 
+    /// <summary>
+    /// Infos about the function or method that is currently evaluate
+    /// </summary>
     public partial class FunctionEvaluationEventArg : EventArgs
     {
-        private readonly Func<string, object> evaluateFunc;
         private readonly Func<string, Type[]> evaluateGenericTypes;
         private readonly string genericTypes;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+        public FunctionEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
             Args = args ?? new List<string>();
-            this.evaluateFunc = evaluateFunc;
             This = onInstance;
             Evaluator = evaluator;
             this.genericTypes = genericTypes;
@@ -4307,7 +4419,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns></returns>
         public object[] EvaluateArgs()
         {
-            return Args.ConvertAll(arg => evaluateFunc(arg)).ToArray();
+            return Args.ConvertAll(arg => Evaluator.Evaluate(arg)).ToArray();
         }
 
         /// <summary>
@@ -4317,7 +4429,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The evaluated arg</returns>
         public object EvaluateArg(int index)
         {
-            return evaluateFunc(Args[index]);
+            return Evaluator.Evaluate(Args[index]);
         }
 
         /// <summary>
@@ -4328,7 +4440,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The evaluated arg casted in the specified type</returns>
         public T EvaluateArg<T>(int index)
         {
-            return (T)evaluateFunc(Args[index]);
+            return Evaluator.Evaluate<T>(Args[index]);
         }
 
         /// <summary>
@@ -4389,11 +4501,85 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Infos about the function or method that is currently evaluate
+    /// </summary>
     public partial class FunctionPreEvaluationEventArg : FunctionEvaluationEventArg
     {
-        public FunctionPreEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
-            : base(name, evaluateFunc, args, evaluator, onInstance, genericTypes, evaluateGenericTypes)
+        public FunctionPreEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+            : base(name, args, evaluator, onInstance, genericTypes, evaluateGenericTypes)
         { }
+
+        /// <summary>
+        /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
+        /// </summary>
+        public bool CancelEvaluation { get; set; }
+    }
+
+    /// <summary>
+    /// Infos about the indexing that is currently evaluate
+    /// </summary>
+    public partial class IndexingPreEvaluationEventArg : EventArgs
+    {
+        public IndexingPreEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
+        {
+            Arg = arg;
+            This = onInstance;
+            Evaluator = evaluator;
+        }
+
+        /// <summary>
+        /// The not evaluated args of the indexing
+        /// </summary>
+        public string Arg { get; set; }
+
+        /// <summary>
+        /// The instance of the object on which the indexing is called.
+        /// </summary>
+        public object This { get; }
+
+        private object returnValue;
+
+        /// <summary>
+        /// To set the result value of the indexing
+        /// </summary>
+        public object Value
+        {
+            get { return returnValue; }
+            set
+            {
+                returnValue = value;
+                HasValue = true;
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> the indexing evaluation has been done, if <c>false</c> it means that the indexing does not exist.
+        /// </summary>
+        public bool HasValue { get; set; }
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// Get the values of the indexing's args.
+        /// </summary>
+        /// <returns></returns>
+        public object EvaluateArg()
+        {
+            return Evaluator.Evaluate(Arg);
+        }
+
+        /// <summary>
+        /// Get the values of the indexing's args.
+        /// </summary>
+        /// <returns></returns>
+        public T EvaluateArg<T>()
+        {
+            return Evaluator.Evaluate<T>(Arg);
+        }
 
         /// <summary>
         /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
@@ -4408,6 +4594,22 @@ namespace CodingSeb.ExpressionEvaluator
     public partial class ParameterCastEvaluationEventArg : EventArgs
     {
         /// <summary>
+        /// The information of the method that it try to call
+        /// </summary>
+        public MethodInfo MethodInfo { get; }
+
+        /// <summary>
+        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.
+        /// Otherwise is set to null.
+        /// </summary>
+        public object This { get; }
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
         /// The required type of the parameter
         /// </summary>
         public Type ParameterType { get; }
@@ -4418,14 +4620,18 @@ namespace CodingSeb.ExpressionEvaluator
         public object OriginalArg { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ParameterCastEvaluationEventArg" /> class.
+        /// Position of the argument (index from 0)
         /// </summary>
-        /// <param name="parameterType">Type of the parameter.</param>
-        /// <param name="originalArg">The original argument.</param>
-        public ParameterCastEvaluationEventArg(Type parameterType, object originalArg)
+        public int ArgPosition { get; }
+
+        public ParameterCastEvaluationEventArg(MethodInfo methodInfo, Type parameterType, object originalArg, int argPosition, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
+            MethodInfo = methodInfo;
             ParameterType = parameterType;
             OriginalArg = originalArg;
+            Evaluator = evaluator;
+            This = onInstance;
+            ArgPosition = argPosition;
         }
 
         private object modifiedArgument;
