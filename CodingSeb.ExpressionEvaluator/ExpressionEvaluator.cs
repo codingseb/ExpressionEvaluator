@@ -918,7 +918,7 @@ namespace CodingSeb.ExpressionEvaluator
         private int evaluationStackCount;
 
         /// <summary>
-        /// The Values of the variable use in the expressions
+        /// The values of the variable use in the expressions
         /// </summary>
         public IDictionary<string, object> Variables
         {
@@ -927,34 +927,47 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Is Fired before a variable, field or property resolution.
+        /// Is fired before a variable, field or property resolution.
         /// Allow to define a variable and the corresponding value on the fly.
         /// Allow also to cancel the evaluation of this variable (consider it does'nt exists)
         /// </summary>
         public event EventHandler<VariablePreEvaluationEventArg> PreEvaluateVariable;
 
         /// <summary>
-        /// Is Fired before a function or method resolution.
+        /// Is fired before a function or method resolution.
         /// Allow to define a function or method and the corresponding value on the fly.
         /// Allow also to cancel the evaluation of this function (consider it does'nt exists)
         /// </summary>
         public event EventHandler<FunctionPreEvaluationEventArg> PreEvaluateFunction;
 
         /// <summary>
-        /// Is Fired if no variable, field or property were found
+        /// Is fired before a indexing resolution.
+        /// Allow to define an indexing and the corresponding value on the fly.
+        /// Allow also to cancel the evaluation of this indexing (consider it does'nt exists)
+        /// </summary>
+        public event EventHandler<IndexingPreEvaluationEventArg> PreEvaluateIndexing;
+
+        /// <summary>
+        /// Is fired if no variable, field or property were found
         /// Allow to define a variable and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
 
         /// <summary>
-        /// Is Fired if no function or method when were found.
+        /// Is fired if no function or method were found.
         /// Allow to define a function or method and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
         /// <summary>
-        /// Is fired when a parameter ist not the correct type for the function.
-        /// Allow to define a custom parameter cast for the function to work on the fly.
+        /// Is fired if no indexing were found.
+        /// Allow to define an indexing and the corresponding value on the fly.
+        /// </summary>
+        public event EventHandler<IndexingEvaluationEventArg> EvaluateIndexing;
+
+        /// <summary>
+        /// Is fired when a parameter is not of the correct type for the function.
+        /// Allow to define a custom parameter cast to make the function call work on the fly.
         /// </summary>
         public event EventHandler<ParameterCastEvaluationEventArg> EvaluateParameterCast;
 
@@ -1541,7 +1554,7 @@ namespace CodingSeb.ExpressionEvaluator
             EvaluateOperators,
             EvaluateChar,
             EvaluateParenthis,
-            EvaluateIndexing,
+            EvaluateIndexingOperator,
             EvaluateString,
             EvaluateTernaryConditionalOperator,
         });
@@ -1909,7 +1922,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
+                                FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, funcArgs, this, obj, genericsTypes, GetConcreteTypes);
 
                                 PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
@@ -2025,7 +2038,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                         else
                                         {
-                                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
+                                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
 
                                             EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -2089,7 +2102,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, null, genericsTypes, GetConcreteTypes);
+                        FunctionPreEvaluationEventArg functionPreEvaluationEventArg = new FunctionPreEvaluationEventArg(varFuncName, funcArgs, this, null, genericsTypes, GetConcreteTypes);
 
                         PreEvaluateFunction?.Invoke(this, functionPreEvaluationEventArg);
 
@@ -2115,7 +2128,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, Evaluate, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
+                            FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
 
                             EvaluateFunction?.Invoke(this, functionEvaluationEventArg);
 
@@ -2631,7 +2644,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool EvaluateIndexing(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateIndexingOperator(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionIndexingActive)
                 return false;
@@ -2686,6 +2699,10 @@ namespace CodingSeb.ExpressionEvaluator
                     stack.Push(left);
                     return true;
                 }
+
+                //IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(innerExp.ToString(), this, left);
+
+                //PreEvaluateIndexing?.Invoke(this, indexingPreEvaluationEventArg);
 
                 dynamic right = Evaluate(innerExp.ToString());
                 ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
@@ -4003,7 +4020,7 @@ namespace CodingSeb.ExpressionEvaluator
 
     public partial class ExpressionOperator : IEquatable<ExpressionOperator>
     {
-        protected static uint indexer = 0;
+        protected static uint indexer;
 
         protected ExpressionOperator()
         {
@@ -4191,6 +4208,9 @@ namespace CodingSeb.ExpressionEvaluator
         { }
     }
 
+    /// <summary>
+    /// Infos about the variable, attribut or property that is currently evaluate
+    /// </summary>
     public partial class VariableEvaluationEventArg : EventArgs
     {
         private readonly Func<string, Type[]> evaluateGenericTypes;
@@ -4267,6 +4287,9 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Infos about the variable, attribut or property that is currently evaluate
+    /// </summary>
     public partial class VariablePreEvaluationEventArg : VariableEvaluationEventArg
     {
         public VariablePreEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
@@ -4279,17 +4302,18 @@ namespace CodingSeb.ExpressionEvaluator
         public bool CancelEvaluation { get; set; }
     }
 
+    /// <summary>
+    /// Infos about the function or method that is currently evaluate
+    /// </summary>
     public partial class FunctionEvaluationEventArg : EventArgs
     {
-        private readonly Func<string, object> evaluateFunc;
         private readonly Func<string, Type[]> evaluateGenericTypes;
         private readonly string genericTypes;
 
-        public FunctionEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+        public FunctionEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
             Args = args ?? new List<string>();
-            this.evaluateFunc = evaluateFunc;
             This = onInstance;
             Evaluator = evaluator;
             this.genericTypes = genericTypes;
@@ -4307,7 +4331,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns></returns>
         public object[] EvaluateArgs()
         {
-            return Args.ConvertAll(arg => evaluateFunc(arg)).ToArray();
+            return Args.ConvertAll(arg => Evaluator.Evaluate(arg)).ToArray();
         }
 
         /// <summary>
@@ -4317,7 +4341,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The evaluated arg</returns>
         public object EvaluateArg(int index)
         {
-            return evaluateFunc(Args[index]);
+            return Evaluator.Evaluate(Args[index]);
         }
 
         /// <summary>
@@ -4328,7 +4352,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <returns>The evaluated arg casted in the specified type</returns>
         public T EvaluateArg<T>(int index)
         {
-            return (T)evaluateFunc(Args[index]);
+            return Evaluator.Evaluate<T>(Args[index]);
         }
 
         /// <summary>
@@ -4389,10 +4413,94 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Infos about the function or method that is currently evaluate
+    /// </summary>
     public partial class FunctionPreEvaluationEventArg : FunctionEvaluationEventArg
     {
-        public FunctionPreEvaluationEventArg(string name, Func<string, object> evaluateFunc, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
-            : base(name, evaluateFunc, args, evaluator, onInstance, genericTypes, evaluateGenericTypes)
+        public FunctionPreEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
+            : base(name, args, evaluator, onInstance, genericTypes, evaluateGenericTypes)
+        { }
+
+        /// <summary>
+        /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
+        /// </summary>
+        public bool CancelEvaluation { get; set; }
+    }
+
+    /// <summary>
+    /// Infos about the indexing that is currently evaluate
+    /// </summary>
+    public partial class IndexingEvaluationEventArg : EventArgs
+    {
+        public IndexingEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
+        {
+            Arg = arg;
+            This = onInstance;
+            Evaluator = evaluator;
+        }
+
+        /// <summary>
+        /// The not evaluated args of the indexing
+        /// </summary>
+        public string Arg { get; set; }
+
+        /// <summary>
+        /// The instance of the object on which the indexing is called.
+        /// </summary>
+        public object This { get; }
+
+        private object returnValue;
+
+        /// <summary>
+        /// To set the result value of the indexing
+        /// </summary>
+        public object Value
+        {
+            get { return returnValue; }
+            set
+            {
+                returnValue = value;
+                HasValue = true;
+            }
+        }
+
+        /// <summary>
+        /// if <c>true</c> the indexing evaluation has been done, if <c>false</c> it means that the indexing does not exist.
+        /// </summary>
+        public bool HasValue { get; set; }
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
+        /// Get the values of the indexing's args.
+        /// </summary>
+        /// <returns></returns>
+        public object EvaluateArg()
+        {
+            return Evaluator.Evaluate(Arg);
+        }
+
+        /// <summary>
+        /// Get the values of the indexing's args.
+        /// </summary>
+        /// <returns></returns>
+        public T EvaluateArg<T>()
+        {
+            return Evaluator.Evaluate<T>(Arg);
+        }
+    }
+
+    /// <summary>
+    /// Infos about the indexing that is currently evaluate
+    /// </summary>
+    public partial class IndexingPreEvaluationEventArg : IndexingEvaluationEventArg
+    {
+        public IndexingPreEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
+            : base(arg, evaluator, onInstance)
         { }
 
         /// <summary>
