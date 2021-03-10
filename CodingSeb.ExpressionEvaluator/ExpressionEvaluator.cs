@@ -3127,7 +3127,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     object result = null;
 
-                    if ((OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate || inScriptAtDeclaration) 
+                    if ((OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate || inScriptAtDeclaration)
                         && lambdaBody.StartsWith("{") && lambdaBody.EndsWith("}"))
                     {
                         result = ScriptEvaluate(lambdaBody.Substring(1, lambdaBody.Length - 2));
@@ -3223,7 +3223,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (methodInfo != null)
                     {
-                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes);
+                        methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfo, modifiedArgs, genericsTypes, inferedGenericsTypes, obj);
                     }
                 }
             }
@@ -3233,7 +3233,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 modifiedArgs = new List<object>(args);
 
-                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes);
+                methodInfo = TryToCastMethodParametersToMakeItCallable(methodInfos[m], modifiedArgs, genericsTypes, inferedGenericsTypes, obj);
             }
 
             if (methodInfo != null)
@@ -3251,7 +3251,7 @@ namespace CodingSeb.ExpressionEvaluator
                 || (implicitCastDict.ContainsKey(fromType) && implicitCastDict[fromType].Contains(toType));
         }
 
-        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes)
+        protected virtual MethodInfo TryToCastMethodParametersToMakeItCallable(MethodInfo methodInfoToCast, List<object> modifiedArgs, string genericsTypes, Type[] inferedGenericsTypes, object onInstance = null)
         {
             MethodInfo methodInfo = null;
 
@@ -3265,7 +3265,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 modifiedArgs.Add(Activator.CreateInstance(methodInfoToCast.GetParameters().Last().ParameterType, new object[] { 0 }));
             }
-            else if(methodInfoToCast.GetParameters().Length > modifiedArgs.Count)
+            else if (methodInfoToCast.GetParameters().Length > modifiedArgs.Count)
             {
                 modifiedArgs.AddRange(methodInfoToCast.GetParameters().Skip(modifiedArgs.Count).Select(p => p.DefaultValue));
             }
@@ -3341,9 +3341,10 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         try
                         {
-                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg =
-                                new ParameterCastEvaluationEventArg(parameterType, modifiedArgs[a]);
-                            EvaluateParameterCast.Invoke(this, parameterCastEvaluationEventArg);
+                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfo, parameterType, modifiedArgs[a], a, this, onInstance);
+
+                            EvaluateParameterCast?.Invoke(this, parameterCastEvaluationEventArg);
+
                             if (parameterCastEvaluationEventArg.FunctionModifiedArgument)
                             {
                                 modifiedArgs[a] = parameterCastEvaluationEventArg.Argument;
@@ -3357,7 +3358,6 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             parametersCastOK = false;
                         }
-
                     }
                 }
             }
@@ -4408,6 +4408,22 @@ namespace CodingSeb.ExpressionEvaluator
     public partial class ParameterCastEvaluationEventArg : EventArgs
     {
         /// <summary>
+        /// The information of the method that it try to call
+        /// </summary>
+        public MethodInfo MethodInfo { get; }
+
+        /// <summary>
+        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.
+        /// Otherwise is set to null.
+        /// </summary>
+        public object This { get; }
+
+        /// <summary>
+        /// A reference on the current expression evaluator.
+        /// </summary>
+        public ExpressionEvaluator Evaluator { get; }
+
+        /// <summary>
         /// The required type of the parameter
         /// </summary>
         public Type ParameterType { get; }
@@ -4418,14 +4434,18 @@ namespace CodingSeb.ExpressionEvaluator
         public object OriginalArg { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ParameterCastEvaluationEventArg" /> class.
+        /// Position of the argument (index from 0)
         /// </summary>
-        /// <param name="parameterType">Type of the parameter.</param>
-        /// <param name="originalArg">The original argument.</param>
-        public ParameterCastEvaluationEventArg(Type parameterType, object originalArg)
+        public int ArgPosition { get; }
+
+        public ParameterCastEvaluationEventArg(MethodInfo methodInfo, Type parameterType, object originalArg, int argPosition, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
+            MethodInfo = methodInfo;
             ParameterType = parameterType;
             OriginalArg = originalArg;
+            Evaluator = evaluator;
+            This = onInstance;
+            ArgPosition = argPosition;
         }
 
         private object modifiedArgument;
