@@ -2577,7 +2577,13 @@ namespace CodingSeb.ExpressionEvaluator
             if (match.Success)
             {
                 string op = match.Value;
-                stack.Push(operatorsDictionary[op]);
+
+                if (op.Equals("+") && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
+                    stack.Push(ExpressionOperator.UnaryPlus);
+                else if (op.Equals("-") && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
+                    stack.Push(ExpressionOperator.UnaryMinus);
+                else
+                    stack.Push(operatorsDictionary[op]);
                 i += op.Length - 1;
                 return true;
             }
@@ -2957,6 +2963,21 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 try
                                 {
+                                    void EvaluateFirstNextUnaryOp(int j, ref int parentIndex)
+                                    {
+                                        if (j > 0 && list[j] is ExpressionOperator nextOp && RightOperandOnlyOperatorsEvaluationDictionary.Contains(nextOp))
+                                        {
+                                            EvaluateFirstNextUnaryOp(j - 1, ref j);
+
+                                            list[j] = OperatorsEvaluations.FirstOrDefault(od => od.ContainsKey(nextOp))?[nextOp](null, (dynamic)list[j - 1]);
+
+                                            list.RemoveAt(j - 1);
+                                            parentIndex=j;
+                                        }
+                                    }
+
+                                    EvaluateFirstNextUnaryOp(i - 1, ref i);
+
                                     list[i] = operatorEvalutationsDict[eOp](null, (dynamic)list[i - 1]);
                                 }
                                 catch (Exception ex)
