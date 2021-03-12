@@ -18,7 +18,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         protected new static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
             ExpressionEvaluator.operatorsEvaluations
                 .Copy()
-                .AddOperatorEvaluationAtNewLevelAfter(XExpressionOperator2.Sharp, (left, _) => Math.Pow(left, -left), ExpressionOperator.UnaryPlus)
+                .AddOperatorEvaluationAtNewLevelAfter(XExpressionOperator2.Sharp, (left, _) => Math.Pow(left, -left), ExpressionOperator.Cast)
                 .AddOperatorEvaluationAtLevelOf(XExpressionOperator2.Love, (left, right) => (left | right) << 1, ExpressionOperator.ShiftBitsLeft);
 
         protected override IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;

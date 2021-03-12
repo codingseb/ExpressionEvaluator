@@ -2152,6 +2152,28 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Custom operators");
 
                 yield return new TestCaseData(xExpressionEvaluator2
+                    , "2##", null)
+                    .Returns(1.4142135623730952d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2## + 1", null)
+                    .Returns(2.4142135623730949d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2## + +-+-~+1", null)
+                    .Returns(-0.58578643762690485d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
                     , "1 love 2", null)
                     .Returns(6)
                     .SetCategory("ExpressionEvaluator extend")
