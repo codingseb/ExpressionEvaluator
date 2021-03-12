@@ -2578,9 +2578,9 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string op = match.Value;
 
-                if (op.Equals("+") && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
+                if (op.Equals("+") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))))
                     stack.Push(ExpressionOperator.UnaryPlus);
-                else if (op.Equals("-") && (stack.Count == 0 || stack.Peek() is ExpressionOperator))
+                else if (op.Equals("-") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp2 && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp2))))
                     stack.Push(ExpressionOperator.UnaryMinus);
                 else
                     stack.Push(operatorsDictionary[op]);
