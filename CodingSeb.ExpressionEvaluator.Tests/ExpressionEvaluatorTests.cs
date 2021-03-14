@@ -1022,6 +1022,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 Dictionary<string, object> variablesForSimpleVariablesInjection = new Dictionary<string, object>()
                 {
                     { "hello", "Test" },
+                    { "a", 0 },
                     { "x", 5 },
                     { "y", 20 },
                     { "isThisReal", true },
@@ -1055,6 +1056,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData("-x-+y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(-25);
                 yield return new TestCaseData("-x + +y", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-").Returns(15);
                 yield return new TestCaseData("(-x + +y)", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,Unary both +-,Parenthis").Returns(15);
+
+                yield return new TestCaseData("-~a", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,MultipleUnary").Returns(1);
+                yield return new TestCaseData("+-+-+-+-+a", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,MultipleUnary").Returns(0);
+                yield return new TestCaseData("a >> +-+-+-+2 << +-+-+-+-2 >> +-+-+-+-+2 << +-+-+-+-+2", variablesForSimpleVariablesInjection, true).SetCategory("SimpleVariablesInjection,MultipleUnary").Returns(0);
 
                 yield return new TestCaseData("ISTHISREAL", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
                 yield return new TestCaseData("isthisreal", variablesForSimpleVariablesInjection, false).SetCategory("SimpleVariablesInjection,IgnoreCase").Returns(true).SetCategory("Options, OptionCaseSensitiveEvaluationActive");
@@ -2145,6 +2150,55 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("ExpressionEvaluator extend")
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2##", null)
+                    .Returns(1.4142135623730952d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2## + 1", null)
+                    .Returns(2.4142135623730949d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2## + +-+-~+1", null)
+                    .Returns(-0.58578643762690485d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2#°", null)
+                    .Returns(0.70710678118654757d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2°#", null)
+                    .Returns(0.00390625d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                     , "2#° + +-+-~+1", null)
+                     .Returns(-1.2928932188134525d)
+                     .SetCategory("ExpressionEvaluator extend")
+                     .SetCategory("inherits ExpressionEvaluator")
+                     .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                     , "2°# + +-+-~+1", null)
+                     .Returns(-1.99609375d)
+                     .SetCategory("ExpressionEvaluator extend")
+                     .SetCategory("inherits ExpressionEvaluator")
+                     .SetCategory("Custom operators");
 
                 yield return new TestCaseData(xExpressionEvaluator2
                     , "1 love 2", null)
