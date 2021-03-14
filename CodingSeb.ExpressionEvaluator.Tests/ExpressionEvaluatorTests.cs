@@ -2165,13 +2165,40 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
 
-
                 yield return new TestCaseData(xExpressionEvaluator2
                     , "2## + +-+-~+1", null)
                     .Returns(-0.58578643762690485d)
                     .SetCategory("ExpressionEvaluator extend")
                     .SetCategory("inherits ExpressionEvaluator")
                     .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2#°", null)
+                    .Returns(0.70710678118654757d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                    , "2°#", null)
+                    .Returns(0.00390625d)
+                    .SetCategory("ExpressionEvaluator extend")
+                    .SetCategory("inherits ExpressionEvaluator")
+                    .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                     , "2#° + +-+-~+1", null)
+                     .Returns(-1.2928932188134525d)
+                     .SetCategory("ExpressionEvaluator extend")
+                     .SetCategory("inherits ExpressionEvaluator")
+                     .SetCategory("Custom operators");
+
+                yield return new TestCaseData(xExpressionEvaluator2
+                     , "2°# + +-+-~+1", null)
+                     .Returns(-1.99609375d)
+                     .SetCategory("ExpressionEvaluator extend")
+                     .SetCategory("inherits ExpressionEvaluator")
+                     .SetCategory("Custom operators");
 
                 yield return new TestCaseData(xExpressionEvaluator2
                     , "1 love 2", null)

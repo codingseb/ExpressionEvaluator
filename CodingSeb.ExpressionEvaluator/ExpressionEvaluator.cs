@@ -2999,6 +2999,20 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 try
                                 {
+                                    void EvaluateFirstPreviousUnaryOp(int j)
+                                    {
+                                        if (j < list.Count - 1 && list[j] is ExpressionOperator previousOp && LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))
+                                        {
+                                            EvaluateFirstPreviousUnaryOp(j + 1);
+
+                                            list[j] = OperatorsEvaluations.FirstOrDefault(od => od.ContainsKey(previousOp))?[previousOp]((dynamic)list[j + 1], null);
+
+                                            list.RemoveAt(j + 1);
+                                        }
+                                    }
+
+                                    EvaluateFirstPreviousUnaryOp(i + 1);
+
                                     list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], null);
                                 }
                                 catch (Exception ex)

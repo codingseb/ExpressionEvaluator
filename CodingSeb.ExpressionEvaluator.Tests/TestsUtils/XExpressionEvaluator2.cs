@@ -9,7 +9,8 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         protected new static readonly IList<ExpressionOperator> leftOperandOnlyOperatorsEvaluationDictionary =
             ExpressionEvaluator.leftOperandOnlyOperatorsEvaluationDictionary
                 .ToList()
-                .FluidAdd(XExpressionOperator2.Sharp);
+                .FluidAdd(XExpressionOperator2.Sharp)
+                .FluidAdd(XExpressionOperator2.Degree);
 
         //protected new static readonly IList<ExpressionOperator> rightOperandOnlyOperatorsEvaluationDictionary = 
         //    ExpressionEvaluator.rightOperandOnlyOperatorsEvaluationDictionary
@@ -19,6 +20,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             ExpressionEvaluator.operatorsEvaluations
                 .Copy()
                 .AddOperatorEvaluationAtNewLevelAfter(XExpressionOperator2.Sharp, (left, _) => Math.Pow(left, -left), ExpressionOperator.Cast)
+                .AddOperatorEvaluationAtNewLevelAfter(XExpressionOperator2.Degree, (left, _) => Math.Pow(left, left), ExpressionOperator.Cast)
                 .AddOperatorEvaluationAtLevelOf(XExpressionOperator2.Love, (left, right) => (left | right) << 1, ExpressionOperator.ShiftBitsLeft);
 
         protected override IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;
@@ -30,6 +32,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         protected override void Init()
         {
             operatorsDictionary.Add("#", XExpressionOperator2.Sharp);
+            operatorsDictionary.Add("°", XExpressionOperator2.Degree);
             operatorsDictionary.Add("love", XExpressionOperator2.Love);
             operatorsDictionary.Add("Not", ExpressionOperator.LogicalNegation);
         }
@@ -38,6 +41,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
     public class XExpressionOperator2 : ExpressionOperator
     {
         public static readonly ExpressionOperator Sharp = new XExpressionOperator2();
+        public static readonly ExpressionOperator Degree = new XExpressionOperator2();
         public static readonly ExpressionOperator Love = new XExpressionOperator2();
     }
 }
