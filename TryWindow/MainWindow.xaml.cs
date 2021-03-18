@@ -19,7 +19,7 @@ namespace TryWindow
         private readonly string persistCodeFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "code.cs");
         private readonly string persistIterationFileName = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "iterations");
 
-        private CancellationTokenSource cancellationTokenSource = null;
+        private CancellationTokenSource cancellationTokenSource;
 
         public MainWindow()
         {
