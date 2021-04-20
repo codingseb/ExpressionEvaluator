@@ -2466,7 +2466,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region Bug resolution
+                #region Issues/Bug resolution
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "(new List<Regex>()).GetType()"
@@ -2503,6 +2503,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug resolution");
 
                 // end of bug #65
+
+                // For Issue Manage nested class and enum #95
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)"
+                    , null)
+                    .Returns(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData))
+                    .SetCategory("Bug resolution")
+                    .SetCategory("NestedType");
+
+                // end of issue #95
 
                 #endregion
             }

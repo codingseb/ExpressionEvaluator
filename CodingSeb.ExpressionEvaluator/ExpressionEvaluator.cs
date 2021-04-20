@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.24.0 
+    Version : 1.4.26.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -2442,6 +2442,7 @@ namespace CodingSeb.ExpressionEvaluator
                             string typeName = $"{varFuncName}{((i < expression.Length && expression.Substring(i)[0] == '?') ? "?" : "") }";
                             Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
+                            // For inline namespace parsing
                             if (staticType == null && OptionInlineNamespacesEvaluationActive)
                             {
                                 int subIndex = 0;
@@ -2468,6 +2469,38 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
 
                                     namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                                }
+                            }
+
+                            // For nested type parsing
+                            if (staticType != null)
+                            {
+                                int subIndex = 0;
+                                Match nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                                Type nestedType = null;
+
+                                while (nestedTypeMatch.Success
+                                    && !nestedTypeMatch.Groups["sign"].Success
+                                    && !nestedTypeMatch.Groups["assignationOperator"].Success
+                                    && !nestedTypeMatch.Groups["postfixOperator"].Success
+                                    && !nestedTypeMatch.Groups["isfunction"].Success
+                                    && i + nestedTypeMatch.Length < expression.Length)
+                                {
+                                    typeName += $"+{nestedTypeMatch.Groups["name"].Value}";
+
+                                    nestedType = GetTypeByFriendlyName(typeName, nestedTypeMatch.Groups["isgeneric"].Value);
+
+                                    if (nestedType != null)
+                                    {
+                                        i += nestedTypeMatch.Length;
+                                        staticType = nestedType;
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+
+                                    nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
                                 }
                             }
 
