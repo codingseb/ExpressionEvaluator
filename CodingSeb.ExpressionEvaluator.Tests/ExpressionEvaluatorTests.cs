@@ -2513,6 +2513,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug resolution")
                     .SetCategory("NestedType");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1.ANestedClass().Value1"
+                    , null)
+                    .Returns(45)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("NestedType");
+
                 // end of issue #95
 
                 #endregion

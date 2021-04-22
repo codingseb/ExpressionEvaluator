@@ -31,7 +31,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected const string primaryTypesRegexPattern = @"(?<=^|[^\p{L}_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|((?<nullConditional>[?])?(?<inObject>\.))?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
@@ -55,8 +55,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
         protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
-        protected string InstanceCreationWithNewKeywordRegexPattern { get { return @"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))"; } }
+        protected static readonly Regex instanceCreationWithNewKeywordRegex = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
@@ -1724,7 +1723,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (!OptionNewKeywordEvaluationActive)
                 return false;
 
-            Match instanceCreationMatch = Regex.Match(expression.Substring(i), InstanceCreationWithNewKeywordRegexPattern, optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
+            Match instanceCreationMatch = instanceCreationWithNewKeywordRegex.Match(expression.Substring(i));
 
             if (instanceCreationMatch.Success
                 && (stack.Count == 0
@@ -1769,9 +1768,11 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     string completeName = instanceCreationMatch.Groups["name"].Value;
                     string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
-                    Type type = GetTypeByFriendlyName(completeName, genericTypes);
 
-                    if (type == null)
+                    int typeIndex = 0;
+                    Type type = EvaluateType(completeName + genericTypes, ref typeIndex);
+
+                    if (type == null || typeIndex > 0 && typeIndex < completeName.Length)
                         throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
                     void Init(object element, List<string> initArgs)
@@ -2439,73 +2440,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            string typeName = $"{varFuncName}{((i < expression.Length && expression.Substring(i)[0] == '?') ? "?" : "") }";
-                            Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
-
-                            // For inline namespace parsing
-                            if (staticType == null && OptionInlineNamespacesEvaluationActive)
-                            {
-                                int subIndex = 0;
-                                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-
-                                while (staticType == null
-                                    && namespaceMatch.Success
-                                    && !namespaceMatch.Groups["sign"].Success
-                                    && !namespaceMatch.Groups["assignationOperator"].Success
-                                    && !namespaceMatch.Groups["postfixOperator"].Success
-                                    && !namespaceMatch.Groups["isfunction"].Success
-                                    && i + subIndex < expression.Length
-                                    && !typeName.EndsWith("?"))
-                                {
-                                    subIndex += namespaceMatch.Length;
-                                    typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-
-                                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
-
-                                    if (staticType != null)
-                                    {
-                                        i += subIndex;
-                                        break;
-                                    }
-
-                                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-                                }
-                            }
-
-                            // For nested type parsing
-                            if (staticType != null)
-                            {
-                                int subIndex = 0;
-                                Match nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-                                Type nestedType = null;
-
-                                while (nestedTypeMatch.Success
-                                    && !nestedTypeMatch.Groups["sign"].Success
-                                    && !nestedTypeMatch.Groups["assignationOperator"].Success
-                                    && !nestedTypeMatch.Groups["postfixOperator"].Success
-                                    && !nestedTypeMatch.Groups["isfunction"].Success
-                                    && i + nestedTypeMatch.Length < expression.Length)
-                                {
-                                    typeName += $"+{nestedTypeMatch.Groups["name"].Value}";
-
-                                    nestedType = GetTypeByFriendlyName(typeName, nestedTypeMatch.Groups["isgeneric"].Value);
-
-                                    if (nestedType != null)
-                                    {
-                                        i += nestedTypeMatch.Length;
-                                        staticType = nestedType;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-
-                                    nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-                                }
-                            }
-
-                            if (typeName.EndsWith("?") && staticType != null)
-                                i++;
+                            Type staticType = EvaluateType(expression, ref i, varFuncName, genericsTypes);
 
                             if (staticType != null)
                             {
@@ -2545,6 +2480,79 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return false;
             }
+        }
+
+        protected virtual Type EvaluateType(string expression,ref int i, string currentName = "", string genericsTypes = "")
+        {
+            string typeName = $"{currentName}{((i < expression.Length && expression.Substring(i)[0] == '?') ? "?" : "") }";
+            Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
+
+            // For inline namespace parsing
+            if (staticType == null && OptionInlineNamespacesEvaluationActive)
+            {
+                int subIndex = 0;
+                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+
+                while (staticType == null
+                    && namespaceMatch.Success
+                    && !namespaceMatch.Groups["sign"].Success
+                    && !namespaceMatch.Groups["assignationOperator"].Success
+                    && !namespaceMatch.Groups["postfixOperator"].Success
+                    && !namespaceMatch.Groups["isfunction"].Success
+                    && i + subIndex < expression.Length
+                    && !typeName.EndsWith("?"))
+                {
+                    subIndex += namespaceMatch.Length;
+                    typeName += $"{namespaceMatch.Groups["inObject"].Value}{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
+
+                    if (staticType != null)
+                    {
+                        i += subIndex;
+                        break;
+                    }
+
+                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                }
+            }
+
+            if (typeName.EndsWith("?") && staticType != null)
+                i++;
+
+            // For nested type parsing
+            if (staticType != null)
+            {
+                int subIndex = 0;
+                Match nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                while (nestedTypeMatch.Success
+                    && !nestedTypeMatch.Groups["sign"].Success
+                    && !nestedTypeMatch.Groups["assignationOperator"].Success
+                    && !nestedTypeMatch.Groups["postfixOperator"].Success
+                    && !nestedTypeMatch.Groups["isfunction"].Success)
+                {
+                    subIndex = nestedTypeMatch.Length;
+                    typeName += $"+{nestedTypeMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                    Type nestedType = GetTypeByFriendlyName(typeName, nestedTypeMatch.Groups["isgeneric"].Value);
+                    if (nestedType != null)
+                    {
+                        i += subIndex;
+                        staticType = nestedType;
+
+                        if (typeName.EndsWith("?"))
+                            i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i));
+                }
+            }
+
+            return staticType;
         }
 
         protected virtual bool EvaluateChar(string expression, Stack<object> stack, ref int i)
