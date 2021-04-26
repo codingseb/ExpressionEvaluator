@@ -2545,6 +2545,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug resolution")
                     .SetCategory("MethodNameAsDelegates");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.ConvertAll<string, int>(\"1,2,3,4,5,6,-1\".Split(','), s => Int32.Parse(s)).Min()"
+                    , null)
+                    .Returns(-1)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.ConvertAll(\"test for Upper\".ToCharArray(), Char.IsUpper)"
+                    , null)
+                    .Returns(-1)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
                yield return new TestCaseData(new ExpressionEvaluator()
                     , "(() => { var m = int.Parse; return m(\"5\"); })()"
                     , null)
