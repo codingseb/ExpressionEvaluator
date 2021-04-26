@@ -2474,7 +2474,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns(typeof(List<Regex>))
                     .SetCategory("Bug resolution");
 
-                // For bug #65
+                #region For bug #65
                 var Persons = new List<Person2>() { new Person2() { Code = "QT00010", Name = "Pedrito", Number = 11.11m },
                     new Person2() { Code = "QT00011", Name = "Pablito", Number = 12.11m }};
 
@@ -2502,9 +2502,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns(11.11m)
                     .SetCategory("Bug resolution");
 
-                // end of bug #65
+                #endregion
 
-                // For Issue Manage nested class and enum #95
+                #region For Issue Manage nested class and enum #95
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData)"
@@ -2520,7 +2520,39 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug resolution")
                     .SetCategory("NestedType");
 
-                // end of issue #95
+                #endregion
+
+                #region For issue #98 Evaluate methods names as delegates
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.ConvertAll(\"1,2,3,4,5,6,-1\".Split(','), Int32.Parse).Min()"
+                    , null)
+                    .Returns(-1)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.ConvertAll<string,int>(\"1,2,3,4,5,6,-1\".Split(','), Int32.Parse).Min()"
+                    , null)
+                    .Returns(-1)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.ConvertAll(\"1,2,3,4,5,6,-1\".Split(','), s => Int32.Parse(s)).Min()"
+                    , null)
+                    .Returns(-1)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+               yield return new TestCaseData(new ExpressionEvaluator()
+                    , "(() => { var m = int.Parse; return m(\"5\"); })()"
+                    , null)
+                    .Returns(5)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+                #endregion
 
                 #endregion
             }

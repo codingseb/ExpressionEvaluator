@@ -15,10 +15,10 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
 
 namespace CodingSeb.ExpressionEvaluator
 {
@@ -1772,7 +1772,7 @@ namespace CodingSeb.ExpressionEvaluator
                     int typeIndex = 0;
                     Type type = EvaluateType(completeName + genericTypes, ref typeIndex);
 
-                    if (type == null || typeIndex > 0 && typeIndex < completeName.Length)
+                    if (type == null || (typeIndex > 0 && typeIndex < completeName.Length))
                         throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
                     void Init(object element, List<string> initArgs)
@@ -2159,6 +2159,22 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(Evaluate).ToArray()));
                         }
+                        else if (Variables.TryGetValue(varFuncName, out o) && o is MethodsGroupEncaps methodsGroupEncaps)
+                        {
+                            List<object> args = funcArgs.ConvertAll(Evaluate);
+                            List<object> modifiedArgs= null;
+                            MethodInfo methodInfo = null;
+
+                            for (int m = 0; methodInfo == null && m < methodsGroupEncaps.MethodsGroup.Length; m++)
+                            {
+                                modifiedArgs = new List<object>(args);
+
+                                methodInfo = TryToCastMethodParametersToMakeItCallable(methodsGroupEncaps.MethodsGroup[m], modifiedArgs, genericsTypes, new Type[0], methodsGroupEncaps.ContainerObject);
+                            }
+
+                            if(methodInfo != null)
+                                stack.Push(methodInfo.Invoke(methodsGroupEncaps.ContainerObject, modifiedArgs?.ToArray()));
+                        }
                         else
                         {
                             FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
@@ -2248,6 +2264,20 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     if (member == null && !isDynamic)
                                         member = objType.GetField(varFuncName, flag);
+
+                                    if (member == null && !isDynamic)
+                                    {
+                                        MethodInfo[] methodsGroup = objType.GetMember(varFuncName, flag).OfType<MethodInfo>().ToArray();
+
+                                        if(methodsGroup.Length > 0)
+                                        {
+                                            varValue = new MethodsGroupEncaps()
+                                            {
+                                                ContainerObject = obj,
+                                                MethodsGroup = methodsGroup
+                                            };
+                                        }
+                                    }
 
                                     bool pushVarValue = true;
 
@@ -3392,6 +3422,8 @@ namespace CodingSeb.ExpressionEvaluator
         {
             MethodInfo methodInfo = null;
 
+            MethodInfo oldMethodInfo = methodInfoToCast;
+
             methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
 
             bool parametersCastOK = true;
@@ -3416,7 +3448,7 @@ namespace CodingSeb.ExpressionEvaluator
                     && modifiedArgs[a] is InternalDelegate)
                 {
                     InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
+                    modifiedArgs[a] = new Predicate<object>(o => (bool)led(new object[] { o }));
                 }
                 else if (paramTypeName.StartsWith("Func")
                     && modifiedArgs[a] is InternalDelegate)
@@ -3443,6 +3475,49 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     InternalDelegate led = modifiedArgs[a] as InternalDelegate;
                     modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
+                }
+                else if(typeof(Delegate).IsAssignableFrom(parameterType)
+                    && modifiedArgs[a] is MethodsGroupEncaps methodsGroupEncaps)
+                {
+                    MethodInfo invokeMethod = parameterType.GetMethod("Invoke");
+                    MethodInfo methodForDelegate = Array.Find(methodsGroupEncaps.MethodsGroup, m => invokeMethod.GetParameters().Length == m.GetParameters().Length && invokeMethod.ReturnType.IsAssignableFrom(m.ReturnType));
+                    if (methodForDelegate != null)
+                    {
+                        Type[] parametersTypes = methodForDelegate.GetParameters().Select(p => p.ParameterType).ToArray();
+                        Type delegateType;
+
+                        if (methodForDelegate.ReturnType == typeof(void))
+                        {
+                            delegateType = Type.GetType($"System.Action`{parametersTypes.Length}");
+                        }
+                        else if(paramTypeName.StartsWith("Predicate"))
+                        {
+                            delegateType = typeof(Predicate<>);
+                            parametersTypes = parametersTypes.Concat(new Type[] { typeof(bool) }).ToArray();
+                        }
+                        else if (paramTypeName.StartsWith("Converter"))
+                        {
+                            delegateType = typeof(Converter<,>);
+                            parametersTypes = parametersTypes.Concat(new Type[] { methodForDelegate.ReturnType }).ToArray();
+                        }
+                        else
+                        {
+                            delegateType = Type.GetType($"System.Func`{parametersTypes.Length + 1}");
+                            parametersTypes = parametersTypes.Concat(new Type[] { methodForDelegate.ReturnType }).ToArray();
+                        }
+
+                        delegateType = delegateType.MakeGenericType(parametersTypes);
+
+                        modifiedArgs[a] = Delegate.CreateDelegate(delegateType, methodsGroupEncaps.ContainerObject, methodForDelegate);
+
+                        if(oldMethodInfo.IsGenericMethod &&
+                            methodInfoToCast.GetGenericArguments().Length == parametersTypes.Length &&
+                            !methodInfoToCast.GetGenericArguments().SequenceEqual(parametersTypes) &&
+                            string.IsNullOrWhiteSpace(genericsTypes))
+                        {
+                            methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, parametersTypes);
+                        }
+                    }
                 }
                 else
                 {
@@ -3478,7 +3553,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         try
                         {
-                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfo, parameterType, modifiedArgs[a], a, this, onInstance);
+                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfoToCast, parameterType, modifiedArgs[a], a, this, onInstance);
 
                             EvaluateParameterCast?.Invoke(this, parameterCastEvaluationEventArg);
 
@@ -4297,6 +4372,13 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Expression = expression;
         }
+    }
+
+    public partial class MethodsGroupEncaps
+    {
+        public object ContainerObject { get; set; }
+
+        public MethodInfo[] MethodsGroup { get; set; }
     }
 
     public partial class BubbleExceptionContainer
