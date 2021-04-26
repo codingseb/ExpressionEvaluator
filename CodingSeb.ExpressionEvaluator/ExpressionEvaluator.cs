@@ -2064,8 +2064,8 @@ namespace CodingSeb.ExpressionEvaluator
                                                 .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index + (isExtention ? 1 : 0)]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
-                                        && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
-                                        && staticPropertyInfo.GetValue(obj) is Delegate del2)
+                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
+                                            && staticPropertyInfo.GetValue(obj) is Delegate del2)
                                         {
                                             stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
                                         }
@@ -3444,39 +3444,42 @@ namespace CodingSeb.ExpressionEvaluator
                 Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
                 string paramTypeName = parameterType.Name;
 
-                if (paramTypeName.StartsWith("Predicate")
-                    && modifiedArgs[a] is InternalDelegate)
+                if (modifiedArgs[a] is InternalDelegate internalDelegate)
                 {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    modifiedArgs[a] = new Predicate<object>(o => (bool)led(new object[] { o }));
+                    if (paramTypeName.StartsWith("Predicate"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod("Predicate")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Func"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Action"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Converter"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod("Func1")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
                 }
-                else if (paramTypeName.StartsWith("Func")
-                    && modifiedArgs[a] is InternalDelegate)
-                {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    DelegateEncaps de = new DelegateEncaps(led);
-                    MethodInfo encapsMethod = de.GetType()
-                        .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
-                        .MakeGenericMethod(parameterType.GetGenericArguments());
-                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                }
-                else if (paramTypeName.StartsWith("Action")
-                    && modifiedArgs[a] is InternalDelegate)
-                {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    DelegateEncaps de = new DelegateEncaps(led);
-                    MethodInfo encapsMethod = de.GetType()
-                        .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
-                        .MakeGenericMethod(parameterType.GetGenericArguments());
-                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                }
-                else if (paramTypeName.StartsWith("Converter")
-                    && modifiedArgs[a] is InternalDelegate)
-                {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
-                }
-                else if(typeof(Delegate).IsAssignableFrom(parameterType)
+                else if (typeof(Delegate).IsAssignableFrom(parameterType)
                     && modifiedArgs[a] is MethodsGroupEncaps methodsGroupEncaps)
                 {
                     MethodInfo invokeMethod = parameterType.GetMethod("Invoke");
@@ -3490,10 +3493,10 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             delegateType = Type.GetType($"System.Action`{parametersTypes.Length}");
                         }
-                        else if(paramTypeName.StartsWith("Predicate"))
+                        else if (paramTypeName.StartsWith("Predicate"))
                         {
                             delegateType = typeof(Predicate<>);
-                            parametersTypes = parametersTypes.Concat(new Type[] { typeof(bool) }).ToArray();
+                            methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, parametersTypes);
                         }
                         else if (paramTypeName.StartsWith("Converter"))
                         {
@@ -3510,7 +3513,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         modifiedArgs[a] = Delegate.CreateDelegate(delegateType, methodsGroupEncaps.ContainerObject, methodForDelegate);
 
-                        if(oldMethodInfo.IsGenericMethod &&
+                        if (oldMethodInfo.IsGenericMethod &&
                             methodInfoToCast.GetGenericArguments().Length == parametersTypes.Length &&
                             !methodInfoToCast.GetGenericArguments().SequenceEqual(parametersTypes) &&
                             string.IsNullOrWhiteSpace(genericsTypes))
@@ -3542,6 +3545,15 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 if (!parameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
                                     modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType.GetElementType());
+                            }
+                            else if (modifiedArgs[a].GetType().IsArray
+                                && typeof(IEnumerable).IsAssignableFrom(parameterType)
+                                && oldMethodInfo.IsGenericMethod
+                                && string.IsNullOrWhiteSpace(genericsTypes)
+                                && methodInfoToCast.GetGenericArguments().Length == 1
+                                && !methodInfoToCast.GetGenericArguments()[0].Equals(modifiedArgs[a].GetType().GetElementType()))
+                            {
+                                methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, new Type[] { modifiedArgs[a].GetType().GetElementType() });
                             }
                             else
                             {
@@ -4027,6 +4039,11 @@ namespace CodingSeb.ExpressionEvaluator
             public void Action0()
             {
                 lambda();
+            }
+
+            public bool Predicate<T1>(T1 arg1)
+            {
+                return (bool)lambda(arg1);
             }
 
             public void Action1<T1>(T1 arg1)

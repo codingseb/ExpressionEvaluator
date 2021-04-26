@@ -2552,6 +2552,55 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Bug resolution")
                     .SetCategory("MethodNameAsDelegates");
 
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "\"test for Upper\".ToCharArray().First(Char.IsUpper)"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "\"test for Upper\".ToCharArray().First(Char.IsUpper)"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "\"test for Upper\".ToCharArray().First(c => Char.IsUpper(c))"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.Find(\"test for Upper\".ToCharArray(), Char.IsUpper)"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Array.Find(\"test for Upper\".ToCharArray(), c => Char.IsUpper(c))"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "\"test for Upper\".ToCharArray().Any(Char.IsUpper)"
+                    , null)
+                    .Returns(true)
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
+              yield return new TestCaseData(new ExpressionEvaluator()
+                    , "\"test for Upper\".ToCharArray().ToList().First(Char.IsUpper)"
+                    , null)
+                    .Returns('U')
+                    .SetCategory("Bug resolution")
+                    .SetCategory("MethodNameAsDelegates");
+
                 #endregion
 
                 #endregion
