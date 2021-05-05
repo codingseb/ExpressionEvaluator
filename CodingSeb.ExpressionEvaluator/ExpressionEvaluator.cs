@@ -3475,11 +3475,32 @@ namespace CodingSeb.ExpressionEvaluator
                                             inferedTypes.Add(paraMethodInfo.ReturnType);
                                         }
                                     }
+                                    else if(paramsForInference.ParameterType.Name.StartsWith("Action"))
+                                    {
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == paramsForInference.ParameterType.GetGenericArguments().Length);
+                                        if(specificType != null)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[specificType.GenericParameterPosition].ParameterType);
+                                        }
+                                    }
+                                    else if(paramsForInference.ParameterType.Name.StartsWith("Func"))
+                                    {
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == paramsForInference.ParameterType.GetGenericArguments().Length - 1);
+                                        if(specificType?.GenericParameterPosition == paraMethodInfo.GetParameters().Length)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.ReturnType);
+                                        }
+                                        else
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[specificType.GenericParameterPosition].ParameterType);
+                                        }
+                                    }
                                 }
-                                else
+                                else if (modifiedArgs[paramsForInference.Position].GetType().HasElementType)
                                 {
-                                    if(modifiedArgs[paramsForInference.Position].GetType().HasElementType)
-                                        inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType().GetElementType());
+                                    inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType().GetElementType());
                                 }
                             }
                         }
@@ -3633,7 +3654,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         .GetMethod("Cast")
                                         .MakeGenericMethod(parameterType.GetElementType())
                                         .Invoke(null, new object[] { modifiedArgs[a] });
-                                    
+
                                     modifiedArgs[a] = typeof(Enumerable)
                                         .GetMethod("ToArray")
                                         .MakeGenericMethod(parameterType.GetElementType())
