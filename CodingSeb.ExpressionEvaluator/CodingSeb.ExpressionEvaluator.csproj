@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.26.0</Version>
-    <AssemblyVersion>1.4.26.0</AssemblyVersion>
-    <FileVersion>1.4.26.0</FileVersion>
+    <Version>1.4.27.0</Version>
+    <AssemblyVersion>1.4.27.0</AssemblyVersion>
+    <FileVersion>1.4.27.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,7 +19,10 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Manage Nested Types (Ex : Environment.SpecialFolder)</PackageReleaseNotes>
+    <PackageReleaseNotes>* Manage Nested Types Part 2 (instanciate with new and casting)
+* Cast int to enum now work
+* Use methods name as method group and try to select the good overide when used as method parameter
+* Not perfect but better type inference of generic methods parameters</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
