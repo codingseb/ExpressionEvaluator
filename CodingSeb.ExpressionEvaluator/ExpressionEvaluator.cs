@@ -1928,7 +1928,7 @@ namespace CodingSeb.ExpressionEvaluator
                         object obj = inObject ? stack.Pop() : Context;
                         object keepObj = obj;
                         Type objType = null;
-                        Type[] inferedGenericsTypes = null; // obj?.GetType().GenericTypeArguments;
+                        Type[] inferedGenericsTypes = obj?.GetType().GenericTypeArguments;
                         ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                         if (obj != null && TypesToBlock.Contains(obj.GetType()))
@@ -3424,53 +3424,76 @@ namespace CodingSeb.ExpressionEvaluator
 
             MethodInfo oldMethodInfo = methodInfoToCast;
 
-            if(methodInfoToCast.IsGenericMethod
-                && methodInfoToCast.ContainsGenericParameters)
+            if (!string.IsNullOrEmpty(genericsTypes))
             {
-                if(!string.IsNullOrWhiteSpace(genericsTypes))
-                {
-                    methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
-                }
-                else
-                {
-                    Type[] genericArgsTypes = methodInfoToCast.GetGenericArguments();
-                    List<Type> inferedTypes = new List<Type>();
+                methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+            }
+            else if (oldMethodInfo.IsGenericMethod
+                && oldMethodInfo.ContainsGenericParameters)
+            {
+                Type[] genericArgsTypes = oldMethodInfo.GetGenericArguments();
+                List<Type> inferedTypes = new List<Type>();
 
-                    for (int t = 0; t < genericArgsTypes.Length; t++)
+                for (int t = 0; t<genericArgsTypes.Length; t++)
+                {
+                    if (genericArgsTypes[t].IsGenericParameter)
                     {
-                        if (genericArgsTypes[t].IsGenericParameter)
+                        string name = genericArgsTypes[t].Name;
+                        ParameterInfo[] parameterInfos = oldMethodInfo.GetParameters();
+
+                        ParameterInfo paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericParameter
+                                && p.ParameterType.Name.Equals(name)
+                                && modifiedArgs.Count > p.Position
+                                && !modifiedArgs[p.Position].GetType().IsGenericParameter);
+
+                        if (paramsForInference != null)
                         {
-                            string name = genericArgsTypes[t].Name;
-                            ParameterInfo[] parameterInfos = methodInfoToCast.GetParameters();
-
-                            ParameterInfo paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericParameter
-                                    && p.ParameterType.Name.Equals(name)
-                                    && modifiedArgs.Count > p.Position
-                                    && !modifiedArgs[p.Position].GetType().IsGenericParameter);
-
-                            if (paramsForInference != null)
-                            {
-                                inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType());
-                            }
-                            else
-                            {
-                                paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericType
-                                    && p.ParameterType.ContainsGenericParameters
-                                    && p.ParameterType.GetGenericArguments().Any(subP => subP.Name.Equals(name))
-                                    && modifiedArgs.Count > p.Position
-                                    && !modifiedArgs[p.Position].GetType().IsGenericType);
-
-                                inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType().GetElementType());
-                            }
+                            inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType());
                         }
                         else
                         {
-                            inferedTypes.Add(genericArgsTypes[t]);
+                            paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericType
+                                && p.ParameterType.ContainsGenericParameters
+                                && p.ParameterType.GetGenericArguments().Any(subP => subP.Name.Equals(name))
+                                && modifiedArgs.Count > p.Position
+                                && !modifiedArgs[p.Position].GetType().IsGenericType);
+
+                            if (paramsForInference != null)
+                            {
+                                if (modifiedArgs[paramsForInference.Position] is MethodsGroupEncaps methodsGroupEncaps)
+                                {
+                                    if(paramsForInference.ParameterType.Name.StartsWith("Converter"))
+                                    {
+                                        Type specificType = paramsForInference.ParameterType.GetGenericArguments().FirstOrDefault(pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = methodsGroupEncaps.MethodsGroup.FirstOrDefault(mi => mi.GetParameters().Length == 1);
+                                        if(specificType != null && specificType.GenericParameterPosition == 0)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[0].ParameterType);
+                                        }
+                                        else if(specificType != null && specificType.GenericParameterPosition == 1)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.ReturnType);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if(modifiedArgs[paramsForInference.Position].GetType().HasElementType)
+                                        inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType().GetElementType());
+                                }
+                            }
                         }
                     }
-
-                    methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedTypes.ToArray());
+                    else
+                    {
+                        inferedTypes.Add(genericArgsTypes[t]);
+                    }
                 }
+
+                if(inferedTypes.Count > 0 && inferedTypes.Count == genericArgsTypes.Length)
+                    methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, inferedTypes.ToArray());
+                else
+                    methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
             }
 
             bool parametersCastOK = true;

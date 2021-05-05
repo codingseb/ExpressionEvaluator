@@ -2555,7 +2555,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "Array.ConvertAll(\"test for Upper\".ToCharArray(), Char.IsUpper)"
                     , null)
-                    .Returns(-1)
+                    .Returns(Array.ConvertAll("test for Upper".ToCharArray(), Char.IsUpper))
                     .SetCategory("Bug resolution")
                     .SetCategory("MethodNameAsDelegates");
 
