@@ -2514,6 +2514,13 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("NestedType");
 
                 yield return new TestCaseData(new ExpressionEvaluator()
+                    , "Environment.GetFolderPath((Environment.SpecialFolder)5)"
+                    , null)
+                    .Returns(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))
+                    .SetCategory("Bug resolution")
+                    .SetCategory("NestedType");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
                     , "new CodingSeb.ExpressionEvaluator.Tests.OtherNamespace.ClassInOtherNameSpace1.ANestedClass().Value1"
                     , null)
                     .Returns(45)

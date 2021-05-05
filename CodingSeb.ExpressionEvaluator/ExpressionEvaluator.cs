@@ -56,7 +56,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         protected static readonly Regex instanceCreationWithNewKeywordRegex = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9" + (OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)"; } }
+        protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
         protected const string blockComments = @"/\*(.*?)\*/";
@@ -1641,7 +1641,8 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string typeName = castMatch.Groups["typeName"].Value;
 
-                Type type = GetTypeByFriendlyName(typeName);
+                int typeIndex = 0;
+                Type type = EvaluateType(typeName, ref typeIndex);
 
                 if (type != null)
                 {
@@ -4005,6 +4006,10 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 NullableConverter nullableConverter = new NullableConverter(conversionType);
                 conversionType = nullableConverter.UnderlyingType;
+            }
+            if(conversionType.IsEnum)
+            {
+                return Enum.ToObject(conversionType, value);
             }
             return Convert.ChangeType(value, conversionType);
         }
