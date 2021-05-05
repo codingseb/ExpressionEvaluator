@@ -3464,13 +3464,13 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     if(paramsForInference.ParameterType.Name.StartsWith("Converter"))
                                     {
-                                        Type specificType = paramsForInference.ParameterType.GetGenericArguments().FirstOrDefault(pType => pType.Name.Equals(name));
-                                        MethodInfo paraMethodInfo = methodsGroupEncaps.MethodsGroup.FirstOrDefault(mi => mi.GetParameters().Length == 1);
-                                        if(specificType != null && specificType.GenericParameterPosition == 0)
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == 1);
+                                        if(specificType?.GenericParameterPosition == 0)
                                         {
                                             inferedTypes.Add(paraMethodInfo.GetParameters()[0].ParameterType);
                                         }
-                                        else if(specificType != null && specificType.GenericParameterPosition == 1)
+                                        else if(specificType?.GenericParameterPosition == 1)
                                         {
                                             inferedTypes.Add(paraMethodInfo.ReturnType);
                                         }
@@ -3627,7 +3627,22 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
+                                if (parameterType.IsArray && modifiedArgs[a] is Array sourceArray)
+                                {
+                                    modifiedArgs[a] = typeof(Enumerable)
+                                        .GetMethod("Cast")
+                                        .MakeGenericMethod(parameterType.GetElementType())
+                                        .Invoke(null, new object[] { modifiedArgs[a] });
+                                    
+                                    modifiedArgs[a] = typeof(Enumerable)
+                                        .GetMethod("ToArray")
+                                        .MakeGenericMethod(parameterType.GetElementType())
+                                        .Invoke(null, new object[] { modifiedArgs[a] });
+                                }
+                                else
+                                {
+                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
+                                }
                             }
                         }
                     }
