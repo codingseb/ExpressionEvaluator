@@ -2474,6 +2474,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns(typeof(List<Regex>))
                     .SetCategory("Bug resolution");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionCaseSensitiveEvaluationActive = false
+                    }
+                    , "Int32.Parse(\"2\")"
+                    , null)
+                    .Returns(2)
+                    .SetCategory("Bug resolution");
+
                 #region For bug #65
                 var Persons = new List<Person2>() { new Person2() { Code = "QT00010", Name = "Pedrito", Number = 11.11m },
                     new Person2() { Code = "QT00011", Name = "Pablito", Number = 12.11m }};
