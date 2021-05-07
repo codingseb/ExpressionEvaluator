@@ -2640,7 +2640,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region for issue #100
+                #region for issue #100 Array types in cast or typeof generate an exception
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "typeof(double[])"
