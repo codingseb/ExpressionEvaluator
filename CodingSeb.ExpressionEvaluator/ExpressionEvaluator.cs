@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.27.0 
+    Version : 1.4.28.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -38,6 +38,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
+        protected static readonly Regex arrayTypeDetectionRegex = new Regex(@"^(\s*(\[(?>(?>\s+)|[,])*)\])+", RegexOptions.Compiled);
         protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
@@ -2583,7 +2584,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             Match arrayTypeMatch;
 
-            if(i < expression.Length && (arrayTypeMatch = Regex.Match(expression.Substring(i), @"^(\s*(\[(?>(?>\s+)|[,])*)\])+")).Success)
+            if(i < expression.Length && (arrayTypeMatch = arrayTypeDetectionRegex.Match(expression.Substring(i))).Success)
             {
                 Type arrayType = GetTypeByFriendlyName(staticType + arrayTypeMatch.Value);
                 if(arrayType != null)
