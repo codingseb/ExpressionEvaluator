@@ -2581,6 +2581,18 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            Match arrayTypeMatch;
+
+            if(i < expression.Length && (arrayTypeMatch = Regex.Match(expression.Substring(i), @"^(\s*(\[(?>(?>\s+)|[,])*)\])+")).Success)
+            {
+                Type arrayType = GetTypeByFriendlyName(staticType + arrayTypeMatch.Value);
+                if(arrayType != null)
+                {
+                    i += arrayTypeMatch.Length;
+                    staticType = arrayType;
+                }
+            }
+
             return staticType;
         }
 
