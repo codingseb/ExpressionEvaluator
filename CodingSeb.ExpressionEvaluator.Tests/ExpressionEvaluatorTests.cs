@@ -2474,6 +2474,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns(typeof(List<Regex>))
                     .SetCategory("Bug resolution");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionCaseSensitiveEvaluationActive = false
+                    }
+                    , "Int32.Parse(\"2\")"
+                    , null)
+                    .Returns(2)
+                    .SetCategory("Bug resolution");
+
                 #region For bug #65
                 var Persons = new List<Person2>() { new Person2() { Code = "QT00010", Name = "Pedrito", Number = 11.11m },
                     new Person2() { Code = "QT00011", Name = "Pablito", Number = 12.11m }};
@@ -2628,6 +2637,67 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns('U')
                     .SetCategory("Bug resolution")
                     .SetCategory("MethodNameAsDelegates");
+
+                #endregion
+
+                #region for issue #100 Array types in cast or typeof generate an exception
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(double[])"
+                    , null)
+                    .Returns(typeof(double[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(double[ ])"
+                    , null)
+                    .Returns(typeof(double[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(double[][])"
+                    , null)
+                    .Returns(typeof(double[][]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(double[,])"
+                    , null)
+                    .Returns(typeof(double[,]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(int[])"
+                    , null)
+                    .Returns(typeof(int[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(Int32[])"
+                    , null)
+                    .Returns(typeof(Int32[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(string[])"
+                    , null)
+                    .Returns(typeof(string[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    , "typeof(Regex[])"
+                    , null)
+                    .Returns(typeof(Regex[]))
+                    .SetCategory("Bug resolution");
+
+                yield return new TestCaseData(new ExpressionEvaluator(new ObjectContainer()
+                    {
+                        AnObjectProperty = new double[] {1.1, 2.3, 4.3}
+                    })
+                    , "(double[])AnObjectProperty"
+                    , null)
+                    .Returns(new double[] { 1.1, 2.3, 4.3 })
+                    .SetCategory("Bug resolution");
 
                 #endregion
 
