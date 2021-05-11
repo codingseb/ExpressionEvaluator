@@ -649,7 +649,6 @@ namespace CodingSeb.ExpressionEvaluator
             set
             {
                 optionCaseSensitiveEvaluationActive = value;
-                StringComparisonForCasing = optionCaseSensitiveEvaluationActive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 Variables = Variables;
                 operatorsDictionary = new Dictionary<string, ExpressionOperator>(operatorsDictionary, StringComparerForCasing);
                 defaultVariables = new Dictionary<string, object>(defaultVariables, StringComparerForCasing);
@@ -663,15 +662,9 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        private StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
+        protected StringComparison StringComparisonForCasing => OptionCaseSensitiveEvaluationActive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-        protected StringComparer StringComparerForCasing
-        {
-            get
-            {
-                return OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            }
-        }
+        protected StringComparer StringComparerForCasing => OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
         /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double<para/>
@@ -1089,7 +1082,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)<para/>
-        /// If <c>false</c> Allow to access only to public members.
+        /// If <c>false</c> Allow access only to public members.
         /// <para>Default value : <c>false</c></para>
         /// Warning : This clearly break the encapsulation principle use this only if you know what you do.
         /// </summary>
