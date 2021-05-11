@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.24.1 
+    Version : 1.4.28.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -15,10 +15,10 @@ using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Runtime.CompilerServices;
 
 namespace CodingSeb.ExpressionEvaluator
 {
@@ -29,9 +29,7 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        protected const string primaryTypesRegexPattern = @"(?<=^|[^\p{L}_])(?<primaryType>object|string|bool[?]?|byte[?]?|char[?]?|decimal[?]?|double[?]?|short[?]?|int[?]?|long[?]?|sbyte[?]?|float[?]?|ushort[?]?|uint[?]?|ulong[?]?|void)(?=[^a-zA-Z_]|$)";
-
-        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|(?<inObject>(?<nullConditional>[?])?\.)?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|((?<nullConditional>[?])?(?<inObject>\.))?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
@@ -40,6 +38,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
+        protected static readonly Regex arrayTypeDetectionRegex = new Regex(@"^(\s*(\[(?>(?>\s+)|[,])*)\])+", RegexOptions.Compiled);
         protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
@@ -1956,7 +1955,8 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string typeName = castMatch.Groups["typeName"].Value;
 
-                Type type = GetTypeByFriendlyName(typeName);
+                int typeIndex = 0;
+                Type type = EvaluateType(typeName, ref typeIndex);
 
                 if (type != null)
                 {
@@ -2083,9 +2083,11 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     string completeName = instanceCreationMatch.Groups["name"].Value;
                     string genericTypes = instanceCreationMatch.Groups["isgeneric"].Value;
-                    Type type = GetTypeByFriendlyName(completeName, genericTypes);
 
-                    if (type == null)
+                    int typeIndex = 0;
+                    Type type = EvaluateType(completeName + genericTypes, ref typeIndex);
+
+                    if (type == null || (typeIndex > 0 && typeIndex < completeName.Length))
                         throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
 
                     void Init(object element, List<string> initArgs)
@@ -2377,8 +2379,8 @@ namespace CodingSeb.ExpressionEvaluator
                                                 .ForEach(outOrRefArg => AssignVariable(outOrRefArg.VariableName, argsArray[outOrRefArg.Index + (isExtention ? 1 : 0)]));
                                         }
                                         else if (objType.GetProperty(varFuncName, StaticBindingFlag) is PropertyInfo staticPropertyInfo
-                                        && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
-                                        && staticPropertyInfo.GetValue(obj) is Delegate del2)
+                                            && (staticPropertyInfo.PropertyType.IsSubclassOf(typeof(Delegate)) || staticPropertyInfo.PropertyType == typeof(Delegate))
+                                            && staticPropertyInfo.GetValue(obj) is Delegate del2)
                                         {
                                             stack.Push(del2.DynamicInvoke(oArgs.ToArray()));
                                         }
@@ -2472,6 +2474,22 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             stack.Push(delegateVar.DynamicInvoke(funcArgs.ConvertAll(Evaluate).ToArray()));
                         }
+                        else if (Variables.TryGetValue(varFuncName, out o) && o is MethodsGroupEncaps methodsGroupEncaps)
+                        {
+                            List<object> args = funcArgs.ConvertAll(Evaluate);
+                            List<object> modifiedArgs= null;
+                            MethodInfo methodInfo = null;
+
+                            for (int m = 0; methodInfo == null && m < methodsGroupEncaps.MethodsGroup.Length; m++)
+                            {
+                                modifiedArgs = new List<object>(args);
+
+                                methodInfo = TryToCastMethodParametersToMakeItCallable(methodsGroupEncaps.MethodsGroup[m], modifiedArgs, genericsTypes, new Type[0], methodsGroupEncaps.ContainerObject);
+                            }
+
+                            if(methodInfo != null)
+                                stack.Push(methodInfo.Invoke(methodsGroupEncaps.ContainerObject, modifiedArgs?.ToArray()));
+                        }
                         else
                         {
                             FunctionEvaluationEventArg functionEvaluationEventArg = new FunctionEvaluationEventArg(varFuncName, funcArgs, this, genericTypes: genericsTypes, evaluateGenericTypes: GetConcreteTypes);
@@ -2561,6 +2579,20 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     if (member == null && !isDynamic)
                                         member = objType.GetField(varFuncName, flag);
+
+                                    if (member == null && !isDynamic)
+                                    {
+                                        MethodInfo[] methodsGroup = objType.GetMember(varFuncName, flag).OfType<MethodInfo>().ToArray();
+
+                                        if(methodsGroup.Length > 0)
+                                        {
+                                            varValue = new MethodsGroupEncaps()
+                                            {
+                                                ContainerObject = obj,
+                                                MethodsGroup = methodsGroup
+                                            };
+                                        }
+                                    }
 
                                     bool pushVarValue = true;
 
@@ -2753,40 +2785,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            string typeName = $"{varFuncName}{((i < expression.Length && expression.Substring(i)[0] == '?') ? "?" : "") }";
-                            Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
-
-                            if (staticType == null && OptionInlineNamespacesEvaluationActive)
-                            {
-                                int subIndex = 0;
-                                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-
-                                while (staticType == null
-                                    && namespaceMatch.Success
-                                    && !namespaceMatch.Groups["sign"].Success
-                                    && !namespaceMatch.Groups["assignationOperator"].Success
-                                    && !namespaceMatch.Groups["postfixOperator"].Success
-                                    && !namespaceMatch.Groups["isfunction"].Success
-                                    && i + subIndex < expression.Length
-                                    && !typeName.EndsWith("?"))
-                                {
-                                    subIndex += namespaceMatch.Length;
-                                    typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-
-                                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
-
-                                    if (staticType != null)
-                                    {
-                                        i += subIndex;
-                                        break;
-                                    }
-
-                                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-                                }
-                            }
-
-                            if (typeName.EndsWith("?") && staticType != null)
-                                i++;
+                            Type staticType = EvaluateType(expression, ref i, varFuncName, genericsTypes);
 
                             if (staticType != null)
                             {
@@ -2826,6 +2825,91 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return false;
             }
+        }
+
+        protected virtual Type EvaluateType(string expression,ref int i, string currentName = "", string genericsTypes = "")
+        {
+            string typeName = $"{currentName}{((i < expression.Length && expression.Substring(i)[0] == '?') ? "?" : "") }";
+            Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
+
+            // For inline namespace parsing
+            if (staticType == null && OptionInlineNamespacesEvaluationActive)
+            {
+                int subIndex = 0;
+                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+
+                while (staticType == null
+                    && namespaceMatch.Success
+                    && !namespaceMatch.Groups["sign"].Success
+                    && !namespaceMatch.Groups["assignationOperator"].Success
+                    && !namespaceMatch.Groups["postfixOperator"].Success
+                    && !namespaceMatch.Groups["isfunction"].Success
+                    && i + subIndex < expression.Length
+                    && !typeName.EndsWith("?"))
+                {
+                    subIndex += namespaceMatch.Length;
+                    typeName += $"{namespaceMatch.Groups["inObject"].Value}{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
+
+                    if (staticType != null)
+                    {
+                        i += subIndex;
+                        break;
+                    }
+
+                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                }
+            }
+
+            if (typeName.EndsWith("?") && staticType != null)
+                i++;
+
+            // For nested type parsing
+            if (staticType != null)
+            {
+                int subIndex = 0;
+                Match nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                while (nestedTypeMatch.Success
+                    && !nestedTypeMatch.Groups["sign"].Success
+                    && !nestedTypeMatch.Groups["assignationOperator"].Success
+                    && !nestedTypeMatch.Groups["postfixOperator"].Success
+                    && !nestedTypeMatch.Groups["isfunction"].Success)
+                {
+                    subIndex = nestedTypeMatch.Length;
+                    typeName += $"+{nestedTypeMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                    Type nestedType = GetTypeByFriendlyName(typeName, nestedTypeMatch.Groups["isgeneric"].Value);
+                    if (nestedType != null)
+                    {
+                        i += subIndex;
+                        staticType = nestedType;
+
+                        if (typeName.EndsWith("?"))
+                            i++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i));
+                }
+            }
+
+            Match arrayTypeMatch;
+
+            if(i < expression.Length && (arrayTypeMatch = arrayTypeDetectionRegex.Match(expression.Substring(i))).Success)
+            {
+                Type arrayType = GetTypeByFriendlyName(staticType + arrayTypeMatch.Value);
+                if(arrayType != null)
+                {
+                    i += arrayTypeMatch.Length;
+                    staticType = arrayType;
+                }
+            }
+
+            return staticType;
         }
 
         protected virtual bool EvaluateChar(string expression, Stack<object> stack, ref int i)
@@ -3667,7 +3751,100 @@ namespace CodingSeb.ExpressionEvaluator
         {
             MethodInfo methodInfo = null;
 
-            methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+            MethodInfo oldMethodInfo = methodInfoToCast;
+
+            if (!string.IsNullOrEmpty(genericsTypes))
+            {
+                methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+            }
+            else if (oldMethodInfo.IsGenericMethod
+                && oldMethodInfo.ContainsGenericParameters)
+            {
+                Type[] genericArgsTypes = oldMethodInfo.GetGenericArguments();
+                List<Type> inferedTypes = new List<Type>();
+
+                for (int t = 0; t<genericArgsTypes.Length; t++)
+                {
+                    if (genericArgsTypes[t].IsGenericParameter)
+                    {
+                        string name = genericArgsTypes[t].Name;
+                        ParameterInfo[] parameterInfos = oldMethodInfo.GetParameters();
+
+                        ParameterInfo paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericParameter
+                                && p.ParameterType.Name.Equals(name)
+                                && modifiedArgs.Count > p.Position
+                                && !modifiedArgs[p.Position].GetType().IsGenericParameter);
+
+                        if (paramsForInference != null)
+                        {
+                            inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType());
+                        }
+                        else
+                        {
+                            paramsForInference = Array.Find(parameterInfos, p => p.ParameterType.IsGenericType
+                                && p.ParameterType.ContainsGenericParameters
+                                && p.ParameterType.GetGenericArguments().Any(subP => subP.Name.Equals(name))
+                                && modifiedArgs.Count > p.Position
+                                && !modifiedArgs[p.Position].GetType().IsGenericType);
+
+                            if (paramsForInference != null)
+                            {
+                                if (modifiedArgs[paramsForInference.Position] is MethodsGroupEncaps methodsGroupEncaps)
+                                {
+                                    if(paramsForInference.ParameterType.Name.StartsWith("Converter"))
+                                    {
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == 1);
+                                        if(specificType?.GenericParameterPosition == 0)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[0].ParameterType);
+                                        }
+                                        else if(specificType?.GenericParameterPosition == 1)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.ReturnType);
+                                        }
+                                    }
+                                    else if(paramsForInference.ParameterType.Name.StartsWith("Action"))
+                                    {
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == paramsForInference.ParameterType.GetGenericArguments().Length);
+                                        if(specificType != null)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[specificType.GenericParameterPosition].ParameterType);
+                                        }
+                                    }
+                                    else if(paramsForInference.ParameterType.Name.StartsWith("Func"))
+                                    {
+                                        Type specificType = Array.Find(paramsForInference.ParameterType.GetGenericArguments(), pType => pType.Name.Equals(name));
+                                        MethodInfo paraMethodInfo = Array.Find(methodsGroupEncaps.MethodsGroup, mi => mi.GetParameters().Length == paramsForInference.ParameterType.GetGenericArguments().Length - 1);
+                                        if(specificType?.GenericParameterPosition == paraMethodInfo.GetParameters().Length)
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.ReturnType);
+                                        }
+                                        else
+                                        {
+                                            inferedTypes.Add(paraMethodInfo.GetParameters()[specificType.GenericParameterPosition].ParameterType);
+                                        }
+                                    }
+                                }
+                                else if (modifiedArgs[paramsForInference.Position].GetType().HasElementType)
+                                {
+                                    inferedTypes.Add(modifiedArgs[paramsForInference.Position].GetType().GetElementType());
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        inferedTypes.Add(genericArgsTypes[t]);
+                    }
+                }
+
+                if(inferedTypes.Count > 0 && inferedTypes.Count == genericArgsTypes.Length)
+                    methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, inferedTypes.ToArray());
+                else
+                    methodInfoToCast = MakeConcreteMethodIfGeneric(methodInfoToCast, genericsTypes, inferedGenericsTypes);
+            }
 
             bool parametersCastOK = true;
 
@@ -3687,37 +3864,83 @@ namespace CodingSeb.ExpressionEvaluator
                 Type parameterType = methodInfoToCast.GetParameters()[a].ParameterType;
                 string paramTypeName = parameterType.Name;
 
-                if (paramTypeName.StartsWith("Predicate")
-                    && modifiedArgs[a] is InternalDelegate)
+                if (modifiedArgs[a] is InternalDelegate internalDelegate)
                 {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    modifiedArgs[a] = new Predicate<object>(o => (bool)(led(new object[] { o })));
+                    if (paramTypeName.StartsWith("Predicate"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod("Predicate")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Func"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Action"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
+                    else if (paramTypeName.StartsWith("Converter"))
+                    {
+                        DelegateEncaps de = new DelegateEncaps(internalDelegate);
+                        MethodInfo encapsMethod = de.GetType()
+                            .GetMethod("Func1")
+                            .MakeGenericMethod(parameterType.GetGenericArguments());
+                        modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
+                    }
                 }
-                else if (paramTypeName.StartsWith("Func")
-                    && modifiedArgs[a] is InternalDelegate)
+                else if (typeof(Delegate).IsAssignableFrom(parameterType)
+                    && modifiedArgs[a] is MethodsGroupEncaps methodsGroupEncaps)
                 {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    DelegateEncaps de = new DelegateEncaps(led);
-                    MethodInfo encapsMethod = de.GetType()
-                        .GetMethod($"Func{parameterType.GetGenericArguments().Length - 1}")
-                        .MakeGenericMethod(parameterType.GetGenericArguments());
-                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                }
-                else if (paramTypeName.StartsWith("Action")
-                    && modifiedArgs[a] is InternalDelegate)
-                {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    DelegateEncaps de = new DelegateEncaps(led);
-                    MethodInfo encapsMethod = de.GetType()
-                        .GetMethod($"Action{parameterType.GetGenericArguments().Length}")
-                        .MakeGenericMethod(parameterType.GetGenericArguments());
-                    modifiedArgs[a] = Delegate.CreateDelegate(parameterType, de, encapsMethod);
-                }
-                else if (paramTypeName.StartsWith("Converter")
-                    && modifiedArgs[a] is InternalDelegate)
-                {
-                    InternalDelegate led = modifiedArgs[a] as InternalDelegate;
-                    modifiedArgs[a] = new Converter<object, object>(o => led(new object[] { o }));
+                    MethodInfo invokeMethod = parameterType.GetMethod("Invoke");
+                    MethodInfo methodForDelegate = Array.Find(methodsGroupEncaps.MethodsGroup, m => invokeMethod.GetParameters().Length == m.GetParameters().Length && invokeMethod.ReturnType.IsAssignableFrom(m.ReturnType));
+                    if (methodForDelegate != null)
+                    {
+                        Type[] parametersTypes = methodForDelegate.GetParameters().Select(p => p.ParameterType).ToArray();
+                        Type delegateType;
+
+                        if (methodForDelegate.ReturnType == typeof(void))
+                        {
+                            delegateType = Type.GetType($"System.Action`{parametersTypes.Length}");
+                        }
+                        else if (paramTypeName.StartsWith("Predicate"))
+                        {
+                            delegateType = typeof(Predicate<>);
+                            methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, parametersTypes);
+                        }
+                        else if (paramTypeName.StartsWith("Converter"))
+                        {
+                            delegateType = typeof(Converter<,>);
+                            parametersTypes = parametersTypes.Concat(new Type[] { methodForDelegate.ReturnType }).ToArray();
+                        }
+                        else
+                        {
+                            delegateType = Type.GetType($"System.Func`{parametersTypes.Length + 1}");
+                            parametersTypes = parametersTypes.Concat(new Type[] { methodForDelegate.ReturnType }).ToArray();
+                        }
+
+                        delegateType = delegateType.MakeGenericType(parametersTypes);
+
+                        modifiedArgs[a] = Delegate.CreateDelegate(delegateType, methodsGroupEncaps.ContainerObject, methodForDelegate);
+
+                        if (oldMethodInfo.IsGenericMethod &&
+                            methodInfoToCast.GetGenericArguments().Length == parametersTypes.Length &&
+                            !methodInfoToCast.GetGenericArguments().SequenceEqual(parametersTypes) &&
+                            string.IsNullOrWhiteSpace(genericsTypes))
+                        {
+                            methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, parametersTypes);
+                        }
+                    }
                 }
                 else
                 {
@@ -3743,9 +3966,33 @@ namespace CodingSeb.ExpressionEvaluator
                                 if (!parameterType.GetElementType().IsAssignableFrom(modifiedArgs[a].GetType()))
                                     modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType.GetElementType());
                             }
+                            else if (modifiedArgs[a].GetType().IsArray
+                                && typeof(IEnumerable).IsAssignableFrom(parameterType)
+                                && oldMethodInfo.IsGenericMethod
+                                && string.IsNullOrWhiteSpace(genericsTypes)
+                                && methodInfoToCast.GetGenericArguments().Length == 1
+                                && !methodInfoToCast.GetGenericArguments()[0].Equals(modifiedArgs[a].GetType().GetElementType()))
+                            {
+                                methodInfoToCast = MakeConcreteMethodIfGeneric(oldMethodInfo, genericsTypes, new Type[] { modifiedArgs[a].GetType().GetElementType() });
+                            }
                             else
                             {
-                                modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
+                                if (parameterType.IsArray && modifiedArgs[a] is Array sourceArray)
+                                {
+                                    modifiedArgs[a] = typeof(Enumerable)
+                                        .GetMethod("Cast")
+                                        .MakeGenericMethod(parameterType.GetElementType())
+                                        .Invoke(null, new object[] { modifiedArgs[a] });
+
+                                    modifiedArgs[a] = typeof(Enumerable)
+                                        .GetMethod("ToArray")
+                                        .MakeGenericMethod(parameterType.GetElementType())
+                                        .Invoke(null, new object[] { modifiedArgs[a] });
+                                }
+                                else
+                                {
+                                    modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
+                                }
                             }
                         }
                     }
@@ -3753,7 +4000,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         try
                         {
-                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfo, parameterType, modifiedArgs[a], a, this, onInstance);
+                            ParameterCastEvaluationEventArg parameterCastEvaluationEventArg = new ParameterCastEvaluationEventArg(methodInfoToCast, parameterType, modifiedArgs[a], a, this, onInstance);
 
                             EvaluateParameterCast?.Invoke(this, parameterCastEvaluationEventArg);
 
@@ -4023,6 +4270,11 @@ namespace CodingSeb.ExpressionEvaluator
                 typeName = typeName.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
                 genericTypes = genericTypes.Replace(" ", "").Replace("\t", "").Replace("\r", "").Replace("\n", "");
 
+                if (primaryTypesDict.ContainsKey(OptionCaseSensitiveEvaluationActive ? typeName : typeName.ToLower()))
+                {
+                    result = primaryTypesDict[OptionCaseSensitiveEvaluationActive ? typeName : typeName.ToLower()];
+                }
+
                 if (CacheTypesResolutions && (TypesResolutionCaching?.ContainsKey(typeName + genericTypes) ?? false))
                 {
                     result = TypesResolutionCaching[typeName + genericTypes];
@@ -4038,14 +4290,6 @@ namespace CodingSeb.ExpressionEvaluator
                     }
 
                     result = Type.GetType(typeName + formatedGenericTypes, false, !OptionCaseSensitiveEvaluationActive);
-                }
-
-                if (result == null)
-                {
-                    typeName = Regex.Replace(typeName, primaryTypesRegexPattern,
-                        (Match match) => primaryTypesDict[OptionCaseSensitiveEvaluationActive ? match.Value : match.Value.ToLower()].ToString(), optionCaseSensitiveEvaluationActive ? RegexOptions.None : RegexOptions.IgnoreCase);
-
-                    result = Type.GetType(typeName, false, !OptionCaseSensitiveEvaluationActive);
                 }
 
                 if (result == null)
@@ -4100,6 +4344,10 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 NullableConverter nullableConverter = new NullableConverter(conversionType);
                 conversionType = nullableConverter.UnderlyingType;
+            }
+            if(conversionType.IsEnum)
+            {
+                return Enum.ToObject(conversionType, value);
             }
             return Convert.ChangeType(value, conversionType);
         }
@@ -4240,6 +4488,11 @@ namespace CodingSeb.ExpressionEvaluator
             public void Action0()
             {
                 lambda();
+            }
+
+            public bool Predicate<T1>(T1 arg1)
+            {
+                return (bool)lambda(arg1);
             }
 
             public void Action1<T1>(T1 arg1)
@@ -4616,6 +4869,13 @@ namespace CodingSeb.ExpressionEvaluator
         {
             Expression = expression;
         }
+    }
+
+    public partial class MethodsGroupEncaps
+    {
+        public object ContainerObject { get; set; }
+
+        public MethodInfo[] MethodsGroup { get; set; }
     }
 
     public partial class BubbleExceptionContainer
