@@ -28,6 +28,9 @@
             <WrapPanel>
                 <CheckBox x:Name="NeedSemicolonAtTheEndCheckBox"
                           Content="Need semicolon [;] At the end" />
+                <CheckBox x:Name="CaseSensitiveCheckBox"
+                          Content="Case sensitive"
+                          IsChecked="True"/>
             </WrapPanel>
             
             <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />
