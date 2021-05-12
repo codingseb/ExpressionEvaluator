@@ -678,8 +678,6 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-
-
             /// <summary>
             /// If <c>true</c> allow to create instance of object with the C# syntax new ClassName(...)<para/>
             /// If <c>false</c> unactive this functionality.
@@ -2823,38 +2821,6 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             Type staticType = EvaluateType(expression, ref i, varFuncName, genericsTypes);
 
-                            if (staticType == null && OptionsFunctionalities.OptionInlineNamespacesEvaluationActive)
-                            {
-                                int subIndex = 0;
-                                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-
-                                while (staticType == null
-                                    && namespaceMatch.Success
-                                    && !namespaceMatch.Groups["sign"].Success
-                                    && !namespaceMatch.Groups["assignationOperator"].Success
-                                    && !namespaceMatch.Groups["postfixOperator"].Success
-                                    && !namespaceMatch.Groups["isfunction"].Success
-                                    && i + subIndex < expression.Length
-                                    && !typeName.EndsWith("?"))
-                                {
-                                    subIndex += namespaceMatch.Length;
-                                    typeName += $".{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
-
-                                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
-
-                                    if (staticType != null)
-                                    {
-                                        i += subIndex;
-                                        break;
-                                    }
-
-                                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-                                }
-                            }
-
-                            if (typeName.EndsWith("?") && staticType != null)
-                                i++;
-
                             if (staticType != null)
                             {
                                 stack.Push(new ClassOrEnumType() { Type = staticType });
@@ -2901,7 +2867,7 @@ namespace CodingSeb.ExpressionEvaluator
             Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
             // For inline namespace parsing
-            if (staticType == null && OptionInlineNamespacesEvaluationActive)
+            if (staticType == null && OptionsFunctionalities.OptionInlineNamespacesEvaluationActive)
             {
                 int subIndex = 0;
                 Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
