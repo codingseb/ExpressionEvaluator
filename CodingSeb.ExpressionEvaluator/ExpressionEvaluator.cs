@@ -31,6 +31,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|((?<nullConditional>[?])?(?<inObject>\.))?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        //language=regex
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
         protected string numberRegexPattern;
 
@@ -58,9 +59,13 @@ namespace CodingSeb.ExpressionEvaluator
         protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)(?>\s*)\)"; } }
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
+        //language=regex
         protected const string blockComments = @"/\*(.*?)\*/";
+        //language=regex
         protected const string lineComments = @"//[^\r\n]*";
+        //language=regex
         protected const string stringsIgnore = @"""((\\[^\n]|[^""\n])*)""";
+        //language=regex
         protected const string verbatimStringsIgnore = @"@(""[^""]*"")+";
         protected static readonly Regex removeCommentsRegex = new Regex($"{blockComments}|{lineComments}|{stringsIgnore}|{verbatimStringsIgnore}", RegexOptions.Singleline | RegexOptions.Compiled);
         protected static readonly Regex newLineCharsRegex = new Regex(@"\r\n|\r|\n", RegexOptions.Compiled);
