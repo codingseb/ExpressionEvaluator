@@ -1373,7 +1373,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionFluidPrefixingActive = false
+                        FluidPrefixingActive = false
                     }
                 };
 
@@ -1387,7 +1387,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionCharEvaluationActive = false
+                        CharEvaluationActive = false
                     }
                 };
 
@@ -1403,7 +1403,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionStringEvaluationActive = false
+                        StringEvaluationActive = false
                     }
                 };
 
@@ -1417,7 +1417,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionNewFunctionEvaluationActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        NewFunctionEvaluationActive = false
+                    }
                 };
 
                 evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
@@ -1434,7 +1437,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionNewKeywordEvaluationActive = false
+                        NewKeywordEvaluationActive = false
                     }
                 };
 
@@ -1453,7 +1456,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionStaticMethodsCallActive = false
+                        StaticMethodsCallActive = false
                     }
                 };
 
@@ -1469,7 +1472,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionStaticPropertiesGetActive = false
+                        StaticPropertiesGetActive = false
                     }
                 };
 
@@ -1485,7 +1488,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionInstanceMethodsCallActive = false
+                        InstanceMethodsCallActive = false
                     }
                 };
 
@@ -1503,7 +1506,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionInstancePropertiesGetActive = false
+                        InstancePropertiesGetActive = false
                     }
                 };
 
@@ -1521,7 +1524,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
                     {
-                        OptionIndexingActive = false
+                        IndexingActive = false
                     }
                 };
 
@@ -1715,7 +1718,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
                     {
-                        OptionFunctionArgumentsSeparator = ";"
+                        FunctionArgumentsSeparator = ";"
                     }
                 }
                 , "Max(0,5; 0,7)"
@@ -1730,7 +1733,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionNumberParsingThousandSeparator = "'",
                     OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
                     {
-                        OptionFunctionArgumentsSeparator = ";"
+                        FunctionArgumentsSeparator = ";"
                     }
                 }
                 , "Max(1'200,5; 1'111'000,7)"
@@ -1745,7 +1748,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionNumberParsingThousandSeparator = "'",
                     OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
                     {
-                        OptionInitializersSeparator = ";"
+                        InitializersSeparator = ";"
                     }
                 }
                  , "new double[]{1'200,5; 1'111'000,7}.Max()"
@@ -2676,7 +2679,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region for issue #100 Array types in cast or typeof generate an exception
+                #region For issue #100 Array types in cast or typeof generate an exception
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     , "typeof(double[])"
@@ -2737,7 +2740,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region For multidimensional indexing
+                #region For issue #102 multidimensional indexing
 
                 yield return new TestCaseData(new ExpressionEvaluator(new Dictionary<string, object> { { "doubleIndexObject", new ClassForIndexing() } })
                     , "doubleIndexObject[2,3]"

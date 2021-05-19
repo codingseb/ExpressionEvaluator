@@ -38,7 +38,10 @@ namespace TryWindow
 
             ExpressionEvaluator evaluator = new ExpressionEvaluator()
             {
-                OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = NeedSemicolonAtTheEndCheckBox.IsChecked.GetValueOrDefault(),
+                OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                {
+                    MandatoryLastStatementTerminalPunctuator = NeedSemicolonAtTheEndCheckBox.IsChecked.GetValueOrDefault(),
+                },
                 OptionCaseSensitiveEvaluationActive = CaseSensitiveCheckBox.IsChecked.GetValueOrDefault()
             };
 

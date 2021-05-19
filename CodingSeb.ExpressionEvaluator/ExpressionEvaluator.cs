@@ -78,7 +78,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected Regex blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>[{])", RegexOptions.Compiled);
         protected Regex blockIndentationRegex = new Regex(@"^([\r\n]*(([ ]{4})+.*)([\r\n]|$)+)+", RegexOptions.Compiled);
         protected Regex blockIndentationLevelTrimRegex = new Regex("^[ ]{4}", RegexOptions.Compiled | RegexOptions.Multiline);
-        protected Regex nextIsEndOfExpressionRegex = new Regex("^(;)", RegexOptions.Compiled);
+        protected Regex nextIsStatementTerminalPunctuatorRegex = new Regex("^(;)", RegexOptions.Compiled);
         protected static readonly Regex wordTypeTokenDetectionRegex = new Regex(@"^(?>[\p{L}_0-9]+)$", RegexOptions.Compiled);
         protected static readonly Regex wordTypeTokenBoundaryValidation = new Regex(@"[^\p{L}_0-9.]", RegexOptions.Compiled);
         protected static readonly Regex foreachParenthisEvaluationRegex = new Regex(@"^(?>\s*)(?<variableName>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)(?<in>in)(?>\s*)(?<collection>.*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -93,42 +93,42 @@ namespace CodingSeb.ExpressionEvaluator
             string optional = string.Empty;
             string startBracketDetection = string.Empty;
 
-             if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any)
+             if (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any)
                 optional = "?";
 
-            if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
-                startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
+            if (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
+                startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionsSyntaxRules.BlocksKeywordsHeadStatementsStartBracket)})" + optional;
 
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, CompiledRegexOptionAndIfNecessaryIgnoreCase);
-            blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + Regex.Escape(OptionsSyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + Regex.Escape(OptionsSyntaxRules.BlockKeywordsHeadExpressionAndBlockSeparator) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected virtual void RefreshBlockStartDetection()
         {
-            blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionsSyntaxRules.OptionScriptBlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            blockBeginningRegex = new Regex(@"^(?>\s*)(?<startBracket>" + Regex.Escape(OptionsSyntaxRules.BlockStartBracket) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected virtual void RefreshIndentedBlockDetection()
         {
-            string indentRegexPattern = OptionsSyntaxRules.OptionScriptBlocksIndentation == ScriptBlocksIndentation.Tabulation ? @"\t" : "[ ]{" + OptionsSyntaxRules.OptionScriptBlocksIndentationNumberOfSpaces + "}";
+            string indentRegexPattern = OptionsSyntaxRules.BlockIndentation == BlockIndentation.Tabulation ? @"\t" : "[ ]{" + OptionsSyntaxRules.BlockIndentationNumberOfSpaces + "}";
 
             blockIndentationRegex = new Regex(@"^([\r\n]*((" + indentRegexPattern + @")+.*)([\r\n]|$)+)+", RegexOptions.Compiled);
             blockIndentationLevelTrimRegex = new Regex("^" + indentRegexPattern, RegexOptions.Compiled | RegexOptions.Multiline);
         }
 
-        protected virtual void RefreshEndOfExpressionDetection()
+        protected virtual void RefreshStatementTerminalPunctuatorDetection()
         {
-            nextIsEndOfExpressionRegex = new Regex($"^({string.Join("|", OptionsSyntaxRules.OptionScriptEndOfExpression.Select(o => Regex.Escape(o)))})", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            nextIsStatementTerminalPunctuatorRegex = new Regex($"^({string.Join("|", OptionsSyntaxRules.StatementTerminalPunctuators.Select(o => Regex.Escape(o)))})", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected virtual void RefreshInstanceCreationKeywordRegexPattern()
         {
-            instanceCreationKeywordRegex = new Regex("^(" + string.Join("|", OptionsSyntaxRules.KeywordNew.Select(o => Regex.Escape(o))) + @")(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            instanceCreationKeywordRegex = new Regex("^(" + string.Join("|", OptionsSyntaxRules.KeywordNew.Select(o => Regex.Escape(o))) + @")(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.InlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected virtual void RefreshCastRegex()
         {
-            castRegex = new Regex(@"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.OptionInlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)", RegexOptions.Compiled);
+            castRegex = new Regex(@"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.InlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"\[\]<>]*[?]?)(?>\s*)\)", RegexOptions.Compiled);
         }
 
         protected RegexOptions CompiledRegexOptionAndIfNecessaryIgnoreCase => OptionCaseSensitiveEvaluationActive ? RegexOptions.Compiled : RegexOptions.IgnoreCase | RegexOptions.Compiled;
@@ -623,12 +623,15 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Functionalities options
 
+        private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
+
         public class FunctionalitiesActivation : Options
         {
             internal override void Init()
             {
                 evaluator?.RefreshInstanceCreationKeywordRegexPattern();
                 evaluator?.RefreshCastRegex();
+                NewFunctionEvaluationActive = tempInitNewFunctionEvaluationActive;
             }
 
             /// <summary>
@@ -636,20 +639,20 @@ namespace CodingSeb.ExpressionEvaluator
             /// If <c>false</c> unactive this functionality
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionFluidPrefixingActive { get; set; } = true;
+            public bool FluidPrefixingActive { get; set; } = true;
 
-            private bool optionInlineNamespacesEvaluationActive = true;
+            private bool inlineNamespacesEvaluationActive = true;
             /// <summary>
             /// If <c>true</c> allow the use of inline namespace (Can be slow, and is less secure)<para/>
             /// If <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available)
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionInlineNamespacesEvaluationActive
+            public bool InlineNamespacesEvaluationActive
             {
-                get { return optionInlineNamespacesEvaluationActive; }
+                get { return inlineNamespacesEvaluationActive; }
                 set
                 {
-                    optionInlineNamespacesEvaluationActive = value;
+                    inlineNamespacesEvaluationActive = value;
                     evaluator?.RefreshInstanceCreationKeywordRegexPattern();
                     evaluator?.RefreshCastRegex();
                 }
@@ -660,91 +663,121 @@ namespace CodingSeb.ExpressionEvaluator
             /// If <c>false</c> unactive this functionality.
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionNewKeywordEvaluationActive { get; set; } = true;
+            public bool NewKeywordEvaluationActive { get; set; } = true;
+
+            private bool tempInitNewFunctionEvaluationActive = true;
+            /// <summary>
+            /// If <c>true</c> allow to create instance of object with the Default function new(ClassNam,...)<para/>
+            /// If <c>false</c> unactive this functionality.
+            /// <para>Default value : <c>true</c></para>
+            /// </summary>
+            public bool NewFunctionEvaluationActive
+            {
+                get
+                {
+                    return evaluator?.complexStandardFuncsDictionary.ContainsKey("new") != false;
+                }
+                set
+                {
+                    if (evaluator == null)
+                    {
+                        tempInitNewFunctionEvaluationActive = value;
+                    }
+                    else if (value && !evaluator.complexStandardFuncsDictionary.ContainsKey("new"))
+                    {
+                        evaluator.complexStandardFuncsDictionary["new"] = evaluator.newMethodMem;
+                    }
+                    else if (!value && evaluator.complexStandardFuncsDictionary.ContainsKey("new"))
+                    {
+                        evaluator.newMethodMem = evaluator.complexStandardFuncsDictionary["new"];
+                        evaluator.complexStandardFuncsDictionary.Remove("new");
+                    }
+                }
+            }
 
             /// <summary>
             /// If <c>true</c> allow to call static methods on classes.<para/>
             /// If <c>false</c> unactive this functionality.
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionStaticMethodsCallActive { get; set; } = true;
+            public bool StaticMethodsCallActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow to get static properties on classes<para/>
             /// If <c>false</c> unactive this functionality
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionStaticPropertiesGetActive { get; set; } = true;
+            public bool StaticPropertiesGetActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow to call instance methods on objects<para/>
             /// If <c>false</c> unactive this functionality
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionInstanceMethodsCallActive { get; set; } = true;
+            public bool InstanceMethodsCallActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow to get instance properties on objects<para/>
             /// If <c>false</c> unactive this functionality.
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionInstancePropertiesGetActive { get; set; } = true;
+            public bool InstancePropertiesGetActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow to get object at index or key like IndexedObject[indexOrKey]<para/>
             /// If <c>false</c> unactive this functionality.
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionIndexingActive { get; set; } = true;
+            public bool IndexingActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow string interpretation with ""<para/>
             /// If <c>false</c> unactive this functionality
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionStringEvaluationActive { get; set; } = true;
+            public bool StringEvaluationActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> allow char interpretation with ''<para/>
             /// If <c>false</c> unactive this functionality
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionCharEvaluationActive { get; set; } = true;
+            public bool CharEvaluationActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable<para/>
             /// If set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
             /// <para>Default value : <c>true</c></para>
             /// </summary>
-            public bool OptionEvaluateFunctionActive { get; set; } = true;
-
-            /// <summary>
-            /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
-            /// If <c>false</c> unactive this functionality
-            /// <para>Default value : <c>true</c></para>
-            /// </summary>
-            public bool OptionVariableAssignationActive { get; set; } = true;
-
-            /// <summary>
-            /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
-            /// If <c>false</c> unactive this functionality
-            /// <para>Default value : <c>true</c></para>
-            /// </summary>
-            public bool OptionPropertyOrFieldSetActive { get; set; } = true;
-
-            /// <summary>
-            /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
-            /// If <c>false</c> unactive this functionality
-            /// <para>Default value : <c>true</c></para>
-            /// </summary>
-            public bool OptionIndexingAssignationActive { get; set; } = true;
+            public bool EvaluateFunctionActive { get; set; } = true;
 
             /// <summary>
             /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
             /// <para>Default value : <c>true</c></para>
             /// If set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
             /// </summary>
-            public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
+            public bool ScriptEvaluateFunctionActive { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
+            /// If <c>false</c> unactive this functionality
+            /// <para>Default value : <c>true</c></para>
+            /// </summary>
+            public bool VariableAssignationActive { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
+            /// If <c>false</c> unactive this functionality
+            /// <para>Default value : <c>true</c></para>
+            /// </summary>
+            public bool PropertyOrFieldSetActive { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ??=, ++ or --)<para/>
+            /// If <c>false</c> unactive this functionality
+            /// <para>Default value : <c>true</c></para>
+            /// </summary>
+            public bool IndexingAssignationActive { get; set; } = true;
         }
 
         private FunctionalitiesActivation optionsFunctionalities;
@@ -768,6 +801,10 @@ namespace CodingSeb.ExpressionEvaluator
         #endregion
 
         #region Syntax rules options
+
+        protected bool isBlockStartBracketAWord;
+        protected bool isBlockEndBracketAWord;
+
         public class SyntaxRules : Options
         {
             internal override void Init()
@@ -775,11 +812,11 @@ namespace CodingSeb.ExpressionEvaluator
                 if (evaluator != null)
                 {
                     evaluator.RefreshInstanceCreationKeywordRegexPattern();
-                    evaluator.RefreshEndOfExpressionDetection();
+                    evaluator.RefreshStatementTerminalPunctuatorDetection();
                     evaluator.RefreshBlocksKeywordDetection();
-                    evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
+                    evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(blockStartBracket);
                     evaluator.RefreshBlockStartDetection();
-                    evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
+                    evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(blockEndBracket);
                     evaluator.RefreshIndentedBlockDetection();
                 }
             }
@@ -799,53 +836,67 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
-            private string[] optionScriptEndOfExpression = new[] { ";" };
+            private string[] statementTerminalPunctuators = new[] { ";" };
             /// <summary>
-            /// An array of string that are used to separate expressions in script
+            /// An array of string that are used to separate expressions (statements) in script
             /// <para>Default value : <c>{";"}</c></para>
             /// </summary>
-            public string[] OptionScriptEndOfExpression
+            public string[] StatementTerminalPunctuators
             {
-                get { return optionScriptEndOfExpression; }
+                get { return statementTerminalPunctuators; }
                 set
                 {
-                    optionScriptEndOfExpression = value;
-                    evaluator?.RefreshEndOfExpressionDetection();
+                    statementTerminalPunctuators = value;
+                    evaluator?.RefreshStatementTerminalPunctuatorDetection();
                 }
             }
+
+            /// <summary>
+            /// Specify to skip the evaluation of an empty expression in scripts otherwise it will throw an exception.
+            /// For example when two semicolon <c>;;</c> are present or when there are empty line with StatementTerminalPunctuators set to end of line characters <c>{ "\r\n", "\r", "\n" }</c>
+            /// <para>Default value : <c>true;</c></para>
+            /// </summary>
+            public bool SkipEmptyExpressions { get; set; } = true;
+
+            /// <summary>
+            /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] or the specified text in StatementTerminalPunctuator after each expression.<para/>
+            /// If <c>false</c> Allow to omit the OptionsSyntaxRules.StatementTerminalPunctuator for the last expression of the script.
+            /// <para>Default value : <c>true</c></para>
+            /// </summary>
+            public bool MandatoryLastStatementTerminalPunctuator { get; set; } = true;
 
             /// <summary>
             /// Allow to change the separator of functions arguments.
             /// <para>Default value : <c>","</c></para>
             /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
             /// </summary>
-            public string OptionFunctionArgumentsSeparator { get; set; } = ",";
+            public string FunctionArgumentsSeparator { get; set; } = ",";
 
             /// <summary>
             /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.
             /// <para>Default value : <c>","</c></para>
             /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
             /// </summary>
-            public string OptionInitializersSeparator { get; set; } = ",";
+            public string InitializersSeparator { get; set; } = ",";
 
             /// <summary>
             /// The separator that separate each expression in block keyword's head
             /// <para>Default value : <c>";"</c></para>
             /// <example>Example : <code>for(int i = 0; i &lt; 10; i++)</code></example>
             /// </summary>
-            public string OptionScriptBlockKeywordsHeadSubExpressionsSeparator { get; set; } = ";";
+            public string BlocksKeywordsHeadSubExpressionsSeparator { get; set; } = ";";
 
-            private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
+            private string blocksKeywordsHeadStatementsStartBracket = "(";
             /// <summary>
             /// To specify the character or string that begin the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
             /// <para>Default value : <c>"("</c></para>
             /// </summary>
-            public string OptionScriptBlocksKeywordsHeadStatementsStartBracket
+            public string BlocksKeywordsHeadStatementsStartBracket
             {
-                get { return optionScriptBlocksKeywordsHeadStatementsStartBracket; }
+                get { return blocksKeywordsHeadStatementsStartBracket; }
                 set
                 {
-                    optionScriptBlocksKeywordsHeadStatementsStartBracket = value;
+                    blocksKeywordsHeadStatementsStartBracket = value;
                     evaluator?.RefreshBlocksKeywordDetection();
                 }
             }
@@ -854,62 +905,62 @@ namespace CodingSeb.ExpressionEvaluator
             /// To specify the character or string that end the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
             /// <para>Default value : <c>")"</c></para>
             /// </summary>
-            public string OptionScriptBlocksKeywordsHeadExpressionEndBracket { get; set; } = ")";
+            public string BlocksKeywordsHeadExpressionEndBracket { get; set; } = ")";
 
             /// <summary>
             /// To specify the character or string that separate the head statements and the block statements of script blocks keywords (if, else if, for, foreach while, do.. while)
             /// <para>Default value : <c>":"</c></para>
             /// </summary>
-            public string OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator { get; set; } = ":";
+            public string BlockKeywordsHeadExpressionAndBlockSeparator { get; set; } = ":";
 
-            private SyntaxForHeadStatementInBlocksKeywords optionScriptSyntaxForHeadStatementInBlocksKeywords;
+            private SyntaxForHeadStatementInBlocksKeywords syntaxForHeadStatementInBlocksKeywords;
             /// <summary>
             /// Specify how to detect the separation between head expression and the block of code is made in script block keyword (if, else if, for, foreach while, do.. while)
             /// <para>Default value : <c>HeadBrackets</c></para>
             /// </summary>
-            public SyntaxForHeadStatementInBlocksKeywords OptionScriptSyntaxForHeadStatementInBlocksKeywords
+            public SyntaxForHeadStatementInBlocksKeywords SyntaxForHeadStatementInBlocksKeywords
             {
-                get { return optionScriptSyntaxForHeadStatementInBlocksKeywords; }
+                get { return syntaxForHeadStatementInBlocksKeywords; }
                 set
                 {
-                    optionScriptSyntaxForHeadStatementInBlocksKeywords = value;
+                    syntaxForHeadStatementInBlocksKeywords = value;
                     evaluator?.RefreshBlocksKeywordDetection();
                 }
             }
 
-            private string optionScriptBlockStartBracket = "{";
+            private string blockStartBracket = "{";
             /// <summary>
             /// To specify the character or string that start a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
             /// <para>Default value : <c>"{"</c></para>
             /// </summary>
-            public string OptionScriptBlockStartBracket
+            public string BlockStartBracket
             {
-                get { return optionScriptBlockStartBracket; }
+                get { return blockStartBracket; }
                 set
                 {
-                    optionScriptBlockStartBracket = value;
+                    blockStartBracket = value;
                     if (evaluator != null)
                     {
-                        evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
+                        evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(blockStartBracket);
                         evaluator.RefreshBlockStartDetection();
                     }
                 }
             }
 
-            private string optionScriptBlockEndBracket = "}";
+            private string blockEndBracket = "}";
             /// <summary>
             /// To specify the character or string that end a block of code used in script blocks keywords (if, else if, for, foreach while, do.. while) and multiline lambda.
             /// <para>Default value : <c>"}"</c></para>
             /// </summary>
-            public string OptionScriptBlockEndBracket
+            public string BlockEndBracket
             {
-                get { return optionScriptBlockEndBracket; }
+                get { return blockEndBracket; }
                 set
                 {
-                    optionScriptBlockEndBracket = value;
+                    blockEndBracket = value;
                     if (evaluator != null)
                     {
-                        evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
+                        evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(blockEndBracket);
                     }
                 }
             }
@@ -918,39 +969,39 @@ namespace CodingSeb.ExpressionEvaluator
             /// Specify the syntax to use to detect a block of code in script blocks keywords  (if, else if, for, foreach while, do.. while) and multiline lambda
             /// <para>Default value : <c>OptionalBracketsForStartAndEndWhenSingleStatement</c></para>
             /// </summary>
-            public SyntaxForScriptBlocksIdentifier OptionScriptSyntaxForBlocksIdentifier { get; set; }
+            public SyntaxForBlockIdentifier SyntaxForBlockIdentifier { get; set; }
 
-            private ScriptBlocksIndentation optionScriptBlocksIndentation = ScriptBlocksIndentation.Spaces;
+            private BlockIndentation blockIndentation = BlockIndentation.Spaces;
             /// <summary>
             /// Specify the kind of indentation to use when :<para/>
-            /// <c>OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation</c>
-            /// <para>When Set to Spaces ensure to set also <c>OptionScriptBlocksIndentationNumberOfSpaces</c></para>
-            /// <para>Default value : <c>ScriptBlocksIndentation.Spaces</c></para>
+            /// <c>SyntaxForBlockIdentifier = SyntaxForBlockIdentifier.Indentation</c>
+            /// <para>When Set to Spaces ensure to set also <c>BlockIndentationNumberOfSpaces</c></para>
+            /// <para>Default value : <c>BlockIndentation.Spaces</c></para>
             /// </summary>
-            public ScriptBlocksIndentation OptionScriptBlocksIndentation
+            public BlockIndentation BlockIndentation
             {
-                get { return optionScriptBlocksIndentation; }
+                get { return blockIndentation; }
                 set
                 {
-                    optionScriptBlocksIndentation = value;
+                    blockIndentation = value;
                     evaluator?.RefreshIndentedBlockDetection();
                 }
             }
 
-            private int optionScriptBlocksIndentationNumberOfSpaces = 4;
+            private int blockIndentationNumberOfSpaces = 4;
             /// <summary>
             /// Set the number of spaces to use as an indentation when : <para/>
-            /// <c>OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation</c><para/>
+            /// <c>SyntaxForBlockIdentifier = SyntaxForBlockIdentifier.Indentation</c><para/>
             /// and<para/>
-            /// <c>OptionScriptBlocksIndentation = ScriptBlocksIndentation.Spaces</c>
+            /// <c>BlockIndentation = BlockIndentation.Spaces</c>
             /// <para>Default value : <c>4</c></para>
             /// </summary>
-            public int OptionScriptBlocksIndentationNumberOfSpaces
+            public int BlockIndentationNumberOfSpaces
             {
-                get { return optionScriptBlocksIndentationNumberOfSpaces; }
+                get { return blockIndentationNumberOfSpaces; }
                 set
                 {
-                    optionScriptBlocksIndentationNumberOfSpaces = value;
+                    blockIndentationNumberOfSpaces = value;
                     evaluator?.RefreshIndentedBlockDetection();
                 }
             }
@@ -997,7 +1048,7 @@ namespace CodingSeb.ExpressionEvaluator
                 complexStandardFuncsDictionary = new Dictionary<string, Func<ExpressionEvaluator, List<string>, object>>(complexStandardFuncsDictionary, StringComparerForCasing);
                 RefreshBlockStartDetection();
                 RefreshBlocksKeywordDetection();
-                RefreshEndOfExpressionDetection();
+                RefreshStatementTerminalPunctuatorDetection();
                 RefreshInstanceCreationKeywordRegexPattern();
             }
         }
@@ -1042,7 +1093,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Allow to change the decimal separator of numbers when parsing expressions.
         /// <para>Default value : <c>"."</c></para>
-        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.<para/>
+        /// Warning if using comma change also OptionsSyntaxRules.FunctionArgumentsSeparator and OptionsSyntaxRules.InitializersSeparator otherwise it will create conflicts.<para/>
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
         public string OptionNumberParsingDecimalSeparator
@@ -1068,7 +1119,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// Allow to change the thousand separator of numbers when parsing expressions.
         /// <para>Default value : <c>string.Empty</c></para>
-        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.<para/>
+        /// Warning if using comma change also OptionsSyntaxRules.FunctionArgumentsSeparator and OptionsSyntaxRules.InitializersSeparator otherwise it will create conflicts.<para/>
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
         public string OptionNumberParsingThousandSeparator
@@ -1089,35 +1140,6 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected bool isBlockStartBracketAWord;
-        protected bool isBlockEndBracketAWord;
-        private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
-
-        /// <summary>
-        /// If <c>true</c> allow to create instance of object with the Default function new(ClassNam,...)<para/>
-        /// If <c>false</c> unactive this functionality.
-        /// <para>Default value : <c>true</c></para>
-        /// </summary>
-        public bool OptionNewFunctionEvaluationActive
-        {
-            get
-            {
-                return complexStandardFuncsDictionary.ContainsKey("new");
-            }
-            set
-            {
-                if (value && !complexStandardFuncsDictionary.ContainsKey("new"))
-                {
-                    complexStandardFuncsDictionary["new"] = newMethodMem;
-                }
-                else if (!value && complexStandardFuncsDictionary.ContainsKey("new"))
-                {
-                    newMethodMem = complexStandardFuncsDictionary["new"];
-                    complexStandardFuncsDictionary.Remove("new");
-                }
-            }
-        }
-
         /// <summary>
         /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met<para/>
         /// If <c>ReturnNull</c> return null if no return keyword is met<para/>
@@ -1125,20 +1147,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// <para>Default value : <c>ReturnAutomaticallyLastEvaluatedExpression;</c></para>
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; }
-
-        /// <summary>
-        /// Specify to skip the evaluation of an empty expression in scripts otherwise it will throw an exception.
-        /// For example when two semicolon ;; are present or when there are empty line with OptionScriptEndOfExpression set to end of line characters { "\r\n", "\r", "\n" }
-        /// <para>Default value : <c>true;</c></para>
-        /// </summary>
-        public bool OptionScriptSkipEmptyExpressions { get; set; } = true;
-
-        /// <summary>
-        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] or the specified text in OptionScriptEndOfExpression after each expression.<para/>
-        /// If <c>false</c> Allow to omit the OptionScriptEndOfExpression for the last expression of the script.
-        /// <para>Default value : <c>true</c></para>
-        /// </summary>
-        public bool OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)<para/>
@@ -1416,21 +1424,21 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (blockKeywordsBeginingMatch.Success)
                     {
-                        if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
-                            || (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any && !blockKeywordsBeginingMatch.Groups["startBracket"].Success))
+                        if (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                            || (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Any && !blockKeywordsBeginingMatch.Groups["startBracket"].Success))
                         {
-                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadSubExpressionsSeparator, null, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator);
+                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.BlocksKeywordsHeadSubExpressionsSeparator, null, OptionsSyntaxRules.BlockKeywordsHeadExpressionAndBlockSeparator);
                         }
                         else
                         {
-                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadSubExpressionsSeparator, OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket, OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket);
+                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.BlocksKeywordsHeadSubExpressionsSeparator, OptionsSyntaxRules.BlocksKeywordsHeadStatementsStartBracket, OptionsSyntaxRules.BlocksKeywordsHeadExpressionEndBracket);
 
-                            if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.HeadBrackets)
+                            if (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.HeadBrackets)
                             {
                                 Match blockKeywordsHeadAndBodySeparatorMatch = blockKeywordsHeadAndBodySeparatorRegex.Match(script.Substring(i + 1));
 
-                                if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Both && !blockKeywordsHeadAndBodySeparatorMatch.Success)
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"A Separator Token [{OptionsSyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator}] was expected after the [{keyword}] keyword head expression");
+                                if (OptionsSyntaxRules.SyntaxForHeadStatementInBlocksKeywords == SyntaxForHeadStatementInBlocksKeywords.Both && !blockKeywordsHeadAndBodySeparatorMatch.Success)
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"A Separator Token [{OptionsSyntaxRules.BlockKeywordsHeadExpressionAndBlockSeparator}] was expected after the [{keyword}] keyword head expression");
 
                                 i += blockKeywordsHeadAndBodySeparatorMatch.Length;
                             }
@@ -1441,7 +1449,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     string subScript = string.Empty;
 
-                    if (OptionsSyntaxRules.OptionScriptSyntaxForBlocksIdentifier == SyntaxForScriptBlocksIdentifier.Indentation)
+                    if (OptionsSyntaxRules.SyntaxForBlockIdentifier == SyntaxForBlockIdentifier.Indentation)
                     {
                         Match blockIndentationMatch = blockIndentationRegex.Match(script.Substring(i));
                         if (blockIndentationMatch.Success)
@@ -1470,8 +1478,8 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            if (OptionsSyntaxRules.OptionScriptSyntaxForBlocksIdentifier == SyntaxForScriptBlocksIdentifier.MandatoryBracketsForStartAndEnd)
-                                throw new ExpressionEvaluatorSyntaxErrorException($"$A block of code must be defined between \"{OptionsSyntaxRules.OptionScriptBlockStartBracket}\" and \"{OptionsSyntaxRules.OptionScriptBlockEndBracket}\" after a [{keyword}] keyword");
+                            if (OptionsSyntaxRules.SyntaxForBlockIdentifier == SyntaxForBlockIdentifier.MandatoryBracketsForStartAndEnd)
+                                throw new ExpressionEvaluatorSyntaxErrorException($"$A block of code must be defined between \"{OptionsSyntaxRules.BlockStartBracket}\" and \"{OptionsSyntaxRules.BlockEndBracket}\" after a [{keyword}] keyword");
 
                             bool continueExpressionParsing = true;
                             startOfExpression = i;
@@ -1479,15 +1487,15 @@ namespace CodingSeb.ExpressionEvaluator
                             while (i < script.Length && continueExpressionParsing)
                             {
                                 if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
-                                else if (script.Length - i >= 3 && OptionsSyntaxRules.OptionScriptEndOfExpression.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
+                                else if (script.Length - i >= 3 && OptionsSyntaxRules.StatementTerminalPunctuators.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
                                 {
                                     i += 2;
                                 }
-                                else if (nextIsEndOfExpressionRegex.IsMatch(script.Substring(i)))
+                                else if (nextIsStatementTerminalPunctuatorRegex.IsMatch(script.Substring(i)))
                                 {
                                     subScript = script.Substring(startOfExpression, i + 1 - startOfExpression);
                                     continueExpressionParsing = false;
-                                    i += OptionsSyntaxRules.OptionScriptEndOfExpression.Length - 1;
+                                    i += OptionsSyntaxRules.StatementTerminalPunctuators.Length - 1;
                                 }
 
                                 i++;
@@ -1568,13 +1576,13 @@ namespace CodingSeb.ExpressionEvaluator
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.Equals("while", StringComparisonForCasing))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
-                                keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadSubExpressionsSeparator);
+                                keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.BlocksKeywordsHeadSubExpressionsSeparator);
 
                                 i++;
 
                                 Match nextIsEndOfExpressionMatch;
 
-                                if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
+                                if ((nextIsEndOfExpressionMatch = nextIsStatementTerminalPunctuatorRegex.Match(script.Substring(i))).Success)
                                 {
                                     i += nextIsEndOfExpressionMatch.Length;
 
@@ -1596,7 +1604,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"A [{OptionsSyntaxRules.OptionScriptEndOfExpression}] is missing. (After the do while condition)");
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"A [{OptionsSyntaxRules.StatementTerminalPunctuators}] is missing. (After the do while condition)");
                                 }
                             }
                             else
@@ -1689,11 +1697,11 @@ namespace CodingSeb.ExpressionEvaluator
                     Match nextIsEndOfExpressionMatch;
 
                     if (TryParseStringAndParenthesesAndCurlyBrackets(script, ref i)) { }
-                    else if (script.Length - i >= 3 && OptionsSyntaxRules.OptionScriptEndOfExpression.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
+                    else if (script.Length - i >= 3 && OptionsSyntaxRules.StatementTerminalPunctuators.Any(o => o.Length == 1 && script.Substring(i, 3).Equals($"'{o}'")))
                     {
                         i += 2;
                     }
-                    else if ((nextIsEndOfExpressionMatch = nextIsEndOfExpressionRegex.Match(script.Substring(i))).Success)
+                    else if ((nextIsEndOfExpressionMatch = nextIsStatementTerminalPunctuatorRegex.Match(script.Substring(i))).Success)
                     {
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
                         i += nextIsEndOfExpressionMatch.Length - 1;
@@ -1701,7 +1709,7 @@ namespace CodingSeb.ExpressionEvaluator
                         executed = true;
                     }
 
-                    if (!OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression && i == script.Length - 1 && !executed)
+                    if (!OptionsSyntaxRules.MandatoryLastStatementTerminalPunctuator && i == script.Length - 1 && !executed)
                     {
                         i++;
                         lastResult = ScriptExpressionEvaluate(script, ref startOfExpression, ref i, ref isBreak, ref isContinue, ref isReturn, lastResult);
@@ -1711,13 +1719,13 @@ namespace CodingSeb.ExpressionEvaluator
                     ifBlockEvaluatedState = IfBlockEvaluatedState.NoBlockEvaluated;
                     tryBlockEvaluatedState = TryBlockEvaluatedState.NoBlockEvaluated;
 
-                    if (OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression || i < script.Length)
+                    if (OptionsSyntaxRules.MandatoryLastStatementTerminalPunctuator || i < script.Length)
                         i++;
                 }
             }
 
-            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression)
-                throw new ExpressionEvaluatorSyntaxErrorException($"An end of expression [{string.Join(",", OptionsSyntaxRules.OptionScriptEndOfExpression.Select(s => "\"" + Regex.Escape(s) + "\""))}] token is missing.");
+            if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionsSyntaxRules.MandatoryLastStatementTerminalPunctuator)
+                throw new ExpressionEvaluatorSyntaxErrorException($"An end of expression [{string.Join(",", OptionsSyntaxRules.StatementTerminalPunctuators.Select(s => "\"" + Regex.Escape(s) + "\""))}] token is missing.");
 
             ExecuteBlocksStacks();
 
@@ -1841,7 +1849,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             startOfExpression = index + 1;
 
-            if (OptionScriptSkipEmptyExpressions && string.IsNullOrWhiteSpace(expression))
+            if (OptionsSyntaxRules.SkipEmptyExpressions && string.IsNullOrWhiteSpace(expression))
                 return lastResult;
             else
                 return ManageJumpStatementsOrExpressionEval(expression, ref isBreak, ref isContinue, ref isReturn, lastResult);
@@ -1899,9 +1907,9 @@ namespace CodingSeb.ExpressionEvaluator
                 index++;
                 GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
             }
-            else if (script.Substring(index).StartsWith(OptionsSyntaxRules.OptionScriptBlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, index - 1, index + OptionsSyntaxRules.OptionScriptBlockStartBracket.Length)))
+            else if (script.Substring(index).StartsWith(OptionsSyntaxRules.BlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(script, index - 1, index + OptionsSyntaxRules.BlockStartBracket.Length)))
             {
-                index += OptionsSyntaxRules.OptionScriptBlockStartBracket.Length;
+                index += OptionsSyntaxRules.BlockStartBracket.Length;
                 GetScriptBetweenBlockBrackets(script, ref index);
             }
             else
@@ -2090,7 +2098,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual bool EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
         {
-            if (!OptionsFunctionalities.OptionNewKeywordEvaluationActive)
+            if (!OptionsFunctionalities.NewKeywordEvaluationActive)
                 return false;
 
             Match instanceCreationMatch = instanceCreationKeywordRegex.Match(expression.Substring(i));
@@ -2128,7 +2136,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object element = new ExpandoObject();
 
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionInitializersSeparator, "{", "}");
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
 
                     InitSimpleObject(element, initArgs);
 
@@ -2163,7 +2171,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 int subIndex = subExpr.IndexOf("{") + 1;
 
-                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionsSyntaxRules.OptionInitializersSeparator, "{", "}");
+                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
 
                                 if (subArgs.Count == 2)
                                 {
@@ -2185,7 +2193,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (instanceCreationMatch.Groups["isfunction"].Success)
                     {
-                        List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionFunctionArgumentsSeparator);
+                        List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.FunctionArgumentsSeparator);
                         i++;
 
                         List<object> cArgs = constructorArgs.ConvertAll(Evaluate);
@@ -2198,7 +2206,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += blockBeginningMatch.Length;
 
-                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionInitializersSeparator, "{", "}");
+                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
 
                             Init(element, initArgs);
                         }
@@ -2213,7 +2221,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         object element = Activator.CreateInstance(type, new object[0]);
 
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionInitializersSeparator, "{", "}");
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
 
                         Init(element, initArgs);
 
@@ -2221,7 +2229,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (instanceCreationMatch.Groups["isArray"].Success)
                     {
-                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionInitializersSeparator, "[", "]");
+                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "[", "]");
                         i++;
                         Array array = null;
 
@@ -2236,7 +2244,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += initInNewBeginningMatch.Length;
 
-                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionInitializersSeparator, "{", "}");
+                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
 
                             if (array == null)
                                 array = Array.CreateInstance(type, arrayElements.Count);
@@ -2285,7 +2293,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.OptionFunctionArgumentsSeparator);
+                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.FunctionArgumentsSeparator);
 
                     if (inObject
                         || Context?.GetType()
@@ -2382,9 +2390,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
-                                    if (!OptionsFunctionalities.OptionStaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
+                                    if (!OptionsFunctionalities.StaticMethodsCallActive && (flag & BindingFlags.Static) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
-                                    if (!OptionsFunctionalities.OptionInstanceMethodsCallActive && (flag & BindingFlags.Instance) != 0)
+                                    if (!OptionsFunctionalities.InstanceMethodsCallActive && (flag & BindingFlags.Instance) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                     // Standard Instance or public method find
@@ -2620,9 +2628,9 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     BindingFlags flag = DetermineInstanceOrStatic(ref objType, ref obj, ref valueTypeNestingTrace);
 
-                                    if (!OptionsFunctionalities.OptionStaticPropertiesGetActive && (flag & BindingFlags.Static) != 0)
+                                    if (!OptionsFunctionalities.StaticPropertiesGetActive && (flag & BindingFlags.Static) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
-                                    if (!OptionsFunctionalities.OptionInstancePropertiesGetActive && (flag & BindingFlags.Instance) != 0)
+                                    if (!OptionsFunctionalities.InstancePropertiesGetActive && (flag & BindingFlags.Instance) != 0)
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Field named \"{varFuncName}\".");
 
                                     bool isDynamic = (flag & BindingFlags.Instance) != 0 && obj is IDynamicMetaObjectProvider && obj is IDictionary<string, object>;
@@ -2693,7 +2701,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         stack.Push(varValue);
                                     }
 
-                                    if (OptionsFunctionalities.OptionPropertyOrFieldSetActive)
+                                    if (OptionsFunctionalities.PropertyOrFieldSetActive)
                                     {
                                         if (varFuncMatch.Groups["assignationOperator"].Success)
                                         {
@@ -2801,7 +2809,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                             stack.Push(cusVarValueToPush);
 
-                            if (OptionsFunctionalities.OptionVariableAssignationActive)
+                            if (OptionsFunctionalities.VariableAssignationActive)
                             {
                                 bool assign = true;
 
@@ -2888,7 +2896,7 @@ namespace CodingSeb.ExpressionEvaluator
             Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
             // For inline namespace parsing
-            if (staticType == null && OptionsFunctionalities.OptionInlineNamespacesEvaluationActive)
+            if (staticType == null && OptionsFunctionalities.InlineNamespacesEvaluationActive)
             {
                 int subIndex = 0;
                 Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
@@ -2969,7 +2977,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual bool EvaluateChar(string expression, Stack<object> stack, ref int i)
         {
-            if (!OptionsFunctionalities.OptionCharEvaluationActive)
+            if (!OptionsFunctionalities.CharEvaluationActive)
                 return false;
 
             string s = expression.Substring(i, 1);
@@ -3137,7 +3145,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual bool EvaluateIndexing(string expression, Stack<object> stack, ref int i)
         {
-            if (!OptionsFunctionalities.OptionIndexingActive)
+            if (!OptionsFunctionalities.IndexingActive)
                 return false;
 
             Match indexingBeginningMatch = indexingBeginningRegex.Match(expression.Substring(i));
@@ -3237,7 +3245,7 @@ namespace CodingSeb.ExpressionEvaluator
                             return left[oIndexingArgs[0]];
                     }
 
-                    if (OptionsFunctionalities.OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                    if (OptionsFunctionalities.IndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
                     {
                         i += assignationOrPostFixOperatorMatch.Length + 1;
 
@@ -3296,7 +3304,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual bool EvaluateString(string expression, Stack<object> stack, ref int i)
         {
-            if (!OptionsFunctionalities.OptionStringEvaluationActive)
+            if (!OptionsFunctionalities.StringEvaluationActive)
                 return false;
 
             Match stringBeginningMatch = stringBeginningRegex.Match(expression.Substring(i));
@@ -3740,7 +3748,7 @@ namespace CodingSeb.ExpressionEvaluator
             List<object> modifiedArgs = new List<object>(args);
             Type typeCopy = type;
 
-            if (OptionsFunctionalities.OptionFluidPrefixingActive
+            if (OptionsFunctionalities.FluidPrefixingActive
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
                     || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
@@ -4203,15 +4211,15 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     s = parentScript.Substring(index);
 
-                    if (s.StartsWith(OptionsSyntaxRules.OptionScriptBlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionsSyntaxRules.OptionScriptBlockStartBracket.Length)))
+                    if (s.StartsWith(OptionsSyntaxRules.BlockStartBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionsSyntaxRules.BlockStartBracket.Length)))
                     {
                         bracketCount++;
-                        index += OptionsSyntaxRules.OptionScriptBlockStartBracket.Length - 1;
+                        index += OptionsSyntaxRules.BlockStartBracket.Length - 1;
                     }
-                    else if (s.StartsWith(OptionsSyntaxRules.OptionScriptBlockEndBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionsSyntaxRules.OptionScriptBlockEndBracket.Length)))
+                    else if (s.StartsWith(OptionsSyntaxRules.BlockEndBracket) && (!isBlockStartBracketAWord || ValidateKeywordBoundaries(parentScript, index - 1, index + OptionsSyntaxRules.BlockEndBracket.Length)))
                     {
                         bracketCount--;
-                        index += OptionsSyntaxRules.OptionScriptBlockEndBracket.Length - 1;
+                        index += OptionsSyntaxRules.BlockEndBracket.Length - 1;
                         if (bracketCount == 0)
                             break;
                     }
@@ -4226,7 +4234,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string beVerb = bracketCount == 1 ? "is" : "are";
                 string singularPlurial = bracketCount == 1 ? "" : "s";
-                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} [{OptionsSyntaxRules.OptionScriptBlockEndBracket}] (end of block) token{singularPlurial} {beVerb} missing in script at : [{index}]");
+                throw new ExpressionEvaluatorSyntaxErrorException($"{bracketCount} [{OptionsSyntaxRules.BlockEndBracket}] (end of block) token{singularPlurial} {beVerb} missing in script at : [{index}]");
             }
 
             return currentScript;
@@ -4244,13 +4252,13 @@ namespace CodingSeb.ExpressionEvaluator
                 Match internalStringMatch = stringBeginningRegex.Match(subExpr);
                 Match internalCharMatch = internalCharRegex.Match(subExpr);
 
-                if (OptionsFunctionalities.OptionStringEvaluationActive && internalStringMatch.Success)
+                if (OptionsFunctionalities.StringEvaluationActive && internalStringMatch.Success)
                 {
                     string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expression.Substring(i + internalStringMatch.Length), internalStringMatch);
                     currentExpression += innerString;
                     i += innerString.Length - 1;
                 }
-                else if (OptionsFunctionalities.OptionCharEvaluationActive && internalCharMatch.Success)
+                else if (OptionsFunctionalities.CharEvaluationActive && internalCharMatch.Success)
                 {
                     currentExpression += internalCharMatch.Value;
                     i += internalCharMatch.Length - 1;
@@ -4329,11 +4337,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 result = complexFunc(this, args);
             }
-            else if (OptionsFunctionalities.OptionEvaluateFunctionActive && name.Equals("Evaluate", StringComparisonForCasing))
+            else if (OptionsFunctionalities.EvaluateFunctionActive && name.Equals("Evaluate", StringComparisonForCasing))
             {
                 result = Evaluate((string)Evaluate(args[0]));
             }
-            else if (OptionsFunctionalities.OptionScriptEvaluateFunctionActive && name.Equals("ScriptEvaluate", StringComparisonForCasing))
+            else if (OptionsFunctionalities.ScriptEvaluateFunctionActive && name.Equals("ScriptEvaluate", StringComparisonForCasing))
             {
                 bool oldInScript = inScript;
                 result = ScriptEvaluate((string)Evaluate(args[0]));
@@ -4769,14 +4777,14 @@ namespace CodingSeb.ExpressionEvaluator
         Any
     }
 
-    public enum SyntaxForScriptBlocksIdentifier
+    public enum SyntaxForBlockIdentifier
     {
         OptionalBracketsForStartAndEndWhenSingleStatement,
         MandatoryBracketsForStartAndEnd,
         Indentation
     }
 
-    public enum ScriptBlocksIndentation
+    public enum BlockIndentation
     {
         Tabulation,
         Spaces
