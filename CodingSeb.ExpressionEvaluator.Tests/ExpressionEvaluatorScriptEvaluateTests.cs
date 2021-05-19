@@ -1433,20 +1433,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator01 = new ExpressionEvaluator()
                 {
-                    OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    },
                     OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false
                 };
 
                 yield return new TestCaseData(Resources.Script0074, flexibleScriptSyntaxEvaluator01, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptEndOfExpression))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptEndOfExpression))
                     .SetCategory(nameof(ExpressionEvaluator.OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression))
                     .Returns(8);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0075.Replace("[infos]", nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)), flexibleScriptSyntaxEvaluator02, null, null, null)
@@ -1481,7 +1487,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator03 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Any
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Any
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0075.Replace("[infos]", nameof(SyntaxForHeadStatementInBlocksKeywords.Any)), flexibleScriptSyntaxEvaluator03, null, null, null)
@@ -1528,7 +1537,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator04 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0077.Replace("[infos]", nameof(SyntaxForHeadStatementInBlocksKeywords.Both)), flexibleScriptSyntaxEvaluator04, null, null, null)
@@ -1551,103 +1563,121 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator05 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlocksKeywordsHeadStatementsStartBracket = "|",
-                    OptionScriptBlocksKeywordsHeadExpressionEndBracket = "|"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptBlocksKeywordsHeadStatementsStartBracket = "|",
+                        OptionScriptBlocksKeywordsHeadExpressionEndBracket = "|"
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0082, flexibleScriptSyntaxEvaluator05, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 yield return new TestCaseData(Resources.Script0083, flexibleScriptSyntaxEvaluator05, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator06 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlocksKeywordsHeadStatementsStartBracket = "{",
-                    OptionScriptBlocksKeywordsHeadExpressionEndBracket = "}"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptBlocksKeywordsHeadStatementsStartBracket = "{",
+                        OptionScriptBlocksKeywordsHeadExpressionEndBracket = "}"
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0084, flexibleScriptSyntaxEvaluator06, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 yield return new TestCaseData(Resources.Script0085, flexibleScriptSyntaxEvaluator06, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator07 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlocksKeywordsHeadStatementsStartBracket = "<[",
-                    OptionScriptBlocksKeywordsHeadExpressionEndBracket = "]>"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptBlocksKeywordsHeadStatementsStartBracket = "<[",
+                        OptionScriptBlocksKeywordsHeadExpressionEndBracket = "]>"
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0086, flexibleScriptSyntaxEvaluator07, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 yield return new TestCaseData(Resources.Script0087, flexibleScriptSyntaxEvaluator07, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket))
                     .Returns(20);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator08 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "=>",
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "=>",
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0088, flexibleScriptSyntaxEvaluator08, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
                     .Returns(20);
 
                 yield return new TestCaseData(Resources.Script0089, flexibleScriptSyntaxEvaluator08, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
                     .Returns(20);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator09 = new ExpressionEvaluator()
                 {
-                    OptionScriptBlockStartBracket = "(",
-                    OptionScriptBlockEndBracket = ")"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptBlockStartBracket = "(",
+                        OptionScriptBlockEndBracket = ")"
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0090, flexibleScriptSyntaxEvaluator09, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockEndBracket))
                     .Returns(20);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator10 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
-                    OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "then",
-                    OptionScriptBlockStartBracket = "begin",
-                    OptionScriptBlockEndBracket = "end"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
+                        OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator = "then",
+                        OptionScriptBlockStartBracket = "begin",
+                        OptionScriptBlockEndBracket = "end"
+                    }
                 };
 
                 flexibleScriptSyntaxEvaluator10.ImbricableBracketsPairing["begin"] = "end";
@@ -1655,9 +1685,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(Resources.Script0091, flexibleScriptSyntaxEvaluator10, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockEndBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
                     .SetCategory("PascalSyntax")
                     .Returns(20);
@@ -1665,9 +1695,9 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(Resources.Script0092, flexibleScriptSyntaxEvaluator10, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockEndBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
                     .SetCategory("PascalSyntax")
                     .Returns(20);
@@ -1675,28 +1705,37 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(Resources.Script0093, flexibleScriptSyntaxEvaluator10, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockStartBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockEndBracket))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockStartBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockEndBracket))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator))
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
                     .SetCategory("PascalSyntax")
                     .Returns(20);
 
-                yield return new TestCaseData(Resources.Script0094, new ExpressionEvaluator() {OptionNewKeywordAliases = new[] { "->" } }, null, null, null)
+                yield return new TestCaseData(Resources.Script0094, new ExpressionEvaluator() { OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules() { KeywordNew = new[] { "->" } } }, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionNewKeywordAliases))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.KeywordNew))
                     .Returns(2);
 
-                yield return new TestCaseData(Resources.Script0095, new ExpressionEvaluator() {OptionNewKeywordAliases = new[] { "new", "create" } }, null, null, null)
+                yield return new TestCaseData(Resources.Script0095, new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            KeywordNew = new[] { "new", "create" }
+                        }
+                    }, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("FlexibleScriptSyntax")
-                    .SetCategory(nameof(ExpressionEvaluator.OptionNewKeywordAliases))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.KeywordNew))
                     .Returns(12);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator11 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0096, flexibleScriptSyntaxEvaluator11, null, null, null)
@@ -1708,8 +1747,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator12 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
-                    OptionScriptBlocksIndentation = ScriptBlocksIndentation.Tabulation
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                        OptionScriptBlocksIndentation = ScriptBlocksIndentation.Tabulation
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0097, flexibleScriptSyntaxEvaluator12, null, null, null)
@@ -1721,8 +1763,11 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator13 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
-                    OptionScriptBlocksIndentationNumberOfSpaces = 2
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                        OptionScriptBlocksIndentationNumberOfSpaces = 2
+                    }
                 };
 
                 yield return new TestCaseData(Resources.Script0098, flexibleScriptSyntaxEvaluator13, null, null, null)
@@ -1730,14 +1775,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("FlexibleScriptSyntax")
                     .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
                     .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Spaces))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptBlocksIndentationNumberOfSpaces))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptBlocksIndentationNumberOfSpaces))
                     .Returns(24);
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator14 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
-                    OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForBlocksIdentifier = SyntaxForScriptBlocksIdentifier.Indentation,
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock,
+                        OptionScriptEndOfExpression = new string[] { "\r\n", "\r", "\n" },
+                    },
                     OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression = false,
                 };
 
@@ -1747,7 +1795,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory(nameof(SyntaxForScriptBlocksIdentifier.Indentation))
                     .SetCategory("Indentation : " + nameof(ScriptBlocksIndentation.Spaces))
                     .SetCategory(nameof(SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock))
-                    .SetCategory(nameof(ExpressionEvaluator.OptionScriptEndOfExpression))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.OptionScriptEndOfExpression))
                     .SetCategory(nameof(ExpressionEvaluator.OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression))
                     .SetCategory("PythonSyntax")
                     .Returns(24);
@@ -1912,7 +1960,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator01 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.HeadBrackets
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.HeadBrackets
+                    }
                 };
 
                 yield return new TestCaseData(flexibleScriptSyntaxEvaluator01, Resources.Script0075.Replace("[infos]", "HeadBrackets"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
@@ -1947,7 +1998,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator02 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock
+                    }
                 };
 
                 yield return new TestCaseData(flexibleScriptSyntaxEvaluator02, Resources.Script0079.Replace("[infos]", "SeparatorBetweenHeadAndBlock"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)
@@ -1964,7 +2018,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 ExpressionEvaluator flexibleScriptSyntaxEvaluator03 = new ExpressionEvaluator()
                 {
-                    OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionScriptSyntaxForHeadStatementInBlocksKeywords = SyntaxForHeadStatementInBlocksKeywords.Both
+                    }
                 };
 
                 yield return new TestCaseData(flexibleScriptSyntaxEvaluator03, Resources.Script0075.Replace("[infos]", "Both"), typeof(ExpressionEvaluatorSyntaxErrorException), null, null)

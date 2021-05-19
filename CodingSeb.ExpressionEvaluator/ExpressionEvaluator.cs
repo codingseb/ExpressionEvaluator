@@ -91,7 +91,7 @@ namespace CodingSeb.ExpressionEvaluator
                 optional = "?";
 
             if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.SeparatorBetweenHeadAndBlock)
-                startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
+                startBracketDetection = $"(?<startBracket>{Regex.Escape(OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket)})" + optional;
 
             blockKeywordsBeginningRegex = new Regex(@"^(?>\s*)(?<keyword>while|for|foreach|if|else(?>\s*)if|catch)(?>\s*)" + startBracketDetection, CompiledRegexOptionAndIfNecessaryIgnoreCase);
             blockKeywordsHeadAndBodySeparatorRegex = new Regex(@"^(?>\s*)(?<Separator>" + Regex.Escape(OptionsSyntaxRules.OptionScriptBlockKeywordsHeadExpressionAndBlockSeparator) + ")", CompiledRegexOptionAndIfNecessaryIgnoreCase);
@@ -641,18 +641,25 @@ namespace CodingSeb.ExpressionEvaluator
         {
             protected ExpressionEvaluator evaluator;
 
-            protected Options(ExpressionEvaluator evaluator)
+            internal void SetEvaluator(ExpressionEvaluator evaluator)
             {
                 this.evaluator = evaluator;
             }
+
+            internal virtual void Init() { }
         }
 
         #endregion
 
         #region Functionalities options
+
         public class FunctionalitiesActivation : Options
         {
-            public FunctionalitiesActivation(ExpressionEvaluator evaluator) : base(evaluator) { }
+            internal override void Init()
+            {
+                evaluator?.RefreshInstanceCreationKeywordRegexPattern();
+                evaluator?.RefreshCastRegex();
+            }
 
             /// <summary>
             /// If <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call<para/>
@@ -673,8 +680,8 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionInlineNamespacesEvaluationActive = value;
-                    evaluator.RefreshInstanceCreationKeywordRegexPattern();
-                    evaluator.RefreshCastRegex();
+                    evaluator?.RefreshInstanceCreationKeywordRegexPattern();
+                    evaluator?.RefreshCastRegex();
                 }
             }
 
@@ -770,17 +777,43 @@ namespace CodingSeb.ExpressionEvaluator
             public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
         }
 
+        private FunctionalitiesActivation optionsFunctionalities;
         /// <summary>
         /// Options to activate or block functionalities of ExpressionEvaluator
         /// </summary>
-        public FunctionalitiesActivation OptionsFunctionalities { get; private set; }
+        public FunctionalitiesActivation OptionsFunctionalities
+        {
+            get { return optionsFunctionalities; }
+            set
+            {
+                if (value != null)
+                {
+                    optionsFunctionalities = value;
+                    optionsFunctionalities.SetEvaluator(this);
+                    optionsFunctionalities.Init();
+                }
+
+            }
+        }
 
         #endregion
 
         #region Syntax rules options
         public class SyntaxRules : Options
         {
-            public SyntaxRules(ExpressionEvaluator evaluator) : base(evaluator) { }
+            internal override void Init()
+            {
+                if (evaluator != null)
+                {
+                    evaluator.RefreshInstanceCreationKeywordRegexPattern();
+                    evaluator.RefreshEndOfExpressionDetection();
+                    evaluator.RefreshBlocksKeywordDetection();
+                    evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
+                    evaluator.RefreshBlockStartDetection();
+                    evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
+                    evaluator.RefreshIndentedBlockDetection();
+                }
+            }
 
             private string[] keywordNew = new[] { "new" };
             /// <summary>
@@ -793,7 +826,7 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     keywordNew = value;
-                    evaluator.RefreshInstanceCreationKeywordRegexPattern();
+                    evaluator?.RefreshInstanceCreationKeywordRegexPattern();
                 }
             }
 
@@ -808,7 +841,7 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptEndOfExpression = value;
-                    evaluator.RefreshEndOfExpressionDetection();
+                    evaluator?.RefreshEndOfExpressionDetection();
                 }
             }
 
@@ -833,6 +866,21 @@ namespace CodingSeb.ExpressionEvaluator
             /// </summary>
             public string OptionScriptBlockKeywordsHeadSubExpressionsSeparator { get; set; } = ";";
 
+            private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
+            /// <summary>
+            /// To specify the character or string that begin the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
+            /// <para>Default value : <c>"("</c></para>
+            /// </summary>
+            public string OptionScriptBlocksKeywordsHeadStatementsStartBracket
+            {
+                get { return optionScriptBlocksKeywordsHeadStatementsStartBracket; }
+                set
+                {
+                    optionScriptBlocksKeywordsHeadStatementsStartBracket = value;
+                    evaluator?.RefreshBlocksKeywordDetection();
+                }
+            }
+
             /// <summary>
             /// To specify the character or string that end the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
             /// <para>Default value : <c>")"</c></para>
@@ -856,7 +904,7 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptSyntaxForHeadStatementInBlocksKeywords = value;
-                    evaluator.RefreshBlocksKeywordDetection();
+                    evaluator?.RefreshBlocksKeywordDetection();
                 }
             }
 
@@ -871,8 +919,11 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptBlockStartBracket = value;
-                    evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
-                    evaluator.RefreshBlockStartDetection();
+                    if (evaluator != null)
+                    {
+                        evaluator.isBlockStartBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockStartBracket);
+                        evaluator.RefreshBlockStartDetection();
+                    }
                 }
             }
 
@@ -887,7 +938,10 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptBlockEndBracket = value;
-                    evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
+                    if (evaluator != null)
+                    {
+                        evaluator.isBlockEndBracketAWord = wordTypeTokenDetectionRegex.IsMatch(optionScriptBlockEndBracket);
+                    }
                 }
             }
 
@@ -910,7 +964,7 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptBlocksIndentation = value;
-                    evaluator.RefreshIndentedBlockDetection();
+                    evaluator?.RefreshIndentedBlockDetection();
                 }
             }
 
@@ -928,15 +982,28 @@ namespace CodingSeb.ExpressionEvaluator
                 set
                 {
                     optionScriptBlocksIndentationNumberOfSpaces = value;
-                    evaluator.RefreshIndentedBlockDetection();
+                    evaluator?.RefreshIndentedBlockDetection();
                 }
             }
         }
 
+        private SyntaxRules optionsSyntaxRules;
         /// <summary>
         /// Options to modify specific tokens/keywords/syntax parsing.
         /// </summary>
-        public SyntaxRules OptionsSyntaxRules { get; private set; }
+        public SyntaxRules OptionsSyntaxRules
+        {
+            get { return optionsSyntaxRules; }
+            set
+            {
+                if (value != null)
+                {
+                    optionsSyntaxRules = value;
+                    optionsSyntaxRules.SetEvaluator(this);
+                    optionsSyntaxRules.Init();
+                }
+            }
+        }
 
         #endregion
 
@@ -1103,21 +1170,6 @@ namespace CodingSeb.ExpressionEvaluator
         /// <para>Default value : <c>true</c></para>
         /// </summary>
         public bool OptionScriptNeedEndOfExpressionTokenAtTheEndOfLastExpression { get; set; } = true;
-
-        private string optionScriptBlocksKeywordsHeadStatementsStartBracket = "(";
-        /// <summary>
-        /// To specify the character or string that begin the head statements of script blocks keywords (if, else if, for, foreach while, do.. while)
-        /// <para>Default value : <c>"("</c></para>
-        /// </summary>
-        public string OptionScriptBlocksKeywordsHeadStatementsStartBracket
-        {
-            get { return optionScriptBlocksKeywordsHeadStatementsStartBracket; }
-            set
-            {
-                optionScriptBlocksKeywordsHeadStatementsStartBracket = value;
-                RefreshBlocksKeywordDetection();
-            }
-        }
 
         /// <summary>
         /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)<para/>
@@ -1299,8 +1351,8 @@ namespace CodingSeb.ExpressionEvaluator
             numberRegexPattern = string.Format(numberRegexOrigPattern, @"\.", string.Empty);
             CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = ".";
 
-            OptionsFunctionalities = new FunctionalitiesActivation(this);
-            OptionsSyntaxRules = new SyntaxRules(this);
+            (optionsFunctionalities = new FunctionalitiesActivation()).SetEvaluator(this);
+            (optionsSyntaxRules = new SyntaxRules()).SetEvaluator(this);
         }
 
         protected virtual void Init()
@@ -1402,7 +1454,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadSubExpressionsSeparator, OptionScriptBlocksKeywordsHeadStatementsStartBracket, OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket);
+                            keywordParameters = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, OptionsSyntaxRules.OptionScriptBlockKeywordsHeadSubExpressionsSeparator, OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadStatementsStartBracket, OptionsSyntaxRules.OptionScriptBlocksKeywordsHeadExpressionEndBracket);
 
                             if (OptionsSyntaxRules.OptionScriptSyntaxForHeadStatementInBlocksKeywords != SyntaxForHeadStatementInBlocksKeywords.HeadBrackets)
                             {

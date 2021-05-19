@@ -1371,7 +1371,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionFluidPrefixingActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionFluidPrefixingActive = false
+                    }
                 };
 
                 yield return new TestCaseData(evaluator, "List(1,2,3).FluidAdd(4).Count", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionFluidPrefixingActive");
@@ -1382,7 +1385,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionCharEvaluationActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionCharEvaluationActive = false
+                    }
                 };
 
                 yield return new TestCaseData(evaluator, "'e'", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionCharEvaluationActive");
@@ -1395,7 +1401,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionStringEvaluationActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionStringEvaluationActive = false
+                    }
                 };
 
                 yield return new TestCaseData(evaluator, "\"hello\"", typeof(ExpressionEvaluatorSyntaxErrorException)).SetCategory("Options").SetCategory("OptionStringEvaluationActive");
@@ -1423,7 +1432,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionNewKeywordEvaluationActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionNewKeywordEvaluationActive = false
+                    }
                 };
 
                 evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
@@ -1439,7 +1451,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionStaticMethodsCallActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionStaticMethodsCallActive = false
+                    }
                 };
 
                 evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
@@ -1452,7 +1467,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionStaticPropertiesGetActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionStaticPropertiesGetActive = false
+                    }
                 };
 
                 evaluator.Namespaces.Add(typeof(ClassForTest1).Namespace);
@@ -1465,7 +1483,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionInstanceMethodsCallActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionInstanceMethodsCallActive = false
+                    }
                 };
 
                 evaluator.Variables["customObject"] = new ClassForTest1();
@@ -1480,7 +1501,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionInstancePropertiesGetActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionInstancePropertiesGetActive = false
+                    }
                 };
 
                 evaluator.Variables["customObject"] = new ClassForTest1();
@@ -1495,7 +1519,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 evaluator = new ExpressionEvaluator()
                 {
-                    OptionIndexingActive = false
+                    OptionsFunctionalities = new ExpressionEvaluator.FunctionalitiesActivation()
+                    {
+                        OptionIndexingActive = false
+                    }
                 };
 
                 evaluator.Variables["dict"] = new Dictionary<string, int>() { { "intValue", 5 } };
@@ -1686,7 +1713,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 yield return new TestCaseData(new ExpressionEvaluator
                 {
                     OptionNumberParsingDecimalSeparator = ",",
-                    OptionFunctionArgumentsSeparator = ";"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionFunctionArgumentsSeparator = ";"
+                    }
                 }
                 , "Max(0,5; 0,7)"
                 , null)
@@ -1698,7 +1728,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionNumberParsingThousandSeparator = "'",
-                    OptionFunctionArgumentsSeparator = ";"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionFunctionArgumentsSeparator = ";"
+                    }
                 }
                 , "Max(1'200,5; 1'111'000,7)"
                 , null)
@@ -1710,7 +1743,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 {
                     OptionNumberParsingDecimalSeparator = ",",
                     OptionNumberParsingThousandSeparator = "'",
-                    OptionInitializersSeparator = ";"
+                    OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                    {
+                        OptionInitializersSeparator = ";"
+                    }
                 }
                  , "new double[]{1'200,5; 1'111'000,7}.Max()"
                  , null)
