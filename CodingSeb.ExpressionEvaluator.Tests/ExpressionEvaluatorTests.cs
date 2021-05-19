@@ -1330,7 +1330,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         private void Evaluator_PreEvaluateIndexing(object sender, IndexingPreEvaluationEventArg e)
         {
-            if(e.This is int intValue && e.EvaluateArg() is string text)
+            if(e.This is int intValue && e.EvaluateArg(0) is string text)
             {
                 e.Value = string.Join(",", Enumerable.Repeat(text, intValue));
             }
@@ -2698,6 +2698,16 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     , null)
                     .Returns(new double[] { 1.1, 2.3, 4.3 })
                     .SetCategory("Bug resolution");
+
+                #endregion
+
+                #region For multidimensional indexing
+
+                yield return new TestCaseData(new ExpressionEvaluator(new Dictionary<string, object> { { "doubleIndexObject", new ClassForIndexing() } })
+                    , "doubleIndexObject[2,3]"
+                    , null)
+                    .Returns(5)
+                    .SetCategory("Multidimensional indexing");
 
                 #endregion
 
