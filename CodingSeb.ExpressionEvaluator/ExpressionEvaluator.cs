@@ -38,7 +38,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex otherBasesNumberRegex = new Regex("^(?<sign>[+-])?(?<value>0(?<type>x)([0-9a-f][0-9a-f_]*[0-9a-f]|[0-9a-f])|0(?<type>b)([01][01_]*[01]|[01]))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected static readonly Regex stringBeginningRegex = new Regex("^(?<interpolated>[$])?(?<escaped>[@])?[\"]", RegexOptions.Compiled);
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
-        protected static readonly Regex indexingBeginningRegex = new Regex(@"^[?]?\[", RegexOptions.Compiled);
+        protected static readonly Regex indexingBeginningRegex = new Regex(@"^(?<nullConditional>[?])?\[", RegexOptions.Compiled);
         protected static readonly Regex arrayTypeDetectionRegex = new Regex(@"^(\s*(\[(?>(?>\s+)|[,])*)\])+", RegexOptions.Compiled);
         protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
@@ -229,45 +229,9 @@ namespace CodingSeb.ExpressionEvaluator
         protected virtual IList<ExpressionOperator> RightOperandOnlyOperatorsEvaluationDictionary => rightOperandOnlyOperatorsEvaluationDictionary;
         protected virtual IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> OperatorsEvaluations => operatorsEvaluations;
 
-        protected static object IndexingOperatorFunc(dynamic left, dynamic right)
-        {
-            if (left is NullConditionalNullValue)
-            {
-                return left;
-            }
-            else if (left is BubbleExceptionContainer)
-            {
-                return left;
-            }
-            Type type = ((object)left).GetType();
-
-            if (left is IDictionary<string, object> dictionaryLeft)
-            {
-                return dictionaryLeft[right];
-            }
-            else if (type.GetMethod("Item", new Type[] { ((object)right).GetType() }) is MethodInfo methodInfo)
-            {
-                return methodInfo.Invoke(left, new object[] { right });
-            }
-
-            return left[right];
-        }
-
         protected static readonly IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> operatorsEvaluations =
             new List<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>>()
         {
-            new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
-            {
-                {ExpressionOperator.Indexing, IndexingOperatorFunc},
-                {ExpressionOperator.IndexingWithNullConditional, (dynamic left, dynamic right) =>
-                    {
-                        if(left == null)
-                            return new NullConditionalNullValue();
-
-                        return IndexingOperatorFunc(left, right);
-                    }
-                },
-            },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
                 {ExpressionOperator.UnaryPlus, (dynamic _, dynamic right) => +right },
@@ -2779,54 +2743,24 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (indexingBeginningMatch.Success)
             {
-                StringBuilder innerExp = new StringBuilder();
                 i += indexingBeginningMatch.Length;
-                int bracketCount = 1;
-                for (; i < expression.Length; i++)
-                {
-                    Match internalStringMatch = stringBeginningRegex.Match(expression.Substring(i));
-
-                    if (internalStringMatch.Success)
-                    {
-                        string innerString = internalStringMatch.Value + GetCodeUntilEndOfString(expression.Substring(i + internalStringMatch.Length), internalStringMatch);
-                        innerExp.Append(innerString);
-                        i += innerString.Length - 1;
-                    }
-                    else
-                    {
-                        string s = expression.Substring(i, 1);
-
-                        if (s.Equals("[")) bracketCount++;
-
-                        if (s.Equals("]"))
-                        {
-                            bracketCount--;
-                            if (bracketCount == 0) break;
-                        }
-                        innerExp.Append(s);
-                    }
-                }
-
-                if (bracketCount > 0)
-                {
-                    string beVerb = bracketCount == 1 ? "is" : "are";
-                    throw new Exception($"{bracketCount} ']' character {beVerb} missing in expression : [{expression}]");
-                }
 
                 dynamic left = stack.Pop();
 
-                if (left is NullConditionalNullValue)
+                List<string> indexingArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, startChar: "[", endChar: "]");
+
+                if (left is NullConditionalNullValue || left is BubbleExceptionContainer)
                 {
                     stack.Push(left);
                     return true;
                 }
-                else if (left is BubbleExceptionContainer)
+                else if(indexingBeginningMatch.Groups["nullConditional"].Success && left == null)
                 {
-                    stack.Push(left);
+                    stack.Push(new NullConditionalNullValue());
                     return true;
                 }
 
-                IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(innerExp.ToString(), this, left);
+                IndexingPreEvaluationEventArg indexingPreEvaluationEventArg = new IndexingPreEvaluationEventArg(indexingArgs, this, left);
 
                 PreEvaluateIndexing?.Invoke(this, indexingPreEvaluationEventArg);
 
@@ -2840,15 +2774,67 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    dynamic right = Evaluate(innerExp.ToString());
-                    ExpressionOperator op = indexingBeginningMatch.Length == 2 ? ExpressionOperator.IndexingWithNullConditional : ExpressionOperator.Indexing;
-
-                    if (OptionForceIntegerNumbersEvaluationsAsDoubleByDefault && right is double && Regex.IsMatch(innerExp.ToString(), @"^\d+$"))
-                        right = (int)right;
-
                     Match assignationOrPostFixOperatorMatch = null;
-
                     dynamic valueToPush = null;
+                    List<dynamic> oIndexingArgs = indexingArgs.ConvertAll(Evaluate);
+                    PropertyInfo[] itemProperties = null;
+
+                    if (!(left is IDictionary<string, object>))
+                    {
+                        Type type = ((object)left).GetType();
+
+                        if(type.IsArray && OptionForceIntegerNumbersEvaluationsAsDoubleByDefault)
+                        {
+                            oIndexingArgs = oIndexingArgs.Select(o => o is double ? (int)o : o).ToList();
+                        }
+                        else
+                        {
+                            itemProperties = type.GetProperties()
+                                .Where(property => property.GetIndexParameters().Length > 0
+                                    && property.GetIndexParameters().Length == oIndexingArgs.Count
+                                    && property.GetIndexParameters().All(parameter => parameter.ParameterType.IsAssignableFrom(oIndexingArgs[parameter.Position].GetType())))
+                                .ToArray();
+
+                            if (itemProperties.Length == 0 && OptionForceIntegerNumbersEvaluationsAsDoubleByDefault)
+                            {
+                                List<dynamic> backupIndexedArgs = oIndexingArgs.ToList();
+
+                                itemProperties = type.GetProperties()
+                                    .Where(property => property.Name.Equals("Item")
+                                        && property.GetIndexParameters().Length == oIndexingArgs.Count
+                                        && property.GetIndexParameters().All(parameter =>
+                                        {
+                                            if (parameter.ParameterType.IsAssignableFrom(((object)oIndexingArgs[parameter.Position]).GetType()))
+                                            {
+                                                return true;
+                                            }
+                                            else if (parameter.ParameterType == typeof(int) && oIndexingArgs[parameter.Position] is double)
+                                            {
+                                                oIndexingArgs[parameter.Position] = (int)oIndexingArgs[parameter.Position];
+                                                return true;
+                                            }
+                                            else
+                                            {
+                                                return false;
+                                            }
+                                        }))
+                                    .ToArray();
+
+                                if (itemProperties.Length == 0)
+                                    oIndexingArgs = backupIndexedArgs;
+                            }
+                        }
+                    }
+
+                    object GetIndexedObject()
+                    {
+                        if (left is IDictionary<string, object> dictionaryLeft)
+                            return dictionaryLeft[oIndexingArgs[0]];
+                        else if (itemProperties?.Length > 0)
+                            return itemProperties[0].GetValue(left, oIndexingArgs.Cast<object>().ToArray());
+                        else
+                            return left[oIndexingArgs[0]];
+                    }
 
                     if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
                     {
@@ -2860,31 +2846,42 @@ namespace CodingSeb.ExpressionEvaluator
                         if (stack.Count > 1)
                             throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
 
-                        if (op == ExpressionOperator.IndexingWithNullConditional)
+                        if (indexingBeginningMatch.Groups["nullConditional"].Success)
                             throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
 
                         if (postFixOperator)
                         {
                             if (left is IDictionary<string, object> dictionaryLeft)
-                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[right]++ : dictionaryLeft[right]--;
+                            {
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[oIndexingArgs[0]]++ : dictionaryLeft[oIndexingArgs[0]]--;
+                            }
+                            else if (itemProperties?.Length > 0)
+                            {
+                                valueToPush = itemProperties[0].GetValue(left, oIndexingArgs.Cast<object>().ToArray());
+                                itemProperties[0].SetValue(left, assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? valueToPush + 1 : valueToPush - 1, oIndexingArgs.Cast<object>().ToArray());
+                            }
                             else
-                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[right]++ : left[right]--;
+                            {
+                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[oIndexingArgs[0]]++ : left[oIndexingArgs[0]]--;
+                            }
                         }
                         else
                         {
-                            valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, () => OperatorsEvaluations[0][op](left, right));
+                            valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, GetIndexedObject);
 
                             if (left is IDictionary<string, object> dictionaryLeft)
-                                dictionaryLeft[right] = valueToPush;
+                                dictionaryLeft[oIndexingArgs[0]] = valueToPush;
+                            else if (itemProperties?.Length > 0)
+                                itemProperties[0].SetValue(left, valueToPush, oIndexingArgs.Cast<object>().ToArray());
                             else
-                                left[right] = valueToPush;
+                                left[oIndexingArgs[0]] = valueToPush;
 
                             stack.Clear();
                         }
                     }
                     else
                     {
-                        valueToPush = OperatorsEvaluations[0][op](left, right);
+                        valueToPush = GetIndexedObject();
                     }
 
                     stack.Push(valueToPush);
@@ -4391,8 +4388,6 @@ namespace CodingSeb.ExpressionEvaluator
         public static readonly ExpressionOperator ShiftBitsRight = new ExpressionOperator();
         public static readonly ExpressionOperator NullCoalescing = new ExpressionOperator();
         public static readonly ExpressionOperator Cast = new ExpressionOperator();
-        public static readonly ExpressionOperator Indexing = new ExpressionOperator();
-        public static readonly ExpressionOperator IndexingWithNullConditional = new ExpressionOperator();
 
         public override bool Equals(object obj)
         {
@@ -4820,9 +4815,9 @@ namespace CodingSeb.ExpressionEvaluator
     /// </summary>
     public partial class IndexingPreEvaluationEventArg : EventArgs
     {
-        public IndexingPreEvaluationEventArg(string arg, ExpressionEvaluator evaluator, object onInstance)
+        public IndexingPreEvaluationEventArg(List<string> args, ExpressionEvaluator evaluator, object onInstance)
         {
-            Arg = arg;
+            Args = args;
             This = onInstance;
             Evaluator = evaluator;
         }
@@ -4830,7 +4825,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// The not evaluated args of the indexing
         /// </summary>
-        public string Arg { get; set; }
+        public List<string> Args { get; } = new List<string>();
 
         /// <summary>
         /// The instance of the object on which the indexing is called.
@@ -4866,18 +4861,30 @@ namespace CodingSeb.ExpressionEvaluator
         /// Get the values of the indexing's args.
         /// </summary>
         /// <returns></returns>
-        public object EvaluateArg()
+        public object[] EvaluateArgs()
         {
-            return Evaluator.Evaluate(Arg);
+            return Args.ConvertAll(arg => Evaluator.Evaluate(arg)).ToArray();
         }
 
         /// <summary>
-        /// Get the values of the indexing's args.
+        /// Get the value of the indexing's arg at the specified index
         /// </summary>
-        /// <returns></returns>
-        public T EvaluateArg<T>()
+        /// <param name="index">The index of the indexing's arg to evaluate</param>
+        /// <returns>The evaluated arg</returns>
+        public object EvaluateArg(int index)
         {
-            return Evaluator.Evaluate<T>(Arg);
+            return Evaluator.Evaluate(Args[index]);
+        }
+
+        /// <summary>
+        /// Get the value of the indexing's arg at the specified index
+        /// </summary>
+        /// <typeparam name="T">The type of the result to get. (Do a cast)</typeparam>
+        /// <param name="index">The index of the indexing's arg to evaluate</param>
+        /// <returns>The evaluated arg casted in the specified type</returns>
+        public T EvaluateArg<T>(int index)
+        {
+            return Evaluator.Evaluate<T>(Args[index]);
         }
 
         /// <summary>
