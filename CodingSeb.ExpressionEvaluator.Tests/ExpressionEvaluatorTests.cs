@@ -2505,7 +2505,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
-                #region Specific Syntax Rules
+                #region Anonymous ExpandoObjects SpecificSyntax and Collection init simplified syntax (Jsonify)
 
                 yield return new TestCaseData(new ExpressionEvaluator()
                     {

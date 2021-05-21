@@ -622,7 +622,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         #endregion
 
-        #region Functionalities options
+        #region Functionalities activation options
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -1129,8 +1129,8 @@ namespace CodingSeb.ExpressionEvaluator
                 CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator = optionNumberParsingDecimalSeparator;
 
                 numberRegexPattern = string.Format(numberRegexOrigPattern,
-                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
-                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
+                    Regex.Escape(optionNumberParsingDecimalSeparator) ,
+                    Regex.Escape(optionNumberParsingThousandSeparator));
             }
         }
 
@@ -1155,8 +1155,8 @@ namespace CodingSeb.ExpressionEvaluator
                 CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator = value;
 
                 numberRegexPattern = string.Format(numberRegexOrigPattern,
-                    optionNumberParsingDecimalSeparator != null ? Regex.Escape(optionNumberParsingDecimalSeparator) : ".",
-                    optionNumberParsingThousandSeparator != null ? Regex.Escape(optionNumberParsingThousandSeparator) : "");
+                    Regex.Escape(optionNumberParsingDecimalSeparator),
+                    Regex.Escape(optionNumberParsingThousandSeparator));
             }
         }
 
@@ -2132,22 +2132,26 @@ namespace CodingSeb.ExpressionEvaluator
                     string variable = "V" + Guid.NewGuid().ToString().Replace("-", "");
 
                     Variables[variable] = element;
-
-                    initArgs.ForEach(subExpr =>
+                    try
                     {
-                        if (subExpr.Contains("="))
+                        initArgs.ForEach(subExpr =>
                         {
-                            string trimmedSubExpr = subExpr.TrimStart();
+                            if (subExpr.Contains("="))
+                            {
+                                string trimmedSubExpr = subExpr.TrimStart();
 
-                            Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
-                        }
-                        else
-                        {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
-                        }
-                    });
-
-                    Variables.Remove(variable);
+                                Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                            }
+                        });
+                    }
+                    finally
+                    {
+                        Variables.Remove(variable);
+                    }
                 }
 
                 i += instanceCreationMatch.Length;
