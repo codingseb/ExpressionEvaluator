@@ -2505,6 +2505,24 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Specific Syntax Rules
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            IsNewKeywordForAnonymousExpandoObjectOptional = true
+                        }
+                    }
+                    , "{ MyProp = \"Test\"}.MyProp"
+                    , null)
+                    .Returns("Test")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("IsNewKeywordForAnonymousExpandoObjectOptional");
+
+                #endregion
+
                 #region Issues/Bug resolution
 
                 yield return new TestCaseData(new ExpressionEvaluator()

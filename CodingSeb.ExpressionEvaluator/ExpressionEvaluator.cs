@@ -123,7 +123,8 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected virtual void RefreshInstanceCreationKeywordRegexPattern()
         {
-            instanceCreationKeywordRegex = new Regex("^(" + string.Join("|", OptionsSyntaxRules.KeywordNew.Select(o => Regex.Escape(o))) + @")(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.InlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
+            var keywords = string.Join("|", OptionsSyntaxRules.KeywordNew.Select(o => Regex.Escape(o)));
+            instanceCreationKeywordRegex = new Regex("^((((" + keywords + @")(?>\s*))" + (OptionsSyntaxRules.IsNewKeywordForAnonymousExpandoObjectOptional ? "?" : string.Empty) +"(?<isAnonymous>[{{]))|(((" + keywords + @")(?>\s+))(?<name>[\p{L}_][\p{L}_0-9" + (OptionsFunctionalities.InlineNamespacesEvaluationActive ? @"\." : string.Empty) + @"]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", CompiledRegexOptionAndIfNecessaryIgnoreCase);
         }
 
         protected virtual void RefreshCastRegex()
@@ -836,6 +837,24 @@ namespace CodingSeb.ExpressionEvaluator
                 }
             }
 
+            private bool isNewKeywordForAnonymousExpandoObjectOptional;
+            /// <summary>
+            /// If <c>true</c> Allow to omit the keyword new or equivalent defined in KeywordNew for anonymous ExpandoObject.<para/>
+            /// Example : <c>var myVar = { SomeProperties = someValues }</c><para/>
+            /// If <c>false</c> the new keyword or an equivalent defined in KeywordNew is mandatory<para/>
+            /// Example : <c>var myVar = new { SomeProperties = someValues }</c><para/>
+            /// <para>Default value : <c>false</c></para>
+            /// </summary>
+            public bool IsNewKeywordForAnonymousExpandoObjectOptional
+            {
+                get { return isNewKeywordForAnonymousExpandoObjectOptional; }
+                set
+                {
+                    isNewKeywordForAnonymousExpandoObjectOptional = value;
+                    evaluator?.RefreshInstanceCreationKeywordRegexPattern();
+                }
+            }
+
             private string[] statementTerminalPunctuators = new[] { ";" };
             /// <summary>
             /// An array of string that are used to separate expressions (statements) in script
@@ -854,7 +873,7 @@ namespace CodingSeb.ExpressionEvaluator
             /// <summary>
             /// Specify to skip the evaluation of an empty expression in scripts otherwise it will throw an exception.
             /// For example when two semicolon <c>;;</c> are present or when there are empty line with StatementTerminalPunctuators set to end of line characters <c>{ "\r\n", "\r", "\n" }</c>
-            /// <para>Default value : <c>true;</c></para>
+            /// <para>Default value : <c>true</c></para>
             /// </summary>
             public bool SkipEmptyExpressions { get; set; } = true;
 
@@ -989,6 +1008,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             private int blockIndentationNumberOfSpaces = 4;
+
             /// <summary>
             /// Set the number of spaces to use as an indentation when : <para/>
             /// <c>SyntaxForBlockIdentifier = SyntaxForBlockIdentifier.Indentation</c><para/>
