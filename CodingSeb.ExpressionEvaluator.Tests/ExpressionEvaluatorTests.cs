@@ -2563,6 +2563,52 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Anonymous")
                     .SetCategory("InitializerAllowStringForProperties");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            AllowSimplifiedCollectionSyntax = true
+                        }
+                    }
+                    , "[3,2,6,10][2]"
+                    , null)
+                    .Returns(6)
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerAllowStringForProperties");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            AllowSimplifiedCollectionSyntax = true,
+                            SimplifiedCollectionMode = SimplifiedCollectionMode.List
+                        }
+                    }
+                    , "[3,2,6,10].Count"
+                    , null)
+                    .Returns(4)
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerAllowStringForProperties")
+                    .SetCategory("SimplifiedCollectionMode");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            AllowSimplifiedCollectionSyntax = true,
+                            SimplifiedCollectionMode = SimplifiedCollectionMode.List
+                        }
+                    }
+                    , "[3,2,6,10][3]"
+                    , null)
+                    .Returns(10)
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerAllowStringForProperties")
+                    .SetCategory("SimplifiedCollectionMode");
+
                 #endregion
 
                 #region Issues/Bug resolution
