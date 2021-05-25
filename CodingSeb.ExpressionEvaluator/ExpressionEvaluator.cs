@@ -914,6 +914,32 @@ namespace CodingSeb.ExpressionEvaluator
             public bool InitializerAllowStringForProperties { get; set; }
 
             /// <summary>
+            /// If <c>true</c> allow a simplified syntax to create a collection<para/>
+            /// Example : <c>var collection = [1, 2, 3]; // collection[1] -> 2</c><para/>
+            /// The type of the collection that is created with this syntax is defined with the linked option
+            /// If <c>false</c> simplified syntax for coolection is unactive
+            /// <para>Default value : <c>false</c></para>
+            /// </summary>
+            public bool AllowSimplifiedCollectionSyntax { get; set; }
+
+            /// <summary>
+            /// Specify Which type of collection is create when symplified collection syntax is used.<para/>
+            /// <list type="table">
+            ///    <item>
+            ///        <term>Array</term>
+            ///        <description><c>object[]</c></description>
+            ///    </item>
+            ///    <item>
+            ///        <term>List</term>
+            ///        <description><c>List&lt;object&gt;</c></description>
+            ///    </item>
+            ///</list>
+            /// Only effective if AllowSimplifiedCollectionSyntax is <c>true</c>.<para />
+            /// <para>Default value : <c>Array</c></para>
+            /// </summary>
+            public SimplifiedCollectionMode SimplifiedCollectionMode { get; set; }
+
+            /// <summary>
             /// The separator that separate each expression in block keyword's head
             /// <para>Default value : <c>";"</c></para>
             /// <example>Example : <code>for(int i = 0; i &lt; 10; i++)</code></example>
@@ -1800,6 +1826,7 @@ namespace CodingSeb.ExpressionEvaluator
             EvaluateOperators,
             EvaluateChar,
             EvaluateParenthis,
+            EvaluateSimplifiedCollection,
             EvaluateIndexing,
             EvaluateString,
             EvaluateTernaryConditionalOperator,
@@ -2182,7 +2209,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
 
                             trimmedSubExpr = trimmedSubExpr.Substring(pos).TrimStart();
-                            string separator = OptionsSyntaxRules.InitializerPropertyValueSeparators.FirstOrDefault(sep => trimmedSubExpr.StartsWith(sep, StringComparisonForCasing));
+                            string separator = Array.Find(OptionsSyntaxRules.InitializerPropertyValueSeparators, sep => trimmedSubExpr.StartsWith(sep, StringComparisonForCasing));
 
                             if(separator != null)
                             {
@@ -3210,6 +3237,29 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     stack.Push(op);
                 }
+            }
+        }
+
+        protected virtual bool EvaluateSimplifiedCollection(string expression, Stack<object> stack, ref int i)
+        {
+            if(OptionsSyntaxRules.AllowSimplifiedCollectionSyntax
+                && stack.Count == 0
+                && expression.Substring(i).StartsWith("["))
+            {
+                i++;
+                IEnumerable<object> valueArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, startToken: "[", endToken: "]")
+                    .Select(subExp => Evaluate(subExp));
+
+                if (OptionsSyntaxRules.SimplifiedCollectionMode == SimplifiedCollectionMode.List)
+                    stack.Push(valueArgs.ToList());
+                else
+                    stack.Push(valueArgs.ToArray());
+
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -4858,6 +4908,12 @@ namespace CodingSeb.ExpressionEvaluator
     {
         Tabulation,
         Spaces
+    }
+
+    public enum SimplifiedCollectionMode
+    {
+        Array,
+        List
     }
 
     #endregion

@@ -2549,6 +2549,20 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("Anonymous")
                     .SetCategory("InitializerAllowStringForProperties");
 
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            AllowSimplifiedCollectionSyntax = true
+                        }
+                    }
+                    , "[3,2,6,10].Length"
+                    , null)
+                    .Returns(4)
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerAllowStringForProperties");
+
                 #endregion
 
                 #region Issues/Bug resolution
