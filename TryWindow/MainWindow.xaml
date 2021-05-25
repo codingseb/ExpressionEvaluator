@@ -31,6 +31,9 @@
                 <CheckBox x:Name="CaseSensitiveCheckBox"
                           Content="Case sensitive"
                           IsChecked="True"/>
+                <CheckBox x:Name="JsonSyntaxCheckBox"
+                          Content="Allow Json syntax to init objects"
+                          IsChecked="True" />
             </WrapPanel>
             
             <Button x:Name="CalculateButton" Content="_Execute" IsDefault="True" Click="CalculateButton_Click" />

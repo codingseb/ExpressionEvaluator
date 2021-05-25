@@ -45,6 +45,13 @@ namespace TryWindow
                 OptionCaseSensitiveEvaluationActive = CaseSensitiveCheckBox.IsChecked.GetValueOrDefault()
             };
 
+            if(JsonSyntaxCheckBox.IsChecked ?? false)
+            {
+                evaluator.OptionsSyntaxRules.IsNewKeywordForAnonymousExpandoObjectOptional = true;
+                evaluator.OptionsSyntaxRules.InitializerPropertyValueSeparators = new[] { "=", ":" };
+                evaluator.OptionsSyntaxRules.InitializerAllowStringForProperties = true;
+            }
+
             if (UseCachesCheckbox.IsChecked ?? false)
                 evaluator.CacheTypesResolutions = true;
 
