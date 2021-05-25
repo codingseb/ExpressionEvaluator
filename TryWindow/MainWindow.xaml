@@ -11,7 +11,7 @@
     <DockPanel>
 
         <StackPanel DockPanel.Dock="Bottom">
-            <DockPanel>
+            <DockPanel Margin="0,0,-0.4,0">
                 <Label DockPanel.Dock="Left" 
                        Content="Iterations"
                        Padding="2,0"/>

@@ -50,6 +50,7 @@ namespace TryWindow
                 evaluator.OptionsSyntaxRules.IsNewKeywordForAnonymousExpandoObjectOptional = true;
                 evaluator.OptionsSyntaxRules.InitializerPropertyValueSeparators = new[] { "=", ":" };
                 evaluator.OptionsSyntaxRules.InitializerAllowStringForProperties = true;
+                evaluator.OptionsSyntaxRules.AllowSimplifiedCollectionSyntax = true;
             }
 
             if (UseCachesCheckbox.IsChecked ?? false)

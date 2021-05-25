@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.29.0</Version>
-    <AssemblyVersion>1.4.29.0</AssemblyVersion>
-    <FileVersion>1.4.29.0</FileVersion>
+    <Version>1.5.0-alpha0001</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,7 +19,7 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Add Multidimensional indexing management like myStuffToIndex[1,4]</PackageReleaseNotes>
+    <PackageReleaseNotes>* Some prerelease syntax customization features to test it live</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
