@@ -1,0 +1,7 @@
+﻿/* Script0102 */
+var obj = { 
+	"AnIntProp": 5,
+	"OtherInt": 8
+};
+
+return obj.AnIntProp + obj.OtherInt;

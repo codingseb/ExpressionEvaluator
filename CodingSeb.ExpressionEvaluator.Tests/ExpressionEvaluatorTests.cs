@@ -1748,7 +1748,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     OptionNumberParsingThousandSeparator = "'",
                     OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
                     {
-                        InitializersSeparator = ";"
+                        InitializerSeparator = ";"
                     }
                 }
                  , "new double[]{1'200,5; 1'111'000,7}.Max()"
@@ -2520,6 +2520,34 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("ExpandoObject")
                     .SetCategory("Anonymous")
                     .SetCategory("IsNewKeywordForAnonymousExpandoObjectOptional");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            InitializerPropertyValueSeparators = new[] {"=", ":"}
+                        }
+                    }
+                    , "new { MyProp : \"Test\"}.MyProp"
+                    , null)
+                    .Returns("Test")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerPropertyValueSeparators");
+
+                yield return new TestCaseData(new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            InitializerAllowStringForProperties = true
+                        }
+                    }
+                    , "new { \"MyProp\" = \"Test\"}.MyProp"
+                    , null)
+                    .Returns("Test")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("Anonymous")
+                    .SetCategory("InitializerAllowStringForProperties");
 
                 #endregion
 

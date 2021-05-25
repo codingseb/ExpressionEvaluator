@@ -58,6 +58,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         // Depending on OptionInlineNamespacesEvaluationActive. Initialized in constructor
         protected Regex instanceCreationKeywordRegex = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.Compiled);
+        protected Regex initializationPropertyRegex = new Regex(@"^[\p{L}_][\p{L}_0-9]*", RegexOptions.Compiled);
         protected Regex castRegex = new Regex(@"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)(?>\s*)\)", RegexOptions.Compiled);
 
         // To remove comments in scripts based on https://stackoverflow.com/questions/3524317/regex-to-strip-line-comments-from-c-sharp/3524689#3524689
@@ -896,7 +897,21 @@ namespace CodingSeb.ExpressionEvaluator
             /// <para>Default value : <c>","</c></para>
             /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
             /// </summary>
-            public string InitializersSeparator { get; set; } = ",";
+            public string InitializerSeparator { get; set; } = ",";
+
+            /// <summary>
+            /// To Replace or add separators for object initialization assignation
+            /// To separate the Property/Indexing part of the value evaluation part
+            /// <para>Default value : <c>{"="}</c></para>
+            /// </summary>
+            public string[] InitializerPropertyValueSeparators { get; set; } = new[] { "=" };
+
+            /// <summary>
+            /// If <c>true</c>, allow to use a string in place of the property name in initializers<para/>
+            /// If <c>false</c>, only allow for direct property name or indexing in initializers
+            /// <para>Default value : <c>false</c></para>
+            /// </summary>
+            public bool InitializerAllowStringForProperties { get; set; }
 
             /// <summary>
             /// The separator that separate each expression in block keyword's head
@@ -1365,8 +1380,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
-        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
-        /// support also if, else if, else while and for keywords
+        /// Support assignation and some block keywords<para/>
         /// </summary>
         /// <typeparam name="T">The type in which to cast the result of the expression</typeparam>
         /// <param name="script">the script to evaluate</param>
@@ -1378,8 +1392,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// Evaluate a script (multiple expressions separated by semicolon)
-        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
-        /// support also if, else if, else while and for keywords
+        /// Support assignation and some block keywords<para/>
         /// </summary>
         /// <param name="script">the script to evaluate</param>
         /// <returns>The result of the last evaluated expression</returns>
@@ -1782,7 +1795,7 @@ namespace CodingSeb.ExpressionEvaluator
         {
             EvaluateCast,
             EvaluateNumber,
-            EvaluateInstanceCreationWithNewKeyword,
+            EvaluateInstanceCreation,
             EvaluateVarOrFunc,
             EvaluateOperators,
             EvaluateChar,
@@ -2116,7 +2129,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual bool EvaluateInstanceCreationWithNewKeyword(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateInstanceCreation(string expression, Stack<object> stack, ref int i)
         {
             if (!OptionsFunctionalities.NewKeywordEvaluationActive)
                 return false;
@@ -2134,17 +2147,50 @@ namespace CodingSeb.ExpressionEvaluator
                     Variables[variable] = element;
                     try
                     {
+                        Match match = null;
+
                         initArgs.ForEach(subExpr =>
                         {
-                            if (subExpr.Contains("="))
-                            {
-                                string trimmedSubExpr = subExpr.TrimStart();
+                            string trimmedSubExpr = subExpr.TrimStart();
+                            string PropPart = string.Empty;
 
-                                Evaluate($"{variable}{(trimmedSubExpr.StartsWith("[") ? string.Empty : ".")}{trimmedSubExpr}");
+                            int pos = 0;
+
+                            if((match = initializationPropertyRegex.Match(trimmedSubExpr)).Success)
+                            {
+                                pos += match.Length;
+                                PropPart = $"{variable}.{match.Value}";
+                            }
+                            else if(trimmedSubExpr.StartsWith("["))
+                            {
+                                pos++;
+                                GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(trimmedSubExpr, ref pos, false, startToken:"[", endToken:"]");
+                                pos++;
+                                PropPart = $"{variable}{trimmedSubExpr.Substring(0, pos)}";
+                            }
+                            else if(OptionsSyntaxRules.InitializerAllowStringForProperties
+                            && (match = stringBeginningRegex.Match(trimmedSubExpr)).Success)
+                            {
+                                string innerString = match.Value + GetCodeUntilEndOfString(trimmedSubExpr.Substring(match.Length), match);
+                                pos += innerString.Length;
+                                string propName = Evaluate<string>(innerString);
+                                PropPart = $"{variable}.{propName}";
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                                throw new ExpressionEvaluatorSyntaxErrorException($"The syntax for initialization is wrong in [{subExpr.Trim()}].");
+                            }
+
+                            trimmedSubExpr = trimmedSubExpr.Substring(pos).TrimStart();
+                            string separator = OptionsSyntaxRules.InitializerPropertyValueSeparators.FirstOrDefault(sep => trimmedSubExpr.StartsWith(sep, StringComparisonForCasing));
+
+                            if(separator != null)
+                            {
+                                Evaluate($"{PropPart}={trimmedSubExpr.Substring(separator.Length)}");
+                            }
+                            else
+                            {
+                                throw new ExpressionEvaluatorSyntaxErrorException($"One of the following token [{string.Join(",", OptionsSyntaxRules.InitializerPropertyValueSeparators.Select(t => "\"" + t + "\""))}] is missing in [{subExpr.Trim()}]. It is in a object initializer. It must contains one.");
                             }
                         });
                     }
@@ -2160,7 +2206,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object element = new ExpandoObject();
 
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializerSeparator, "{", "}");
 
                     InitSimpleObject(element, initArgs);
 
@@ -2195,7 +2241,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 int subIndex = subExpr.IndexOf("{") + 1;
 
-                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
+                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionsSyntaxRules.InitializerSeparator, "{", "}");
 
                                 if (subArgs.Count == 2)
                                 {
@@ -2230,7 +2276,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += blockBeginningMatch.Length;
 
-                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
+                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializerSeparator, "{", "}");
 
                             Init(element, initArgs);
                         }
@@ -2245,7 +2291,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         object element = Activator.CreateInstance(type, new object[0]);
 
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializerSeparator, "{", "}");
 
                         Init(element, initArgs);
 
@@ -2253,7 +2299,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (instanceCreationMatch.Groups["isArray"].Success)
                     {
-                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "[", "]");
+                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializerSeparator, "[", "]");
                         i++;
                         Array array = null;
 
@@ -2268,7 +2314,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += initInNewBeginningMatch.Length;
 
-                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializersSeparator, "{", "}");
+                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionsSyntaxRules.InitializerSeparator, "{", "}");
 
                             if (array == null)
                                 array = Array.CreateInstance(type, arrayElements.Count);

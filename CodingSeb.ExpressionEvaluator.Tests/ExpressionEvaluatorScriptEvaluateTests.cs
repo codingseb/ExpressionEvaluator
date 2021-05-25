@@ -1268,6 +1268,31 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("conflict variable assignation vs on the fly in object with same name")
                     .Returns("{\"Hello\":3,\"No\":\"Yes\"}");
 
+
+                #endregion
+
+                #region Json syntax stuff for anonymous Expando object
+
+                yield return new TestCaseData(Resources.Script0102,
+                    new ExpressionEvaluator()
+                    {
+                        OptionsSyntaxRules = new ExpressionEvaluator.SyntaxRules()
+                        {
+                            IsNewKeywordForAnonymousExpandoObjectOptional = true,
+                            InitializerPropertyValueSeparators = new [] {"=", ":" },
+                            InitializerAllowStringForProperties = true,
+                        }
+                    }
+                    , null, null, null)
+                    .SetCategory("Script")
+                    .SetCategory("ExpandoObject")
+                    .SetCategory("return")
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.IsNewKeywordForAnonymousExpandoObjectOptional))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.InitializerPropertyValueSeparators))
+                    .SetCategory(nameof(ExpressionEvaluator.SyntaxRules.InitializerAllowStringForProperties))
+                    .SetCategory("JsonInit")
+                    .Returns(13);
+
                 #endregion
 
                 #region Diactitics
