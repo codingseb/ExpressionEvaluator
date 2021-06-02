@@ -3,7 +3,9 @@
     <AssemblyTitle>CodingSeb.ExpressionEvaluator</AssemblyTitle>
     <Company>Coding Seb</Company>
     <Product>CodingSeb.ExpressionEvaluator</Product>
-    <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
+    <Description>A Simple Math and Pseudo C# Expression Evaluator
+Can also execute small C# like scripts.
+Syntax is easily customizable</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
     <Version>1.5.0-alpha0001</Version>
     <AssemblyVersion>1.5.0.0</AssemblyVersion>
@@ -19,7 +21,8 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* Some prerelease syntax customization features to test it live</PackageReleaseNotes>
+    <PackageReleaseNotes>* Some prerelease syntax customization features to test it live
+!!! Warning breaking changes !!!</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
