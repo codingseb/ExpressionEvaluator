@@ -51,6 +51,7 @@ namespace TryWindow
                 evaluator.OptionsSyntaxRules.InitializerPropertyValueSeparators = new[] { "=", ":" };
                 evaluator.OptionsSyntaxRules.InitializerAllowStringForProperties = true;
                 evaluator.OptionsSyntaxRules.AllowSimplifiedCollectionSyntax = true;
+                evaluator.OptionsSyntaxRules.SimplifiedCollectionMode = SimplifiedCollectionMode.List;
             }
 
             if (UseCachesCheckbox.IsChecked ?? false)
