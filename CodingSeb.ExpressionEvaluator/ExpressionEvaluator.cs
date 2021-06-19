@@ -2258,6 +2258,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             pushVarValue = false;
                                     }
 
+									bool isVarValueSet = false;
                                     if (member == null && pushVarValue)
                                     {
                                         VariableEvaluationEventArg variableEvaluationEventArg = new VariableEvaluationEventArg(varFuncName, this, obj ?? keepObj, genericsTypes, GetConcreteTypes);
@@ -2267,10 +2268,11 @@ namespace CodingSeb.ExpressionEvaluator
                                         if (variableEvaluationEventArg.HasValue)
                                         {
                                             varValue = variableEvaluationEventArg.Value;
+											isVarValueSet = true;
                                         }
                                     }
 
-                                    if (!isDynamic && varValue == null && pushVarValue)
+                                    if (!isVarValueSet && !isDynamic && varValue == null && pushVarValue)
                                     {
                                         varValue = ((dynamic)member).GetValue(obj);
 
