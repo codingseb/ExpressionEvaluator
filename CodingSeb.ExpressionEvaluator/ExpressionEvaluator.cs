@@ -2924,8 +2924,16 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (expression.Substring(i)[0] == '"')
                     {
-                        endOfString = true;
-                        stack.Push(resultString.ToString());
+                        if (expression.Substring(i).Length > 1 && expression.Substring(i)[1] == '"')
+                        {
+                            i += 2;
+                            resultString.Append(@"""");
+                        }
+                        else
+                        {
+                            endOfString = true;
+                            stack.Push(resultString.ToString());
+                        }
                     }
                     else if (expression.Substring(i)[0] == '{')
                     {
