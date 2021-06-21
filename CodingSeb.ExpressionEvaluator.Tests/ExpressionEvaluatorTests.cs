@@ -1939,6 +1939,25 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("On the fly var")
                         .SetCategory("Static Onthefly");
 
+                // MR #106
+                ExpressionEvaluator nullForceevaluator = new ExpressionEvaluator();
+                nullForceevaluator.Variables = new Dictionary<string, object>()
+                {
+                    { "obj", new { }}
+                };
+
+                nullForceevaluator.EvaluateVariable += (sender, e) =>
+                {
+                    e.HasValue = true;
+                    e.Value = null;
+                };
+
+                yield return new TestCaseData(nullForceevaluator
+                    , "obj.x"
+                    , null)
+                    .Returns(null)
+                    .SetCategory("On the fly var");
+
                 #endregion
 
                 #region With Context object
