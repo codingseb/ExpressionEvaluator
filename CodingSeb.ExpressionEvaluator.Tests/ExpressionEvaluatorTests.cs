@@ -1641,6 +1641,43 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .ShouldBeOfType<DateTime>();
         }
 
+        /// <summary>
+        /// To correct #104 Extension methods do not work on context
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#104")]
+        public void Evaluate_ExtensionMethodOnContext()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new List<int>()
+                {
+                    1,2,3,4,5
+                }
+            };
+
+            evaluator.Evaluate("Sum()")
+                .ShouldBe(15);
+        }
+
+        /// <summary>
+        /// To correct #105 Exception should be thrown and not set in the stack
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#105")]
+        public void Evaluate_Exceptions_NotThrown()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new { Person = new Person2 { Name = null, Number = 1.11m } }
+            };
+
+            Should.Throw<Exception>(() => Console.WriteLine(evaluator.Evaluate("\"Test one \" + Person.Name.Trim()")));
+            Should.Throw<Exception>(() => Console.WriteLine(evaluator.Evaluate("\"Test two \" + Person.AnotherName.Trim()")));
+        }
+
         #endregion
 
         #region EvaluateWithSpecificEvaluator
