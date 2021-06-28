@@ -1995,19 +1995,21 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .SetCategory("Static Onthefly");
 
                 // MR #106
-                ExpressionEvaluator nullForceevaluator = new ExpressionEvaluator();
-                nullForceevaluator.Variables = new Dictionary<string, object>()
+                ExpressionEvaluator nullForceEvaluator = new ExpressionEvaluator
+                {
+                    Variables = new Dictionary<string, object>()
                 {
                     { "obj", new { }}
+                }
                 };
 
-                nullForceevaluator.EvaluateVariable += (sender, e) =>
+                nullForceEvaluator.EvaluateVariable += (sender, e) =>
                 {
                     e.HasValue = true;
                     e.Value = null;
                 };
 
-                yield return new TestCaseData(nullForceevaluator
+                yield return new TestCaseData(nullForceEvaluator
                     , "obj.x"
                     , null)
                     .Returns(null)

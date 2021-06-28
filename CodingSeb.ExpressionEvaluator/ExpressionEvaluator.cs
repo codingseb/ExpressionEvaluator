@@ -2796,7 +2796,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if(type.IsArray && OptionForceIntegerNumbersEvaluationsAsDoubleByDefault)
                         {
-                            oIndexingArgs = oIndexingArgs.Select(o => o is double ? (int)o : o).ToList();
+                            oIndexingArgs = oIndexingArgs.ConvertAll(o => o is double ? (int)o : o);
                         }
                         else
                         {
