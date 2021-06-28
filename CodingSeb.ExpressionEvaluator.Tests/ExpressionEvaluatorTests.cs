@@ -1696,6 +1696,17 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             Should.Throw<ExpressionEvaluatorSyntaxErrorException>(() => Console.WriteLine(evaluator.Evaluate("$\"Test two {Person.AnotherName.Trim()}\"")));
         }
 
+        [Test]
+        [Category("Bug")]
+        [Category("MergeRequest")]
+        [Category("#107")]
+        public void Evaluate_DoubleDoubleQuotesInEscapedStringThrowException()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            evaluator.Evaluate("@\"Hello \"\" Joe\"").ShouldBe(@"Hello "" Joe");
+        }
+
         #endregion
 
         #region EvaluateWithSpecificEvaluator
