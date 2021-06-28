@@ -2092,6 +2092,15 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             throw;
                         }
+                        catch (NullReferenceException nullException)
+                        {
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = nullException
+                            });
+
+                            return true;
+                        }
                         catch (Exception ex)
                         {
                             //Transport the exception in stack.
@@ -2979,7 +2988,13 @@ namespace CodingSeb.ExpressionEvaluator
                                 string beVerb = bracketCount == 1 ? "is" : "are";
                                 throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expression}]");
                             }
-                            resultString.Append(Evaluate(innerExp.ToString()));
+
+                            object obj = Evaluate(innerExp.ToString());
+
+                            if (obj is BubbleExceptionContainer bubbleExceptionContainer)
+                                throw bubbleExceptionContainer.Exception;
+
+                            resultString.Append(obj);
                         }
                     }
                     else if (expression.Substring(i, expression.Length - i)[0] == '}')
@@ -3119,14 +3134,24 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
+                                var left = (dynamic)list[i + 1];
+                                var right = (dynamic)list[i - 1];
+
                                 try
                                 {
-                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
+                                    list[i] = operatorEvalutationsDict[eOp](left, right);
+
+                                    if (left is BubbleExceptionContainer && right is string)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else if (right is BubbleExceptionContainer && left is string)
+                                    {
+                                        list[i] = right; //Bubble up the causing error
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
-                                    var left = (dynamic)list[i + 1];
-                                    var right = (dynamic)list[i - 1];
                                     if (left is BubbleExceptionContainer)
                                     {
                                         list[i] = left; //Bubble up the causing error

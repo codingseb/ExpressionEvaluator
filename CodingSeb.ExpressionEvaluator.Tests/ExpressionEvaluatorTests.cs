@@ -1662,20 +1662,38 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         /// <summary>
-        /// To correct #105 Exception should be thrown and not set in the stack
+        /// To correct #105 Exception were not thrown when concat with string
         /// </summary>
         [Test]
         [Category("Bug")]
         [Category("#105")]
-        public void Evaluate_Exceptions_NotThrown()
+        public void Evaluate_ExceptionsNotThrownWhenConcatWithString()
         {
             var evaluator = new ExpressionEvaluator
             {
                 Context = new { Person = new Person2 { Name = null, Number = 1.11m } }
             };
 
-            Should.Throw<Exception>(() => Console.WriteLine(evaluator.Evaluate("\"Test one \" + Person.Name.Trim()")));
-            Should.Throw<Exception>(() => Console.WriteLine(evaluator.Evaluate("\"Test two \" + Person.AnotherName.Trim()")));
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("Person.Name.Trim() + \"Test one \"")));
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("\"Test one \" + Person.Name.Trim()")));
+            Should.Throw<ExpressionEvaluatorSyntaxErrorException>(() => Console.WriteLine(evaluator.Evaluate("\"Test two \" + Person.AnotherName.Trim()")));
+        }
+
+        /// <summary>
+        /// #105 Exception were not thrown when in string interpolation
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#105")]
+        public void Evaluate_ExceptionsNotThrownWhenInStringInterpolation()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new { Person = new Person2 { Name = null, Number = 1.11m } }
+            };
+
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("$\"Test one {Person.Name.Trim()}\"")));
+            Should.Throw<ExpressionEvaluatorSyntaxErrorException>(() => Console.WriteLine(evaluator.Evaluate("$\"Test two {Person.AnotherName.Trim()}\"")));
         }
 
         #endregion
