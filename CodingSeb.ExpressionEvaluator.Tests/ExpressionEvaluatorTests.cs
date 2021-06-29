@@ -1643,6 +1643,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         /// <summary>
         /// To correct #104 Extension methods do not work on context
+        /// work now with this keyword like in C#
         /// </summary>
         [Test]
         [Category("Bug")]
@@ -1657,8 +1658,26 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 }
             };
 
-            evaluator.Evaluate("Sum()")
+            evaluator.Evaluate("this.Sum()")
                 .ShouldBe(15);
+        }
+
+        /// <summary>
+        /// To correct #104 Indexing do not work on context
+        /// work now with this keyword like in C#
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#104")]
+        public void Evaluate_IndexingOnContext()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new ClassForIndexing()
+            };
+
+            evaluator.Evaluate("this[\"Test\"]")
+                .ShouldBe("TestTest");
         }
 
         /// <summary>

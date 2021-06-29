@@ -336,6 +336,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "null", null},
             { "true", true },
             { "false", false },
+            { "this", null }
         };
 
         protected IDictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.Ordinal)
@@ -872,10 +873,20 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Custom and on the fly evaluation
 
+        private object context;
+
         /// <summary>
         /// If set, this object is used to use it's fields, properties and methods as global variables and functions
         /// </summary>
-        public object Context { get; set; }
+        public object Context
+        {
+            get { return context; }
+            set
+            {
+                context = value;
+                defaultVariables["this"] = context;
+            }
+        }
 
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
