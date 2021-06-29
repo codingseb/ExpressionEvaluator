@@ -1,4 +1,6 @@
-﻿namespace CodingSeb.ExpressionEvaluator.Tests
+﻿using CodingSeb.ExpressionEvaluator.Operators;
+
+namespace CodingSeb.ExpressionEvaluator.Tests
 {
     public class XExpressionEvaluator1 : ExpressionEvaluator
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Shouldly;
+using CodingSeb.ExpressionEvaluator.Exceptions;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
