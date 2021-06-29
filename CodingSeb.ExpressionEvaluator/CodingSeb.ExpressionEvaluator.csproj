@@ -22,7 +22,8 @@ Syntax is easily customizable</Description>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>* Some prerelease syntax customization features to test it live
-!!! Warning breaking changes !!!</PackageReleaseNotes>
+!!! Warning breaking changes !!!
+Include last bug corrections of v. 1.4.30</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
