@@ -7,7 +7,7 @@
 Can also execute small C# like scripts.
 Syntax is easily customizable</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.5.0-alpha0001</Version>
+    <Version>1.5.0-alpha0002</Version>
     <AssemblyVersion>1.5.0.0</AssemblyVersion>
     <FileVersion>1.5.0.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -22,7 +22,8 @@ Syntax is easily customizable</Description>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>* Some prerelease syntax customization features to test it live
-!!! Warning breaking changes !!!</PackageReleaseNotes>
+!!! Warning breaking changes !!!
+Include last bug corrections of v. 1.4.30</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
