@@ -1641,6 +1641,91 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 .ShouldBeOfType<DateTime>();
         }
 
+        /// <summary>
+        /// To correct #104 Extension methods do not work on context
+        /// work now with this keyword like in C#
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#104")]
+        public void Evaluate_ExtensionMethodOnContext()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new List<int>()
+                {
+                    1,2,3,4,5
+                }
+            };
+
+            evaluator.Evaluate("this.Sum()")
+                .ShouldBe(15);
+        }
+
+        /// <summary>
+        /// To correct #104 Indexing do not work on context
+        /// work now with this keyword like in C#
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#104")]
+        public void Evaluate_IndexingOnContext()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new ClassForIndexing()
+            };
+
+            evaluator.Evaluate("this[\"Test\"]")
+                .ShouldBe("TestTest");
+        }
+
+        /// <summary>
+        /// To correct #105 Exception were not thrown when concat with string
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#105")]
+        public void Evaluate_ExceptionsNotThrownWhenConcatWithString()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new { Person = new Person2 { Name = null, Number = 1.11m } }
+            };
+
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("Person.Name.Trim() + \"Test one \"")));
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("\"Test one \" + Person.Name.Trim()")));
+            Should.Throw<ExpressionEvaluatorSyntaxErrorException>(() => Console.WriteLine(evaluator.Evaluate("\"Test two \" + Person.AnotherName.Trim()")));
+        }
+
+        /// <summary>
+        /// #105 Exception were not thrown when in string interpolation
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#105")]
+        public void Evaluate_ExceptionsNotThrownWhenInStringInterpolation()
+        {
+            var evaluator = new ExpressionEvaluator
+            {
+                Context = new { Person = new Person2 { Name = null, Number = 1.11m } }
+            };
+
+            Should.Throw<NullReferenceException>(() => Console.WriteLine(evaluator.Evaluate("$\"Test one {Person.Name.Trim()}\"")));
+            Should.Throw<ExpressionEvaluatorSyntaxErrorException>(() => Console.WriteLine(evaluator.Evaluate("$\"Test two {Person.AnotherName.Trim()}\"")));
+        }
+
+        [Test]
+        [Category("Bug")]
+        [Category("MergeRequest")]
+        [Category("#107")]
+        public void Evaluate_DoubleDoubleQuotesInEscapedStringThrowException()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            evaluator.Evaluate("@\"Hello \"\" Joe\"").ShouldBe(@"Hello "" Joe");
+        }
+
         #endregion
 
         #region EvaluateWithSpecificEvaluator
@@ -1938,6 +2023,27 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                         .Returns(3)
                         .SetCategory("On the fly var")
                         .SetCategory("Static Onthefly");
+
+                // MR #106
+                ExpressionEvaluator nullForceEvaluator = new ExpressionEvaluator
+                {
+                    Variables = new Dictionary<string, object>()
+                {
+                    { "obj", new { }}
+                }
+                };
+
+                nullForceEvaluator.EvaluateVariable += (sender, e) =>
+                {
+                    e.HasValue = true;
+                    e.Value = null;
+                };
+
+                yield return new TestCaseData(nullForceEvaluator
+                    , "obj.x"
+                    , null)
+                    .Returns(null)
+                    .SetCategory("On the fly var");
 
                 #endregion
 

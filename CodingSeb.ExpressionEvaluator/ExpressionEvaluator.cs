@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.29.0 
+    Version : 1.4.30.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -336,6 +336,7 @@ namespace CodingSeb.ExpressionEvaluator
             { "null", null},
             { "true", true },
             { "false", false },
+            { "this", null }
         };
 
         protected IDictionary<string, Func<double, double>> simpleDoubleMathFuncsDictionary = new Dictionary<string, Func<double, double>>(StringComparer.Ordinal)
@@ -872,10 +873,20 @@ namespace CodingSeb.ExpressionEvaluator
 
         #region Custom and on the fly evaluation
 
+        private object context;
+
         /// <summary>
         /// If set, this object is used to use it's fields, properties and methods as global variables and functions
         /// </summary>
-        public object Context { get; set; }
+        public object Context
+        {
+            get { return context; }
+            set
+            {
+                context = value;
+                defaultVariables["this"] = context;
+            }
+        }
 
         private IDictionary<string, object> variables = new Dictionary<string, object>(StringComparer.Ordinal);
 
@@ -2092,6 +2103,15 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             throw;
                         }
+                        catch (NullReferenceException nullException)
+                        {
+                            stack.Push(new BubbleExceptionContainer()
+                            {
+                                Exception = nullException
+                            });
+
+                            return true;
+                        }
                         catch (Exception ex)
                         {
                             //Transport the exception in stack.
@@ -2787,7 +2807,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if(type.IsArray && OptionForceIntegerNumbersEvaluationsAsDoubleByDefault)
                         {
-                            oIndexingArgs = oIndexingArgs.Select(o => o is double ? (int)o : o).ToList();
+                            oIndexingArgs = oIndexingArgs.ConvertAll(o => o is double ? (int)o : o);
                         }
                         else
                         {
@@ -2924,8 +2944,16 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (expression.Substring(i)[0] == '"')
                     {
-                        endOfString = true;
-                        stack.Push(resultString.ToString());
+                        if (expression.Substring(i).Length > 1 && expression.Substring(i)[1] == '"')
+                        {
+                            i += 2;
+                            resultString.Append(@"""");
+                        }
+                        else
+                        {
+                            endOfString = true;
+                            stack.Push(resultString.ToString());
+                        }
                     }
                     else if (expression.Substring(i)[0] == '{')
                     {
@@ -2979,7 +3007,13 @@ namespace CodingSeb.ExpressionEvaluator
                                 string beVerb = bracketCount == 1 ? "is" : "are";
                                 throw new Exception($"{bracketCount} '}}' character {beVerb} missing in expression : [{expression}]");
                             }
-                            resultString.Append(Evaluate(innerExp.ToString()));
+
+                            object obj = Evaluate(innerExp.ToString());
+
+                            if (obj is BubbleExceptionContainer bubbleExceptionContainer)
+                                throw bubbleExceptionContainer.Exception;
+
+                            resultString.Append(obj);
                         }
                     }
                     else if (expression.Substring(i, expression.Length - i)[0] == '}')
@@ -3119,14 +3153,24 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
+                                var left = (dynamic)list[i + 1];
+                                var right = (dynamic)list[i - 1];
+
                                 try
                                 {
-                                    list[i] = operatorEvalutationsDict[eOp]((dynamic)list[i + 1], (dynamic)list[i - 1]);
+                                    list[i] = operatorEvalutationsDict[eOp](left, right);
+
+                                    if (left is BubbleExceptionContainer && right is string)
+                                    {
+                                        list[i] = left; //Bubble up the causing error
+                                    }
+                                    else if (right is BubbleExceptionContainer && left is string)
+                                    {
+                                        list[i] = right; //Bubble up the causing error
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
-                                    var left = (dynamic)list[i + 1];
-                                    var right = (dynamic)list[i - 1];
                                     if (left is BubbleExceptionContainer)
                                     {
                                         list[i] = left; //Bubble up the causing error
