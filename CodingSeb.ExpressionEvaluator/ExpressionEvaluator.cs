@@ -436,7 +436,7 @@ namespace CodingSeb.ExpressionEvaluator
                     return typedArray;
                 }
             },
-            { "Avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / args.Count },
+            { "Avg", (self, args) => args.ConvertAll(arg => Convert.ToDouble(self.Evaluate(arg))).Sum() / (double)args.Count },
             { "default", (self, args) =>
                 {
                     object argValue = self.Evaluate(args[0]);
@@ -4251,14 +4251,23 @@ namespace CodingSeb.ExpressionEvaluator
                                         .MakeGenericMethod(parameterType.GetElementType())
                                         .Invoke(null, new object[] { modifiedArgs[a] });
                                 }
-                                else
+                                else if (IsCastable(modifiedArgs[a].GetType(), parameterType))
                                 {
                                     modifiedArgs[a] = Convert.ChangeType(modifiedArgs[a], parameterType);
+                                }
+                                else
+                                {
+                                    parametersCastOK = false;
                                 }
                             }
                         }
                     }
                     catch
+                    {
+                        parametersCastOK = false;
+                    }
+
+                    if (!parametersCastOK)
                     {
                         try
                         {
@@ -4269,16 +4278,10 @@ namespace CodingSeb.ExpressionEvaluator
                             if (parameterCastEvaluationEventArg.FunctionModifiedArgument)
                             {
                                 modifiedArgs[a] = parameterCastEvaluationEventArg.Argument;
-                            }
-                            else
-                            {
-                                parametersCastOK = false;
+                                parametersCastOK = true;
                             }
                         }
-                        catch
-                        {
-                            parametersCastOK = false;
-                        }
+                        catch {}
                     }
                 }
             }
