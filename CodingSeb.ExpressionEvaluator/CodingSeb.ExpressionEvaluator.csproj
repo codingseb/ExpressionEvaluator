@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.30.0</Version>
-    <AssemblyVersion>1.4.30.0</AssemblyVersion>
-    <FileVersion>1.4.30.0</FileVersion>
+    <Version>1.4.31.0</Version>
+    <AssemblyVersion>1.4.31.0</AssemblyVersion>
+    <FileVersion>1.4.31.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,10 +19,7 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* BubbleExceptionContainer now throw their exceptions when necessary and are no more concatenate in string.
-* The default keyword this is introduce and is automatically set on the Context object (This allow to do indexing and call extentions methods on the context object)
-* We can now set a variable to null in PreEvaluateVariable events
-* Double double quotes are now supported in escaped string to escape double quotes @""""</PackageReleaseNotes>
+    <PackageReleaseNotes>* Correction of a bug in methods selection</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
   </PropertyGroup>
