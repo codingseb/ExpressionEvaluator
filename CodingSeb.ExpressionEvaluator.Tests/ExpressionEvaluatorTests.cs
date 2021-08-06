@@ -2570,6 +2570,48 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .Returns(45)
                     .SetCategory("DefaultValueMethod");
 
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(val2:3)"
+                    , null)
+                    .Returns(22)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(val2: 3)"
+                    , null)
+                    .Returns(22)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(val2: 3)"
+                    , null)
+                    .Returns(22)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf( val2:3)"
+                    , null)
+                    .Returns(22)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf( val2 : 3)"
+                    , null)
+                    .Returns(22)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
+              yield return new TestCaseData(evaluatorForMethodArgs()
+                    , "paramsObj.SumOf(val1: 3)"
+                    , null)
+                    .Returns(23)
+                    .SetCategory("namedMethodParameter")
+                    .SetCategory("DefaultValueMethod");
+
                 #endregion
 
                 #region Issues/Bug resolution
