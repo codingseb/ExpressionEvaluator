@@ -54,7 +54,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex lambdaArgRegex = new Regex(@"[\p{L}_](?>[\p{L}_0-9]*)", RegexOptions.Compiled);
         protected static readonly Regex initInNewBeginningRegex = new Regex(@"^(?>\s*){", RegexOptions.Compiled);
         protected static readonly Regex functionArgKeywordsRegex = new Regex(@"^\s*(?<keyword>out|ref|in)\s+((?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)\s+(?=[\p{L}_]))?(?<toEval>(?<varName>[\p{L}_](?>[\p{L}_0-9]*))\s*(=.*)?)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
+        protected static readonly Regex functionNamedArgRegex = new Regex(@"^\s*(?<name>[\p{L}_][\p{L}_0-9]*)\s+:\s+(?<toEval>.*)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);       
+        
         protected static readonly Regex instanceCreationWithNewKeywordRegex = new Regex(@"^new(?>\s*)((?<isAnonymous>[{{])|((?<name>[\p{L}_][\p{L}_0-9\.]*)(?>\s*)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?>\s*)((?<isfunction>[(])|(?<isArray>\[)|(?<isInit>[{{]))?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         protected string CastRegexPattern { get { return @"^\((?>\s*)(?<typeName>[\p{L}_][\p{L}_0-9\.\[\]<>]*[?]?)(?>\s*)\)"; } }
 
@@ -1951,6 +1952,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     int argIndex = 0;
                                     List<ArgKeywordsEncaps> argsWithKeywords = new List<ArgKeywordsEncaps>();
+                                    List<NamedArgsEncaps> namedArgs = new List<NamedArgsEncaps>();
 
                                     List<object> oArgs = funcArgs.ConvertAll(arg =>
                                     {
@@ -1983,7 +1985,24 @@ namespace CodingSeb.ExpressionEvaluator
                                         }
                                         else
                                         {
-                                            argValue = Evaluate(arg);
+                                            Match functionNamedArgMatch = functionNamedArgRegex.Match(arg);
+
+                                            if (functionNamedArgMatch.Success)
+                                            {
+                                                NamedArgsEncaps namedArgsEncaps = new NamedArgsEncaps()
+                                                {
+                                                    ValueIndex = argIndex,
+                                                    ArgName = functionNamedArgMatch.Groups["name"].Value
+                                                };
+
+                                                namedArgs.Add(namedArgsEncaps);
+
+                                                argValue = Evaluate(functionNamedArgMatch.Groups["toEval"].Value);
+                                            }
+                                            else
+                                            {
+                                                argValue = Evaluate(arg);
+                                            }
                                         }
 
                                         argIndex++;
@@ -1998,7 +2017,7 @@ namespace CodingSeb.ExpressionEvaluator
                                         throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no Method named \"{varFuncName}\".");
 
                                     // Standard Instance or public method find
-                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords);
+                                    MethodInfo methodInfo = GetRealMethod(ref objType, ref obj, varFuncName, flag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, namedArgs);
 
                                     // if not found check if obj is an expandoObject or similar
                                     if (obj is IDynamicMetaObjectProvider
@@ -2030,7 +2049,7 @@ namespace CodingSeb.ExpressionEvaluator
                                             for (int e = 0; e < StaticTypesForExtensionsMethods.Count && methodInfo == null; e++)
                                             {
                                                 Type type = StaticTypesForExtensionsMethods[e];
-                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, true);
+                                                methodInfo = GetRealMethod(ref type, ref extentionObj, varFuncName, StaticBindingFlag, oArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, namedArgs, true);
                                                 isExtention = methodInfo != null;
                                             }
                                         }
@@ -3377,7 +3396,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
-        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes, List<ArgKeywordsEncaps> argsWithKeywords, bool testForExtention = false)
+        protected virtual MethodInfo GetRealMethod(ref Type type, ref object obj, string func, BindingFlags flag, List<object> args, string genericsTypes, Type[] inferedGenericsTypes, List<ArgKeywordsEncaps> argsWithKeywords, List<NamedArgsEncaps> namedArgs, bool testForExtention = false)
         {
             MethodInfo methodInfo = null;
             List<object> modifiedArgs = new List<object>(args);
@@ -3387,7 +3406,7 @@ namespace CodingSeb.ExpressionEvaluator
                 && (func.StartsWith("Fluid", StringComparisonForCasing)
                     || func.StartsWith("Fluent", StringComparisonForCasing)))
             {
-                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, testForExtention);
+                methodInfo = GetRealMethod(ref type, ref obj, func.Substring(func.StartsWith("Fluid", StringComparisonForCasing) ? 5 : 6), flag, modifiedArgs, genericsTypes, inferedGenericsTypes, argsWithKeywords, namedArgs, testForExtention);
                 if (methodInfo != null)
                 {
                     if (methodInfo.ReturnType == typeof(void))
@@ -4180,6 +4199,12 @@ namespace CodingSeb.ExpressionEvaluator
             public int Index { get; set; }
             public string Keyword { get; set; }
             public string VariableName { get; set; }
+        }
+
+        protected class NamedArgsEncaps
+        {
+            public int ValueIndex { get; set; }
+            public string ArgName { get; set; }
         }
 
         protected class DelegateEncaps
