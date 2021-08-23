@@ -1141,7 +1141,7 @@ namespace CodingSeb.ExpressionEvaluator
                     Match charMatch = internalCharRegex.Match(script.Substring(index));
 
                     if (charMatch.Success)
-                        index += charMatch.Length;
+                        index += charMatch.Length - 1;
 
                     parsed = false;
                 }
