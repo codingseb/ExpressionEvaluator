@@ -1246,6 +1246,464 @@ namespace CodingSeb.ExpressionEvaluator.Tests {
         }
         
         /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0072 */
+        ///var myVar = 8;
+        ///
+        ///return( myVar );.
+        /// </summary>
+        public static string Script0072 {
+            get {
+                return ResourceManager.GetString("Script0072", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0073 */
+        ///var myVar = 8;
+        ///
+        ///returnmyVar;.
+        /// </summary>
+        public static string Script0073 {
+            get {
+                return ResourceManager.GetString("Script0073", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0074 */
+        ///var myVar = 8
+        ///
+        ///return myVar.
+        /// </summary>
+        public static string Script0074 {
+            get {
+                return ResourceManager.GetString("Script0074", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0075 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7: 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0075 {
+            get {
+                return ResourceManager.GetString("Script0075", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0076 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7:
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0076 {
+            get {
+                return ResourceManager.GetString("Script0076", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0077 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7): 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0077 {
+            get {
+                return ResourceManager.GetString("Script0077", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0078 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7):
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0078 {
+            get {
+                return ResourceManager.GetString("Script0078", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0079 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7) 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0079 {
+            get {
+                return ResourceManager.GetString("Script0079", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0080 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0080 {
+            get {
+                return ResourceManager.GetString("Script0080", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0081 [infos]*/
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)  : 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0081 {
+            get {
+                return ResourceManager.GetString("Script0081", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0082 */
+        ///var myVar = 8;
+        ///
+        ///if|myVar &gt; 7| 
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0082 {
+            get {
+                return ResourceManager.GetString("Script0082", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0083 */
+        ///var myVar = 8;
+        ///
+        ///if |myVar &gt; 7|
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0083 {
+            get {
+                return ResourceManager.GetString("Script0083", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0084 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0084 {
+            get {
+                return ResourceManager.GetString("Script0084", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0083 */
+        ///var myVar = 8;
+        ///
+        ///if {myVar &gt; 7}
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0085 {
+            get {
+                return ResourceManager.GetString("Script0085", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0086 */
+        ///var myVar = 8;
+        ///
+        ///if &lt;[myVar &gt; 7]&gt;
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0086 {
+            get {
+                return ResourceManager.GetString("Script0086", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0087 */
+        ///var myVar = 8;
+        ///
+        ///if &lt;[myVar &gt; 7]&gt;
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0087 {
+            get {
+                return ResourceManager.GetString("Script0087", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0088 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 =&gt;
+        ///	myVar = 20;
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0088 {
+            get {
+                return ResourceManager.GetString("Script0088", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0089 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 =&gt;
+        ///{
+        ///	myVar = 20;
+        ///}
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0089 {
+            get {
+                return ResourceManager.GetString("Script0089", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0090 */
+        ///var myVar = 8;
+        ///
+        ///if (myVar &gt; 7)
+        ///(
+        ///	myVar = 20;
+        ///)
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0090 {
+            get {
+                return ResourceManager.GetString("Script0090", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0091 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 then
+        ///begin
+        ///	myVar = 20;
+        ///end
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0091 {
+            get {
+                return ResourceManager.GetString("Script0091", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0092 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 then
+        ///begin
+        ///	myVar = 20;
+        ///	var ItIsThe_end_OfWorkingWell = myVar + 2;
+        ///end
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0092 {
+            get {
+                return ResourceManager.GetString("Script0092", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0093 */
+        ///var myVar = 8;
+        ///
+        ///if myVar &gt; 7 then
+        ///begin
+        ///	myVar = 20;
+        ///	var ItIsThe_begining_OfProblems = myVar + 2;
+        ///end
+        ///
+        ///return myVar;.
+        /// </summary>
+        public static string Script0093 {
+            get {
+                return ResourceManager.GetString("Script0093", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0094 */
+        ///myList = -&gt; List&lt;int&gt;()
+        ///{
+        ///	2
+        ///};
+        ///
+        ///return myList[0];.
+        /// </summary>
+        public static string Script0094 {
+            get {
+                return ResourceManager.GetString("Script0094", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0095 */
+        ///myList = create List&lt;int&gt;()
+        ///{
+        ///	2
+        ///};
+        ///
+        ///myDict = new Dictionary&lt;string, int&gt;
+        ///{
+        ///	{&quot;ten&quot;, 10 }
+        ///};
+        ///
+        ///return myList[0] + myDict[&quot;ten&quot;];.
+        /// </summary>
+        public static string Script0095 {
+            get {
+                return ResourceManager.GetString("Script0095", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0096 indentation with 4 spaces*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///    myVar++;
+        ///    if (myVar == 7)
+        ///        myVar = 21;
+        ///        myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0096 {
+            get {
+                return ResourceManager.GetString("Script0096", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0097 indentation with tab*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///	myVar++;
+        ///	if (myVar == 7)
+        ///		myVar = 21;
+        ///		myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0097 {
+            get {
+                return ResourceManager.GetString("Script0097", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0098 indentation with 2 spaces*/
+        ///var myVar = 1;
+        ///var myVar2 = 2;
+        ///
+        ///while(myVar &lt; 20)
+        ///  myVar++;
+        ///  if (myVar == 7)
+        ///    myVar = 21;
+        ///    myVar2++;
+        ///
+        ///return myVar + myVar2;.
+        /// </summary>
+        public static string Script0098 {
+            get {
+                return ResourceManager.GetString("Script0098", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Recherche une chaîne localisée semblable à /* Script0099 python like syntax*/
+        ///myVar = 1
+        ///myVar2 = 2
+        ///
+        ///while myVar &lt; 20:
+        ///
+        ///    myVar++
+        ///
+        ///    if myVar == 7:
+        ///        myVar = 21
+        ///        myVar2++
+        ///
+        ///return myVar + myVar2.
+        /// </summary>
+        public static string Script0099 {
+            get {
+                return ResourceManager.GetString("Script0099", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Recherche une chaîne localisée semblable à /* Script0100 */
         ///var dictionary = new Dictionary&lt;string, object&gt;();
         ///dictionary.Add(&quot;x&quot;, 5);
