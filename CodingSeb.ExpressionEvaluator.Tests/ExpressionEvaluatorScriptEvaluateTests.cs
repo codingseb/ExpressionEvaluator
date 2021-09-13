@@ -1541,7 +1541,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("new Exception must not throw the exception")
                     .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0102, null, null, null, null)
+                yield return new TestCaseData(Resources.Script0105, null, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable with prefix 'test'")
                     .SetCategory("new function test")
