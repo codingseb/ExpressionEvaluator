@@ -1,0 +1,4 @@
+﻿/* Script0073 */
+var newWord = "hello";
+
+return newWord;
