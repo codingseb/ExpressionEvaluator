@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.31.0 
+    Version : 1.4.32.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1141,7 +1141,7 @@ namespace CodingSeb.ExpressionEvaluator
                     Match charMatch = internalCharRegex.Match(script.Substring(index));
 
                     if (charMatch.Success)
-                        index += charMatch.Length;
+                        index += charMatch.Length - 1;
 
                     parsed = false;
                 }
@@ -3314,7 +3314,14 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                    try
+                    {
+                        Variables[varName] = Convert.ChangeType(value, stronglyTypedVariable.Type);
+                    }
+                    catch
+                    {
+                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                    }
                 }
             }
             else
