@@ -1507,7 +1507,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("new Exception must not throw the exception")
                     .Returns(3);
 
-                yield return new TestCaseData(Resources.Script0072, null, null, null, null)
+                yield return new TestCaseData(Resources.Script0102, null, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable with prefix 'test'")
                     .SetCategory("new function test")
@@ -1515,7 +1515,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("#116")
                     .Returns("hello");
 
-                yield return new TestCaseData(Resources.Script0073, null, null, null, null)
+                yield return new TestCaseData(Resources.Script0103, null, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable with prefix 'test'")
                     .SetCategory("new instance test")
@@ -1523,7 +1523,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     .SetCategory("#116")
                     .Returns("hello");
 
-                yield return new TestCaseData(Resources.Script0074, null, null, null, null)
+                yield return new TestCaseData(Resources.Script0104, null, null, null, null)
                     .SetCategory("Script")
                     .SetCategory("variable with prefix 'test'")
                     .SetCategory("Bug")
