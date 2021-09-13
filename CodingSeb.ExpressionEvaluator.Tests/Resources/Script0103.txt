@@ -1,0 +1,6 @@
+﻿/* Script0103 */
+var newList = new List<string>();
+
+newList.Add("hello");
+
+return newList[0];
