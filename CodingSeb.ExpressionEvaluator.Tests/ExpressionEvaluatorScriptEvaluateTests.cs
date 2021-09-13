@@ -589,6 +589,40 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region Implicit cast when assign
+
+                ExpressionEvaluator evaluator0012 = new ExpressionEvaluator();
+
+                yield return new TestCaseData("ushort x = 2;",
+                    evaluator0012,
+                    null,
+                    new Action(() => evaluator0012.Variables["x"].ShouldBe(2)), null)
+                .SetCategory("Script")
+                .SetCategory("Variable assignation")
+                .SetCategory("=")
+                .Returns(2);
+
+                yield return new TestCaseData("double y = 3;",
+                    evaluator0012,
+                    null,
+                    new Action(() => evaluator0012.Variables["y"].ShouldBe(3)), null)
+                .SetCategory("Script")
+                .SetCategory("Variable assignation")
+                .SetCategory("=")
+                .Returns(3);
+
+                //yield return new TestCaseData("float z = 3.2;",
+                //    evaluator0012,
+                //    null,
+                //    new Action(() => ((float)evaluator0012.Variables["z"]).ShouldBe(3.2f, 0.001)), null)
+                //.SetCategory("Script")
+                //.SetCategory("Variable assignation")
+                //.SetCategory("=")
+                //.Returns();
+
+
+                #endregion
+
                 #region Array content assignation
 
                 yield return new TestCaseData(Resources.Script0033, null, null, null, null)

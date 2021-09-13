@@ -3314,7 +3314,14 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                    try
+                    {
+                        Variables[varName] = Convert.ChangeType(value, stronglyTypedVariable.Type);
+                    }
+                    catch
+                    {
+                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                    }
                 }
             }
             else
