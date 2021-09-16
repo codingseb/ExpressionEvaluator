@@ -1447,7 +1447,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
-                                    if (isBreak)
+                                    if (isBreak || isReturn)
                                     {
                                         isBreak = false;
                                         break;
