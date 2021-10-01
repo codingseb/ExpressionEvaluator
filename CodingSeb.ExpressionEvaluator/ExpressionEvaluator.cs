@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.32.0 
+    Version : 1.4.33.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -1447,7 +1447,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     lastResult = ScriptEvaluate(subScript, ref isReturn, ref isBreak, ref isContinue);
 
-                                    if (isBreak)
+                                    if (isBreak || isReturn)
                                     {
                                         isBreak = false;
                                         break;
