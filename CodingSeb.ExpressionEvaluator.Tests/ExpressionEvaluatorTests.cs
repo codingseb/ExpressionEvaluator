@@ -983,6 +983,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").SelectSingleNode(\"//element[@id='MyElement']\").InnerXml", ExpectedResult = "Xml Content", Category = "Complex expression,Inline namespace,Fluid")]
         [TestCase("new System.Xml.XmlDocument().FluidLoadXml(\"<root><element id='MyElement'>Xml Content</element></root>\").ChildNodes[0].Name", ExpectedResult = "root", Category = "Complex expression,Inline namespace,Fluid,Custom Indexer")]
         [TestCase("string.Join(\" - \", new string[]{\"Hello\", \"Bye\", \"Other\"})", ExpectedResult = "Hello - Bye - Other", Category = "Complex expression, Different brackets imbrication")]
+        [TestCase("new{Hello = \"Hye\"}.Hello", ExpectedResult = "Hye", Category = "Complex expression, new without space but not a word")]
 
         #endregion
 
