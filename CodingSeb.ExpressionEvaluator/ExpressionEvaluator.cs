@@ -2509,32 +2509,61 @@ namespace CodingSeb.ExpressionEvaluator
             Type staticType = GetTypeByFriendlyName(typeName, genericsTypes);
 
             // For inline namespace parsing
-            if (staticType == null && OptionInlineNamespacesEvaluationActive)
+            if (staticType == null)
             {
-                int subIndex = 0;
-                Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
-
-                while (staticType == null
-                    && namespaceMatch.Success
-                    && !namespaceMatch.Groups["sign"].Success
-                    && !namespaceMatch.Groups["assignationOperator"].Success
-                    && !namespaceMatch.Groups["postfixOperator"].Success
-                    && !namespaceMatch.Groups["isfunction"].Success
-                    && i + subIndex < expression.Length
-                    && !typeName.EndsWith("?"))
+                if (OptionInlineNamespacesEvaluationActive)
                 {
-                    subIndex += namespaceMatch.Length;
-                    typeName += $"{namespaceMatch.Groups["inObject"].Value}{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+                    int subIndex = 0;
+                    Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
 
-                    staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
-
-                    if (staticType != null)
+                    while (staticType == null
+                        && namespaceMatch.Success
+                        && !namespaceMatch.Groups["sign"].Success
+                        && !namespaceMatch.Groups["assignationOperator"].Success
+                        && !namespaceMatch.Groups["postfixOperator"].Success
+                        && !namespaceMatch.Groups["isfunction"].Success
+                        && i + subIndex < expression.Length
+                        && !typeName.EndsWith("?"))
                     {
-                        i += subIndex;
-                        break;
-                    }
+                        subIndex += namespaceMatch.Length;
+                        typeName += $"{namespaceMatch.Groups["inObject"].Value}{namespaceMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
 
-                    namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                        staticType = GetTypeByFriendlyName(typeName, namespaceMatch.Groups["isgeneric"].Value);
+
+                        if (staticType != null)
+                        {
+                            i += subIndex;
+                            break;
+                        }
+
+                        namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+                    }
+                }
+                else
+                {
+                    int subIndex = 0;
+                    Match typeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
+
+                    if (staticType == null
+                        && typeMatch.Success
+                        && !typeMatch.Groups["sign"].Success
+                        && !typeMatch.Groups["assignationOperator"].Success
+                        && !typeMatch.Groups["postfixOperator"].Success
+                        && !typeMatch.Groups["isfunction"].Success
+                        && !typeMatch.Groups["inObject"].Success
+                        && i + subIndex < expression.Length
+                        && !typeName.EndsWith("?"))
+                    {
+                        subIndex += typeMatch.Length;
+                        typeName += $"{typeMatch.Groups["name"].Value}{((i + subIndex < expression.Length && expression.Substring(i + subIndex)[0] == '?') ? "?" : "") }";
+
+                        staticType = GetTypeByFriendlyName(typeName, typeMatch.Groups["isgeneric"].Value);
+
+                        if (staticType != null)
+                        {
+                            i += subIndex;
+                        }
+                    }
                 }
             }
 
