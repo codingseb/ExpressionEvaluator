@@ -1592,6 +1592,53 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region Bug corrections
 
         /// <summary>
+        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work 
+        /// unless OptionInlineNamespacesEvaluationActive is turned on
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#127")]
+        public void Evaluate_NewDateTime_When_OptionInlineNamespacesEvaluationActive_is_off()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                OptionInlineNamespacesEvaluationActive = false,
+            };
+
+            DateTime? dateTime = evaluator.Evaluate<DateTime>("new DateTime(2022,1,20)");
+
+            dateTime.HasValue.ShouldBeTrue();
+
+            dateTime.Value.Year.ShouldBe(2022);
+            dateTime.Value.Month.ShouldBe(1);
+            dateTime.Value.Day.ShouldBe(20);
+        }
+
+        /// <summary>
+        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work 
+        /// unless OptionInlineNamespacesEvaluationActive is turned on
+        /// </summary>
+        [Test]
+        [Category("Bug")]
+        [Category("#127")]
+        public void Evaluate_NewDateTime_When_OptionInlineNamespacesEvaluationActive_is_on()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator()
+            {
+                OptionInlineNamespacesEvaluationActive = true,
+            };
+
+            DateTime? dateTime = evaluator.Evaluate<DateTime>("new DateTime(2022,1,20)");
+
+            dateTime.HasValue.ShouldBeTrue();
+
+            dateTime.Value.Year.ShouldBe(2022);
+            dateTime.Value.Month.ShouldBe(1);
+            dateTime.Value.Day.ShouldBe(20);
+        }
+
+
+        /// <summary>
         /// To correct #81 Exception is assigned to variable
         /// With simple variable
         /// </summary>
