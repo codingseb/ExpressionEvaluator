@@ -559,6 +559,13 @@ namespace CodingSeb.ExpressionEvaluator
             }
         }
 
+        /// <summary>
+        /// If <c>true</c> Variables dictionary is kept as given so variables are persist outside of the evaluator and the comparer for keys can be defined by the user
+        /// If <c>false</c> Variables dictionary references are copied internally to follow OptionCaseSensitiveEvaluationActive with an internal protected comparer for keys
+        /// By default = false
+        /// </summary>
+        public bool OptionVariablesPersistenceCustomComparer { get; set; }
+
         private StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
 
         protected StringComparer StringComparerForCasing
@@ -901,7 +908,17 @@ namespace CodingSeb.ExpressionEvaluator
         public IDictionary<string, object> Variables
         {
             get { return variables; }
-            set { variables = value == null ? new Dictionary<string, object>(StringComparerForCasing) : new Dictionary<string, object>(value, StringComparerForCasing); }
+            set
+            {
+                if(OptionVariablesPersistenceCustomComparer)
+                {
+                    variables = value;
+                }
+                else
+                {
+                    variables = value == null ? new Dictionary<string, object>(StringComparerForCasing) : new Dictionary<string, object>(value, StringComparerForCasing); 
+                }
+            }
         }
 
         /// <summary>
@@ -979,6 +996,17 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Constructor with variables initialize
+        /// </summary>
+        /// <param name="variables">The Values of variables use in the expressions</param>
+        /// <param name="optionVariablesPersistenceCustomComparer">To set <see cref="OptionVariablesPersistenceCustomComparer"/> before setting <see cref="Variables"/></param>
+        public ExpressionEvaluator(IDictionary<string, object> variables, bool optionVariablesPersistenceCustomComparer) : this()
+        {
+            OptionVariablesPersistenceCustomComparer = optionVariablesPersistenceCustomComparer;
+            Variables = variables;
+        }
+
+        /// <summary>
         /// Constructor with context initialize
         /// </summary>
         /// <param name="context">the context that propose it's fields, properties and methods to the evaluation</param>
@@ -994,6 +1022,19 @@ namespace CodingSeb.ExpressionEvaluator
         /// <param name="variables">The Values of variables use in the expressions</param>
         public ExpressionEvaluator(object context, IDictionary<string, object> variables) : this()
         {
+            Context = context;
+            Variables = variables;
+        }
+
+        /// <summary>
+        /// Constructor with variables and context initialize
+        /// </summary>
+        /// <param name="context">the context that propose it's fields, properties and methods to the evaluation</param>
+        /// <param name="variables">The Values of variables use in the expressions</param>
+        /// <param name="optionVariablesPersistenceCustomComparer">To set <see cref="OptionVariablesPersistenceCustomComparer"/> before setting <see cref="Variables"/></param>
+        public ExpressionEvaluator(object context, IDictionary<string, object> variables, bool optionVariablesPersistenceCustomComparer) : this()
+        {
+            OptionVariablesPersistenceCustomComparer = optionVariablesPersistenceCustomComparer;
             Context = context;
             Variables = variables;
         }
