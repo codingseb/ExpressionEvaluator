@@ -8,4 +8,3 @@
         public StructForTest1 NestedStructProperty { get; set; }
     }
 }
-

@@ -620,7 +620,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                 //.SetCategory("=")
                 //.Returns();
 
-
                 #endregion
 
                 #region Array content assignation
