@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.36.0</Version>
-    <AssemblyVersion>1.4.36.0</AssemblyVersion>
-    <FileVersion>1.4.36.0</FileVersion>
+    <Version>1.4.37.0</Version>
+    <AssemblyVersion>1.4.37.0</AssemblyVersion>
+    <FileVersion>1.4.37.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -19,10 +19,7 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>
-		* Correction of creation of instance with new keyword when OptionInlineNamespacesEvaluationActive is set to false
-		* Add the option OptionVariablesPersistenceCustomComparer to reuse variables outside of the evaluator (In this case OptionCaseSensitiveEvaluationActive is not used anymore for variables)
-	</PackageReleaseNotes>
+    <PackageReleaseNotes>* Correction of the explicit cast between primitive types and rounding numbers before (int)3.6 -&gt; 4 now (int)3.6 -&gt; 3</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
