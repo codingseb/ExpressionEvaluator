@@ -4149,30 +4149,30 @@ namespace CodingSeb.ExpressionEvaluator
                 return Enum.ToObject(conversionType, value);
             }
             
-            if(conversionType == typeof(int))
-            {
-                return (int)(dynamic)value;
-            }
-            if (conversionType == typeof(uint))
-            {
-                return (uint)(dynamic)value;
-            }
-            if (conversionType == typeof(long))
-            {
-                return (long)(dynamic)value;
-            }
-            if (conversionType == typeof(ulong))
-            {
-                return (ulong)(dynamic)value;
-            }
-            if (conversionType == typeof(short))
-            {
-                return (short)(dynamic)value;
-            }
-            if (conversionType == typeof(ushort))
-            {
-                return (ushort)(dynamic)value;
-            }
+            //if(conversionType == typeof(int))
+            //{
+            //    return (int)(dynamic)value;
+            //}
+            //if (conversionType == typeof(uint))
+            //{
+            //    return (uint)(dynamic)value;
+            //}
+            //if (conversionType == typeof(long))
+            //{
+            //    return (long)(dynamic)value;
+            //}
+            //if (conversionType == typeof(ulong))
+            //{
+            //    return (ulong)(dynamic)value;
+            //}
+            //if (conversionType == typeof(short))
+            //{
+            //    return (short)(dynamic)value;
+            //}
+            //if (conversionType == typeof(ushort))
+            //{
+            //    return (ushort)(dynamic)value;
+            //}
 
             if (DynamicCast(value, conversionType, out object ret))
             {
@@ -4188,19 +4188,23 @@ namespace CodingSeb.ExpressionEvaluator
             if (srcType == destType) { result = source; return true; }
             result = null;
 
-            BindingFlags bf = BindingFlags.Static | BindingFlags.Public;
-            MethodInfo castOperator = destType.GetMethods(bf)
-                                        .Union(srcType.GetMethods(bf))
-                                        .Where(mi => mi.Name == "op_Explicit" || mi.Name == "op_Implicit")
-                                        .Where(mi =>
+            BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+            MethodInfo castOperator = destType.GetMethods(bindingFlags)
+                                        .Union(srcType.GetMethods(bindingFlags))
+                                        .Where(methodInfo => methodInfo.Name == "op_Explicit" || methodInfo.Name == "op_Implicit")
+                                        .Where(methodInfo =>
                                         {
-                                            var pars = mi.GetParameters();
+                                            var pars = methodInfo.GetParameters();
                                             return pars.Length == 1 && pars[0].ParameterType == srcType;
                                         })
                                         .Where(mi => mi.ReturnType == destType)
                                         .FirstOrDefault();
-            if (castOperator != null) result = castOperator.Invoke(null, new object[] { source });
-            else return false;
+
+            if (castOperator != null) 
+                result = castOperator.Invoke(null, new object[] { source });
+            else 
+                return false;
+
             return true;
         }
 
