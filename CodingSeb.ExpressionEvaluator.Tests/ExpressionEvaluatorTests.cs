@@ -990,7 +990,31 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region Bugs correction
 
         [TestCase("new DateTime(1985,9,11).ToString(\"dd.MM.yyyy\")", ExpectedResult = "11.09.1985", Category = "Complex expression,Static method,Instance method,Lambda function,Cast")]
+        
+        [TestCase("(int)3.6", ExpectedResult = (int)3.6, Category = "Complex expression,Cast,double to int,#130")]
+        [TestCase("(int)-3.6", ExpectedResult = (int)-3.6, Category = "Complex expression,Cast,double to int,#130")]
+        [TestCase("(uint)3.6", ExpectedResult = (uint)3.6, Category = "Complex expression,Cast,double to uint,#130")]
+        [TestCase("(long)3.6", ExpectedResult = (long)3.6, Category = "Complex expression,Cast,double to long,#130")]
+        [TestCase("(short)3.6", ExpectedResult = (short)3.6, Category = "Complex expression,Cast,double to short,#130")]
 
+        [TestCase("(int)3.6d", ExpectedResult = (int)3.6d, Category = "Complex expression,Cast,double to int,#130")]
+        [TestCase("(int)-3.6d", ExpectedResult = (int)-3.6d, Category = "Complex expression,Cast,double to int,#130")]
+        [TestCase("(uint)3.6d", ExpectedResult = (uint)3.6d, Category = "Complex expression,Cast,double to uint,#130")]
+        [TestCase("(long)3.6d", ExpectedResult = (long)3.6d, Category = "Complex expression,Cast,double to long,#130")]
+        [TestCase("(short)3.6d", ExpectedResult = (short)3.6d, Category = "Complex expression,Cast,double to short,#130")]
+
+        [TestCase("(int)3.6f", ExpectedResult = (int)3.6f, Category = "Complex expression,Cast,float to int,#130")]
+        [TestCase("(int)-3.6f", ExpectedResult = (int)-3.6f, Category = "Complex expression,Cast,float to int,#130")]
+        [TestCase("(uint)3.6f", ExpectedResult = (uint)3.6f, Category = "Complex expression,Cast,float to uint,#130")]
+        [TestCase("(long)3.6f", ExpectedResult = (long)3.6f, Category = "Complex expression,Cast,float to long,#130")]
+        [TestCase("(short)3.6f", ExpectedResult = (short)3.6f, Category = "Complex expression,Cast,float to short,#130")]
+
+        [TestCase("(int)3.6m", ExpectedResult = (int)3.6m, Category = "Complex expression,Cast,decimal to int,#130")]
+        [TestCase("(int)-3.6m", ExpectedResult = (int)-3.6m, Category = "Complex expression,Cast,decimal to int,#130")]
+        [TestCase("(uint)3.6m", ExpectedResult = (uint)3.6m, Category = "Complex expression,Cast,decimal to uint,#130")]
+        [TestCase("(long)3.6m", ExpectedResult = (long)3.6m, Category = "Complex expression,Cast,decimal to long,#130")]
+        [TestCase("(short)3.6m", ExpectedResult = (short)3.6m, Category = "Complex expression,Cast,decimal to short,#130")]
+        
         #endregion
 
         #endregion
@@ -1592,7 +1616,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         #region Bug corrections
 
         /// <summary>
-        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work 
+        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work
         /// unless OptionInlineNamespacesEvaluationActive is turned on
         /// </summary>
         [Test]
@@ -1615,7 +1639,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         }
 
         /// <summary>
-        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work 
+        /// To correct #127 Evaluating "new DateTime(2022,1,20)" does not work
         /// unless OptionInlineNamespacesEvaluationActive is turned on
         /// </summary>
         [Test]
@@ -1636,7 +1660,6 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             dateTime.Value.Month.ShouldBe(1);
             dateTime.Value.Day.ShouldBe(20);
         }
-
 
         /// <summary>
         /// To correct #81 Exception is assigned to variable

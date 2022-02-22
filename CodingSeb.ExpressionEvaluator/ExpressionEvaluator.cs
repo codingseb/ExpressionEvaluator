@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.36.0 
+    Version : 1.4.37.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -916,7 +917,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    variables = value == null ? new Dictionary<string, object>(StringComparerForCasing) : new Dictionary<string, object>(value, StringComparerForCasing); 
+                    variables = value == null ? new Dictionary<string, object>(StringComparerForCasing) : new Dictionary<string, object>(value, StringComparerForCasing);
                 }
             }
         }
@@ -4147,7 +4148,53 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return Enum.ToObject(conversionType, value);
             }
+
+            if (value.GetType().IsPrimitive && conversionType.IsPrimitive)
+            {
+                return primitiveExplicitCastMethodInfo
+                    .MakeGenericMethod(conversionType)
+                    .Invoke(null, new object[] {value});
+            }
+
+            if (DynamicCast(value, conversionType, out object ret))
+            {
+                return ret;
+            }
+
             return Convert.ChangeType(value, conversionType);
+        }
+
+        protected static MethodInfo primitiveExplicitCastMethodInfo = typeof(ExpressionEvaluator).GetMethod(nameof(PrimitiveExplicitCast), BindingFlags.Static | BindingFlags.NonPublic);
+
+        protected static object PrimitiveExplicitCast<T>(dynamic value)
+        {
+            return (T)value;
+        }
+
+        protected static bool DynamicCast(object source, Type destType, out object result)
+        {
+            Type srcType = source.GetType();
+            if (srcType == destType) { result = source; return true; }
+            result = null;
+
+            BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+            MethodInfo castOperator = destType.GetMethods(bindingFlags)
+                                        .Union(srcType.GetMethods(bindingFlags))
+                                        .Where(methodInfo => methodInfo.Name == "op_Explicit" || methodInfo.Name == "op_Implicit")
+                                        .Where(methodInfo =>
+                                        {
+                                            var pars = methodInfo.GetParameters();
+                                            return pars.Length == 1 && pars[0].ParameterType == srcType;
+                                        })
+                                        .Where(mi => mi.ReturnType == destType)
+                                        .FirstOrDefault();
+
+            if (castOperator != null) 
+                result = castOperator.Invoke(null, new object[] { source });
+            else 
+                return false;
+
+            return true;
         }
 
         protected virtual string GetCodeUntilEndOfString(string subExpr, Match stringBeginningMatch)
