@@ -4148,31 +4148,13 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 return Enum.ToObject(conversionType, value);
             }
-            
-            //if(conversionType == typeof(int))
-            //{
-            //    return (int)(dynamic)value;
-            //}
-            //if (conversionType == typeof(uint))
-            //{
-            //    return (uint)(dynamic)value;
-            //}
-            //if (conversionType == typeof(long))
-            //{
-            //    return (long)(dynamic)value;
-            //}
-            //if (conversionType == typeof(ulong))
-            //{
-            //    return (ulong)(dynamic)value;
-            //}
-            //if (conversionType == typeof(short))
-            //{
-            //    return (short)(dynamic)value;
-            //}
-            //if (conversionType == typeof(ushort))
-            //{
-            //    return (ushort)(dynamic)value;
-            //}
+
+            if (value.GetType().IsPrimitive && conversionType.IsPrimitive)
+            {
+                return primitiveExplicitCastMethodInfo
+                    .MakeGenericMethod(conversionType)
+                    .Invoke(null, new object[] {value});
+            }
 
             if (DynamicCast(value, conversionType, out object ret))
             {
@@ -4180,6 +4162,13 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             return Convert.ChangeType(value, conversionType);
+        }
+
+        protected static MethodInfo primitiveExplicitCastMethodInfo = typeof(ExpressionEvaluator).GetMethod(nameof(PrimitiveExplicitCast), BindingFlags.Static | BindingFlags.NonPublic);
+
+        protected static object PrimitiveExplicitCast<T>(dynamic value)
+        {
+            return (T)value;
         }
 
         protected static bool DynamicCast(object source, Type destType, out object result)
