@@ -1626,7 +1626,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator()
             {
-                OptionInlineNamespacesEvaluationActive = false,
+                OptionInlineNamespacesEvaluationRule = InlineNamespacesEvaluationRule.BlockAll,
             };
 
             DateTime? dateTime = evaluator.Evaluate<DateTime>("new DateTime(2022,1,20)");
@@ -1649,7 +1649,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             ExpressionEvaluator evaluator = new ExpressionEvaluator()
             {
-                OptionInlineNamespacesEvaluationActive = true,
+                OptionInlineNamespacesEvaluationRule = InlineNamespacesEvaluationRule.AllowAll,
             };
 
             DateTime? dateTime = evaluator.Evaluate<DateTime>("new DateTime(2022,1,20)");

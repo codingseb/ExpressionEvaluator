@@ -682,11 +682,19 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure).
-        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available).
-        /// By default : true
+        /// if <c>AllowAll</c> Allow the use of any inline namespace that is available in memory (Can be slow, and is less secure).<para/>
+        /// if <c>AllowOnlyInlineNamespacesList</c> Allow only the use of inline namespace defined in <see cref="InlineNamespacesList"/><para/>
+        /// if <c>BlockOnlyInlineNamespacesList</c> Allow the use of any inline namespace that is available in memory that is not defined in <see cref="InlineNamespacesList"/><para/>
+        /// if <c>BlockAll</c> Unactive the use of inline namespaces<para/>
+        /// By default : <c>AllowAll</c>
         /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
+        public InlineNamespacesEvaluationRule OptionInlineNamespacesEvaluationRule { get; set; } = InlineNamespacesEvaluationRule.AllowAll;
+
+        /// <summary>
+        /// This list is used to allow or block depending on <see cref="OptionInlineNamespacesEvaluationRule"/> a list of namespaces for inline writing.<para/>
+        /// The direct access of type depending on <see cref="Namespaces"/> is not affected by this list.
+        /// </summary>
+        public virtual IList<string> InlineNamespacesList { get; set; } = new List<string>();
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -2553,7 +2561,7 @@ namespace CodingSeb.ExpressionEvaluator
             // For inline namespace parsing
             if (staticType == null)
             {
-                if (OptionInlineNamespacesEvaluationActive)
+                if (OptionInlineNamespacesEvaluationRule != InlineNamespacesEvaluationRule.BlockAll)
                 {
                     int subIndex = 0;
                     Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
@@ -2574,12 +2582,23 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (staticType != null)
                         {
-                            i += subIndex;
+                            if((OptionInlineNamespacesEvaluationRule == InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList && InlineNamespacesList.Contains(staticType.Namespace))
+                                || (OptionInlineNamespacesEvaluationRule == InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList && !InlineNamespacesList.Contains(staticType.Namespace)))
+                            {
+                                staticType = null;
+                            }
+                            else
+                            {
+                                i += subIndex;
+                            }
+
                             break;
                         }
 
                         namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
                     }
+
+
                 }
                 else
                 {
@@ -4516,6 +4535,29 @@ namespace CodingSeb.ExpressionEvaluator
         ReturnAutomaticallyLastEvaluatedExpression,
         ReturnNull,
         ThrowSyntaxException
+    }
+
+    public enum InlineNamespacesEvaluationRule
+    {
+        /// <summary>
+        /// Allow the use of any inline namespace that is available in memory
+        /// </summary>
+        AllowAll,
+
+        /// <summary>
+        /// Allow only the use of inline namespace defined in <see cref="ExpressionEvaluator.InlineNamespacesList"/>
+        /// </summary>
+        AllowOnlyInlineNamespacesList,
+
+        /// <summary>
+        ///  Allow the use of any inline namespace that is available in memory that is not defined in <see cref="ExpressionEvaluator.InlineNamespacesList"/>
+        /// </summary>
+        BlockOnlyInlineNamespacesList,
+
+        /// <summary>
+        /// Unactive the use of inline namespaces
+        /// </summary>
+        BlockAll
     }
 
     #endregion
