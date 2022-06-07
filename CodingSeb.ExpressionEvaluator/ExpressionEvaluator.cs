@@ -4773,6 +4773,10 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
+        /// <param name="evaluator">The <see cref="ExpressionEvaluator"/> that detected the variable, field or property to evaluate</param>
+        /// <param name="onInstance">The object instance on which to evaluate the field or property (will be <see cref="This"/>)</param>
+        /// <param name="genericTypes">The generics types specified when at property access</param>
+        /// <param name="evaluateGenericTypes">A func to evaluate the list of specific types given between &lt; and &gt;</param>
         public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
@@ -4840,16 +4844,30 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Infos about the expression that has been/will be evaluated
+    /// </summary>
     public partial class ExpressionEvaluationEventArg : EventArgs
     {
         private object value;
 
+        /// <summary>
+        /// Constructor of ExpressionEvaluationEventArg (for <see cref="ExpressionEvaluator.ExpressionEvaluating"/> event)
+        /// </summary>
+        /// <param name="expression">The expression that will be evaluated</param>
+        /// <param name="evaluator">The evaluator that will be use to evaluate the expression</param>
         public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator)
         {
             Expression = expression;
             Evaluator = evaluator;
         }
 
+        /// <summary>
+        /// Constructor of ExpressionEvaluationEventArg (for <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event)
+        /// </summary>
+        /// <param name="expression">The expression that will be evaluated</param>
+        /// <param name="evaluator"></param>
+        /// <param name="value"></param>
         public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator, object value)
         {
             Expression = expression;
@@ -4857,6 +4875,9 @@ namespace CodingSeb.ExpressionEvaluator
             this.value = value;
         }
 
+        /// <summary>
+        /// The evaluator that has been/will be use to evaluate the expression
+        /// </summary>
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
@@ -4866,7 +4887,8 @@ namespace CodingSeb.ExpressionEvaluator
         public string Expression { get; set; }
 
         /// <summary>
-        /// To set the return of the evaluation
+        /// To set the return of the evaluation<para/>
+        /// IN the case of <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event, store the result of the evaluation
         /// </summary>
         public object Value
         {
@@ -4907,6 +4929,15 @@ namespace CodingSeb.ExpressionEvaluator
         private readonly Func<string, Type[]> evaluateGenericTypes;
         private readonly string genericTypes;
 
+        /// <summary>
+        /// Constructor of the <see cref="FunctionEvaluationEventArg"/>
+        /// </summary>
+        /// <param name="name">The name of the function or method</param>
+        /// <param name="args">Arguments passed to fthe function or method</param>
+        /// <param name="evaluator">The <see cref="ExpressionEvaluator"/> that detected the function or method to evaluate</param>
+        /// <param name="onInstance">The object instance on which to evaluate the method (will be <see cref="This"/>)</param>
+        /// <param name="genericTypes">The generics types specified when at function calling</param>
+        /// <param name="evaluateGenericTypes">A func to evaluate the list of specific types given between &lt; and &gt;</param>
         public FunctionEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
