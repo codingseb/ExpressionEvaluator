@@ -4888,7 +4888,7 @@ namespace CodingSeb.ExpressionEvaluator
 
         /// <summary>
         /// To set the return of the evaluation<para/>
-        /// IN the case of <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event, store the result of the evaluation
+        /// In the case of <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event, store the result of the evaluation
         /// </summary>
         public object Value
         {
