@@ -1657,7 +1657,12 @@ namespace CodingSeb.ExpressionEvaluator
             }
             catch (TargetInvocationException exception) when (exception.InnerException != null)
             {
-                ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+                Exception exceptionToThrow = exception.InnerException;
+
+                while (exceptionToThrow is TargetInvocationException && exceptionToThrow.InnerException != null)
+                    exceptionToThrow = exceptionToThrow.InnerException;
+
+                ExceptionDispatchInfo.Capture(exceptionToThrow).Throw();
                 // Will not go here but need to return something to avoid compilation errors.
                 return null;
             }
