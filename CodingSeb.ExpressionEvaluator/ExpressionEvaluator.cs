@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.37.0 
+    Version : 1.4.38.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -16,6 +16,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -286,6 +287,8 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
+                        ExceptionDispatchInfo.Capture(leftExceptionContainer.Exception).Throw();
+                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
                         throw leftExceptionContainer.Exception;
                     }
                     else if (!left)
@@ -294,6 +297,8 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
+                        ExceptionDispatchInfo.Capture(rightExceptionContainer.Exception).Throw();
+                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
                         throw rightExceptionContainer.Exception;
                     }
                     else
@@ -307,6 +312,8 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
+                        ExceptionDispatchInfo.Capture(leftExceptionContainer.Exception).Throw();
+                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
                         throw leftExceptionContainer.Exception;
                     }
                     else if (left)
@@ -315,6 +322,8 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
+                        ExceptionDispatchInfo.Capture(rightExceptionContainer.Exception).Throw();
+                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
                         throw rightExceptionContainer.Exception;
                     }
                     else
@@ -1129,7 +1138,14 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (expression.StartsWith("throw ", StringComparisonForCasing))
                 {
-                    throw Evaluate(expression.Remove(0, 6)) as Exception;
+                    if (Evaluate(expression.Remove(0, 6)) is Exception exception)
+                    {
+                        ExceptionDispatchInfo.Capture(exception).Throw();
+                    }
+                    else
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("throw keyword must be follow by an Exception instance");
+                    }
                 }
 
                 expression = returnKeywordRegex.Replace(expression, match =>
@@ -1595,7 +1611,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             try
             {
-                ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this);
+                ExpressionEvaluationEventArg expressionEvaluationEventArg =
+                    new ExpressionEvaluationEventArg(expression, this);
 
                 ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
 
@@ -1618,7 +1635,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (!s.Trim().Equals(string.Empty))
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                                throw new ExpressionEvaluatorSyntaxErrorException(
+                                    $"Invalid character [{(int)s[0]}:{s}]");
                             }
                         }
                     }
@@ -1636,6 +1654,10 @@ namespace CodingSeb.ExpressionEvaluator
                 }
 
                 return result;
+            }
+            catch (TargetInvocationException exception) when (exception.InnerException != null)
+            {
+                ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
             }
             finally
             {
@@ -3088,7 +3110,9 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = Evaluate(innerExp.ToString());
 
                             if (obj is BubbleExceptionContainer bubbleExceptionContainer)
-                                throw bubbleExceptionContainer.Exception;
+                            {
+                                ExceptionDispatchInfo.Capture(bubbleExceptionContainer.Exception).Throw();
+                            }
 
                             resultString.Append(obj);
                         }
@@ -3283,7 +3307,8 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (item is BubbleExceptionContainer bubbleExceptionContainer)
                     {
-                        throw bubbleExceptionContainer.Exception; //Throw the first occuring error
+                        //Throw the first occuring error
+                        ExceptionDispatchInfo.Capture(bubbleExceptionContainer.Exception).Throw();
                     }
                 }
                 throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
@@ -3291,7 +3316,7 @@ namespace CodingSeb.ExpressionEvaluator
             else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
             {
                 //We reached the top level of the evaluation. So we want to throw the resulting exception.
-                throw bubbleExceptionContainer.Exception;
+                ExceptionDispatchInfo.Capture(bubbleExceptionContainer.Exception).Throw();
             }
 
             return stack.Pop();
@@ -3364,7 +3389,9 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             if (result is BubbleExceptionContainer exceptionContainer)
-                throw exceptionContainer.Exception;
+            {
+                ExceptionDispatchInfo.Capture(exceptionContainer.Exception).Throw();
+            }
 
             if (stack != null)
             {
@@ -3395,9 +3422,9 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         Variables[varName] = Convert.ChangeType(value, stronglyTypedVariable.Type);
                     }
-                    catch
+                    catch(Exception exception)
                     {
-                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}", exception);
                     }
                 }
             }
@@ -4117,8 +4144,10 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                 }
             }
-            catch (ExpressionEvaluatorSyntaxErrorException)
+            catch (ExpressionEvaluatorSyntaxErrorException exception)
             {
+                ExceptionDispatchInfo.Capture(exception).Throw();
+                // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
                 throw;
             }
             catch { }
