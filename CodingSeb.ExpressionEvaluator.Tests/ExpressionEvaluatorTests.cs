@@ -1530,6 +1530,46 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
                 #endregion
 
+                #region OptionInlineNamespacesEvaluationRule
+
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionInlineNamespacesEvaluationRule = InlineNamespacesEvaluationRule.BlockAll
+                };
+
+                yield return new TestCaseData(evaluator, "new System.Collections.Generic.List<string>(){\"-\"}", typeof(ExpressionEvaluatorSyntaxErrorException))
+                    .SetCategory("Options")
+                    .SetCategory("InlineNamespacesEvaluationRule.BlockAll")
+                    .SetCategory("OptionInlineNamespacesEvaluationRule");
+                
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionInlineNamespacesEvaluationRule = InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList
+                };
+
+                evaluator.InlineNamespacesList = evaluator.Namespaces.ToList();
+
+                evaluator.InlineNamespacesList.Remove("System.Collections.Generic");
+
+                yield return new TestCaseData(evaluator, "new System.Collections.Generic.List<string>()", typeof(ExpressionEvaluatorSyntaxErrorException))
+                    .SetCategory("Options")
+                    .SetCategory("InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList")
+                    .SetCategory("OptionInlineNamespacesEvaluationRule");
+                
+                evaluator = new ExpressionEvaluator()
+                {
+                    OptionInlineNamespacesEvaluationRule = InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList
+                };
+
+                evaluator.InlineNamespacesList = evaluator.Namespaces.ToList();
+                
+                yield return new TestCaseData(evaluator, "new System.Collections.Generic.List<string>(){ \"\" }", typeof(ExpressionEvaluatorSyntaxErrorException))
+                    .SetCategory("Options")
+                    .SetCategory("InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList")
+                    .SetCategory("OptionInlineNamespacesEvaluationRule");
+
+                #endregion
+
                 #endregion
 
                 #region TypesToBlock

@@ -14,7 +14,6 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -567,15 +566,9 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionVariablesPersistenceCustomComparer { get; set; }
 
-        private StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
+        protected StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
 
-        protected StringComparer StringComparerForCasing
-        {
-            get
-            {
-                return OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            }
-        }
+        protected StringComparer StringComparerForCasing => OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
         /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
@@ -618,10 +611,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionNumberParsingDecimalSeparator
         {
-            get
-            {
-                return optionNumberParsingDecimalSeparator;
-            }
+            get => optionNumberParsingDecimalSeparator;
 
             set
             {
@@ -644,10 +634,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionNumberParsingThousandSeparator
         {
-            get
-            {
-                return optionNumberParsingThousandSeparator;
-            }
+            get => optionNumberParsingThousandSeparator;
 
             set
             {
