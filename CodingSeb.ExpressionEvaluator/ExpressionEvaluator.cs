@@ -17,6 +17,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -287,7 +288,8 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
-                        throw leftExceptionContainer.Exception;
+                        leftExceptionContainer.Throw();
+                        return null; // this line is never reached
                     }
                     else if (!left)
                     {
@@ -295,7 +297,8 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
-                        throw rightExceptionContainer.Exception;
+                        rightExceptionContainer.Throw();
+                        return null; // this line is never reached
                     }
                     else
                     {
@@ -308,7 +311,8 @@ namespace CodingSeb.ExpressionEvaluator
                 {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
-                        throw leftExceptionContainer.Exception;
+                        leftExceptionContainer.Throw();
+                        return null; // this line is never reached
                     }
                     else if (left)
                     {
@@ -316,7 +320,8 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
-                        throw rightExceptionContainer.Exception;
+                        rightExceptionContainer.Throw();
+                        return null; // this line is never reached
                     }
                     else
                     {
@@ -2147,20 +2152,15 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         catch (NullReferenceException nullException)
                         {
-                            stack.Push(new BubbleExceptionContainer()
-                            {
-                                Exception = nullException
-                            });
+                            stack.Push(new BubbleExceptionContainer(nullException));
 
                             return true;
                         }
                         catch (Exception ex)
                         {
                             //Transport the exception in stack.
-                            stack.Push(new BubbleExceptionContainer()
-                            {
-                                Exception = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex)
-                            });
+                            var nestedException = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
+                            stack.Push(new BubbleExceptionContainer(nestedException));
                             return true;  //Signals an error to the parsing method array call                          
                         }
                     }
@@ -2410,10 +2410,8 @@ namespace CodingSeb.ExpressionEvaluator
                         catch (Exception ex)
                         {
                             //Transport the exception in stack.
-                            stack.Push(new BubbleExceptionContainer()
-                            {
-                                Exception = new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex)
-                            });
+                            var nestedException = new ExpressionEvaluatorSyntaxErrorException($"[{objType}] object has no public Property or Member named \"{varFuncName}\".", ex);
+                            stack.Push(new BubbleExceptionContainer(nestedException));
                             i--;
                             return true;  //Signals an error to the parsing method array call
                         }
@@ -3082,7 +3080,7 @@ namespace CodingSeb.ExpressionEvaluator
                             object obj = Evaluate(innerExp.ToString());
 
                             if (obj is BubbleExceptionContainer bubbleExceptionContainer)
-                                throw bubbleExceptionContainer.Exception;
+                                bubbleExceptionContainer.Throw();
 
                             resultString.Append(obj);
                         }
@@ -3181,7 +3179,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
                                     else
                                     {
-                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                        list[i] = new BubbleExceptionContainer(ex); //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i - 1);
@@ -3216,7 +3214,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
                                     else
                                     {
-                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                        list[i] = new BubbleExceptionContainer(ex); //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i + 1);
@@ -3252,7 +3250,7 @@ namespace CodingSeb.ExpressionEvaluator
                                     }
                                     else
                                     {
-                                        list[i] = new BubbleExceptionContainer() { Exception = ex }; //Transport the processing error
+                                        list[i] = new BubbleExceptionContainer(ex); //Transport the processing error
                                     }
                                 }
                                 list.RemoveAt(i + 1);
@@ -3277,7 +3275,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (item is BubbleExceptionContainer bubbleExceptionContainer)
                     {
-                        throw bubbleExceptionContainer.Exception; //Throw the first occuring error
+                        bubbleExceptionContainer.Throw(); //Throw the first occuring error
                     }
                 }
                 throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
@@ -3285,7 +3283,7 @@ namespace CodingSeb.ExpressionEvaluator
             else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
             {
                 //We reached the top level of the evaluation. So we want to throw the resulting exception.
-                throw bubbleExceptionContainer.Exception;
+                bubbleExceptionContainer.Throw();
             }
 
             return stack.Pop();
@@ -3358,7 +3356,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             if (result is BubbleExceptionContainer exceptionContainer)
-                throw exceptionContainer.Exception;
+                exceptionContainer.Throw();
 
             if (stack != null)
             {
@@ -4692,7 +4690,14 @@ namespace CodingSeb.ExpressionEvaluator
 
     public partial class BubbleExceptionContainer
     {
-        public Exception Exception { get; set; }
+        public BubbleExceptionContainer(Exception exception)
+        {
+            _dispatchInfo = ExceptionDispatchInfo.Capture(exception);
+        }
+
+        private readonly ExceptionDispatchInfo _dispatchInfo;
+
+        public void Throw() => _dispatchInfo.Throw();
     }
 
     public partial class ExpressionEvaluatorSyntaxErrorException : Exception
