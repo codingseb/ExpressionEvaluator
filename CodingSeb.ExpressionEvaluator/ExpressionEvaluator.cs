@@ -288,8 +288,8 @@ namespace CodingSeb.ExpressionEvaluator
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
                         ExceptionDispatchInfo.Capture(leftExceptionContainer.Exception).Throw();
-                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
-                        throw leftExceptionContainer.Exception;
+                        // Will not go here but need to return something to avoid compilation errors.
+                        return null;
                     }
                     else if (!left)
                     {
@@ -298,8 +298,8 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
                         ExceptionDispatchInfo.Capture(rightExceptionContainer.Exception).Throw();
-                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
-                        throw rightExceptionContainer.Exception;
+                        // Will not go here but need to return something to avoid compilation errors.
+                        return null;
                     }
                     else
                     {
@@ -313,8 +313,8 @@ namespace CodingSeb.ExpressionEvaluator
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
                         ExceptionDispatchInfo.Capture(leftExceptionContainer.Exception).Throw();
-                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
-                        throw leftExceptionContainer.Exception;
+                        // Will not go here but need to return something to avoid compilation errors.
+                        return null;
                     }
                     else if (left)
                     {
@@ -323,8 +323,8 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (right is BubbleExceptionContainer rightExceptionContainer)
                     {
                         ExceptionDispatchInfo.Capture(rightExceptionContainer.Exception).Throw();
-                        // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
-                        throw rightExceptionContainer.Exception;
+                        // Will not go here but need to return something to avoid compilation errors.
+                        return null;
                     }
                     else
                     {
@@ -1658,6 +1658,8 @@ namespace CodingSeb.ExpressionEvaluator
             catch (TargetInvocationException exception) when (exception.InnerException != null)
             {
                 ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+                // Will not go here but need to return something to avoid compilation errors.
+                return null;
             }
             finally
             {
@@ -3376,7 +3378,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (rightExpression.Trim().Equals(string.Empty))
                 throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
+            
             if (match.Groups["assignmentPrefix"].Success)
             {
                 ExpressionOperator prefixOp = operatorsDictionary[match.Groups["assignmentPrefix"].Value];
@@ -4147,8 +4149,8 @@ namespace CodingSeb.ExpressionEvaluator
             catch (ExpressionEvaluatorSyntaxErrorException exception)
             {
                 ExceptionDispatchInfo.Capture(exception).Throw();
-                // Will not go here but Resharper detect some errors because he does not know ExceptionDispatchInfo stuff.
-                throw;
+                // Will not go here but need to return something to avoid compilation errors.
+                return null;
             }
             catch { }
 
