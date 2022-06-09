@@ -24,7 +24,8 @@
    - InlineNamespacesEvaluationRule.AllowAll
    - InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList
    - InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList
-   - InlineNamespacesEvaluationRule.BlockAll</PackageReleaseNotes>
+   - InlineNamespacesEvaluationRule.BlockAll
+* Throw better exception and get better exception context with ExceptionDispatchInfo on TargetInvocationException.InnerException and BubbleExceptionContainer</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
