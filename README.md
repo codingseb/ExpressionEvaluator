@@ -25,7 +25,7 @@ It is largely based on and inspired by the following resources [this post on st
 * Instance and static methods and properties access like as in C#
 * You can call Methods and/or Properties on your own classes (just pass a object as custom variables)
 * [C# primary types](https://github.com/codingseb/ExpressionEvaluator/wiki/C%23-Types-Management#primary-types)
-* Use strings as in C# (@"", $"", $@"" available)
+* Use strings as in C# (`@""`, `$""`, `$@""` available)
 * Lambda expressions
 * Classes like File, Directory, Regex, List ... available ([You can extend the list of Namespaces](https://github.com/codingseb/ExpressionEvaluator/wiki/C%23-Types-Management#assemblies-namespaces-and-types))
 * Create instance with [new(MyClassName, constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Variables-and-Functions#standard-functions) or [new MyClassName(constructorArgs)](https://github.com/codingseb/ExpressionEvaluator/wiki/Operators-and-Keywords#standard-operators)
