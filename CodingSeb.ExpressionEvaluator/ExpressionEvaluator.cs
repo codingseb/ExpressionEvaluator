@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.37.0 
+    Version : 1.4.38.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -14,7 +14,6 @@ using System.ComponentModel;
 using System.Dynamic;
 using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -572,15 +571,9 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public bool OptionVariablesPersistenceCustomComparer { get; set; }
 
-        private StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
+        protected StringComparison StringComparisonForCasing { get; set; } = StringComparison.Ordinal;
 
-        protected StringComparer StringComparerForCasing
-        {
-            get
-            {
-                return OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-            }
-        }
+        protected StringComparer StringComparerForCasing => OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
         /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
@@ -623,10 +616,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionNumberParsingDecimalSeparator
         {
-            get
-            {
-                return optionNumberParsingDecimalSeparator;
-            }
+            get => optionNumberParsingDecimalSeparator;
 
             set
             {
@@ -649,10 +639,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public string OptionNumberParsingThousandSeparator
         {
-            get
-            {
-                return optionNumberParsingThousandSeparator;
-            }
+            get => optionNumberParsingThousandSeparator;
 
             set
             {
@@ -687,11 +674,19 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionFluidPrefixingActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow the use of inline namespace (Can be slow, and is less secure).
-        /// if <c>false</c> unactive inline namespace (only namespaces in Namespaces list are available).
-        /// By default : true
+        /// if <c>AllowAll</c> Allow the use of any inline namespace that is available in memory (Can be slow, and is less secure).<para/>
+        /// if <c>AllowOnlyInlineNamespacesList</c> Allow only the use of inline namespace defined in <see cref="InlineNamespacesList"/><para/>
+        /// if <c>BlockOnlyInlineNamespacesList</c> Allow the use of any inline namespace that is available in memory that is not defined in <see cref="InlineNamespacesList"/><para/>
+        /// if <c>BlockAll</c> Unactive the use of inline namespaces<para/>
+        /// By default : <c>AllowAll</c>
         /// </summary>
-        public bool OptionInlineNamespacesEvaluationActive { get; set; } = true;
+        public InlineNamespacesEvaluationRule OptionInlineNamespacesEvaluationRule { get; set; } = InlineNamespacesEvaluationRule.AllowAll;
+
+        /// <summary>
+        /// This list is used to allow or block depending on <see cref="OptionInlineNamespacesEvaluationRule"/> a list of namespaces for inline writing.<para/>
+        /// The direct access of type depending on <see cref="Namespaces"/> is not affected by this list.
+        /// </summary>
+        public virtual IList<string> InlineNamespacesList { get; set; } = new List<string>();
 
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
@@ -1139,7 +1134,14 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (expression.StartsWith("throw ", StringComparisonForCasing))
                 {
-                    throw Evaluate(expression.Remove(0, 6)) as Exception;
+                    if (Evaluate(expression.Remove(0, 6)) is Exception exception)
+                    {
+                        ExceptionDispatchInfo.Capture(exception).Throw();
+                    }
+                    else
+                    {
+                        throw new ExpressionEvaluatorSyntaxErrorException("throw keyword must be follow by an Exception instance");
+                    }
                 }
 
                 expression = returnKeywordRegex.Replace(expression, match =>
@@ -1605,7 +1607,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             try
             {
-                ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this);
+                ExpressionEvaluationEventArg expressionEvaluationEventArg =
+                    new ExpressionEvaluationEventArg(expression, this);
 
                 ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
 
@@ -1628,7 +1631,8 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (!s.Trim().Equals(string.Empty))
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Invalid character [{(int)s[0]}:{s}]");
+                                throw new ExpressionEvaluatorSyntaxErrorException(
+                                    $"Invalid character [{(int)s[0]}:{s}]");
                             }
                         }
                     }
@@ -1646,6 +1650,17 @@ namespace CodingSeb.ExpressionEvaluator
                 }
 
                 return result;
+            }
+            catch (TargetInvocationException exception) when (exception.InnerException != null)
+            {
+                Exception exceptionToThrow = exception.InnerException;
+
+                while (exceptionToThrow is TargetInvocationException && exceptionToThrow.InnerException != null)
+                    exceptionToThrow = exceptionToThrow.InnerException;
+
+                ExceptionDispatchInfo.Capture(exceptionToThrow).Throw();
+                // Will not go here but need to return something to avoid compilation errors.
+                return null;
             }
             finally
             {
@@ -2551,7 +2566,7 @@ namespace CodingSeb.ExpressionEvaluator
             // For inline namespace parsing
             if (staticType == null)
             {
-                if (OptionInlineNamespacesEvaluationActive)
+                if (OptionInlineNamespacesEvaluationRule != InlineNamespacesEvaluationRule.BlockAll)
                 {
                     int subIndex = 0;
                     Match namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
@@ -2572,12 +2587,23 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (staticType != null)
                         {
-                            i += subIndex;
+                            if((OptionInlineNamespacesEvaluationRule == InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList && InlineNamespacesList.Contains(staticType.Namespace))
+                                || (OptionInlineNamespacesEvaluationRule == InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList && !InlineNamespacesList.Contains(staticType.Namespace)))
+                            {
+                                staticType = null;
+                            }
+                            else
+                            {
+                                i += subIndex;
+                            }
+
                             break;
                         }
 
                         namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
                     }
+
+
                 }
                 else
                 {
@@ -3343,7 +3369,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (rightExpression.Trim().Equals(string.Empty))
                 throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-
+            
             if (match.Groups["assignmentPrefix"].Success)
             {
                 ExpressionOperator prefixOp = operatorsDictionary[match.Groups["assignmentPrefix"].Value];
@@ -3387,9 +3413,9 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         Variables[varName] = Convert.ChangeType(value, stronglyTypedVariable.Type);
                     }
-                    catch
+                    catch(Exception exception)
                     {
-                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}");
+                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}", exception);
                     }
                 }
             }
@@ -4109,9 +4135,11 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                 }
             }
-            catch (ExpressionEvaluatorSyntaxErrorException)
+            catch (ExpressionEvaluatorSyntaxErrorException exception)
             {
-                throw;
+                ExceptionDispatchInfo.Capture(exception).Throw();
+                // Will not go here but need to return something to avoid compilation errors.
+                return null;
             }
             catch { }
 
@@ -4516,6 +4544,29 @@ namespace CodingSeb.ExpressionEvaluator
         ThrowSyntaxException
     }
 
+    public enum InlineNamespacesEvaluationRule
+    {
+        /// <summary>
+        /// Allow the use of any inline namespace that is available in memory
+        /// </summary>
+        AllowAll,
+
+        /// <summary>
+        /// Allow only the use of inline namespace defined in <see cref="ExpressionEvaluator.InlineNamespacesList"/>
+        /// </summary>
+        AllowOnlyInlineNamespacesList,
+
+        /// <summary>
+        ///  Allow the use of any inline namespace that is available in memory that is not defined in <see cref="ExpressionEvaluator.InlineNamespacesList"/>
+        /// </summary>
+        BlockOnlyInlineNamespacesList,
+
+        /// <summary>
+        /// Unactive the use of inline namespaces
+        /// </summary>
+        BlockAll
+    }
+
     #endregion
 
     #region ExpressionEvaluator linked public classes (specific Exceptions, EventArgs and Operators)
@@ -4736,6 +4787,10 @@ namespace CodingSeb.ExpressionEvaluator
         /// Constructor of the VariableEvaluationEventArg
         /// </summary>
         /// <param name="name">The name of the variable to Evaluate</param>
+        /// <param name="evaluator">The <see cref="ExpressionEvaluator"/> that detected the variable, field or property to evaluate</param>
+        /// <param name="onInstance">The object instance on which to evaluate the field or property (will be <see cref="This"/>)</param>
+        /// <param name="genericTypes">The generics types specified when at property access</param>
+        /// <param name="evaluateGenericTypes">A func to evaluate the list of specific types given between &lt; and &gt;</param>
         public VariableEvaluationEventArg(string name, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;
@@ -4803,16 +4858,30 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Infos about the expression that has been/will be evaluated
+    /// </summary>
     public partial class ExpressionEvaluationEventArg : EventArgs
     {
         private object value;
 
+        /// <summary>
+        /// Constructor of ExpressionEvaluationEventArg (for <see cref="ExpressionEvaluator.ExpressionEvaluating"/> event)
+        /// </summary>
+        /// <param name="expression">The expression that will be evaluated</param>
+        /// <param name="evaluator">The evaluator that will be use to evaluate the expression</param>
         public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator)
         {
             Expression = expression;
             Evaluator = evaluator;
         }
 
+        /// <summary>
+        /// Constructor of ExpressionEvaluationEventArg (for <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event)
+        /// </summary>
+        /// <param name="expression">The expression that will be evaluated</param>
+        /// <param name="evaluator"></param>
+        /// <param name="value"></param>
         public ExpressionEvaluationEventArg(string expression, ExpressionEvaluator evaluator, object value)
         {
             Expression = expression;
@@ -4820,6 +4889,9 @@ namespace CodingSeb.ExpressionEvaluator
             this.value = value;
         }
 
+        /// <summary>
+        /// The evaluator that has been/will be use to evaluate the expression
+        /// </summary>
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
@@ -4829,7 +4901,8 @@ namespace CodingSeb.ExpressionEvaluator
         public string Expression { get; set; }
 
         /// <summary>
-        /// To set the return of the evaluation
+        /// To set the return of the evaluation<para/>
+        /// In the case of <see cref="ExpressionEvaluator.ExpressionEvaluated"/> event, store the result of the evaluation
         /// </summary>
         public object Value
         {
@@ -4870,6 +4943,15 @@ namespace CodingSeb.ExpressionEvaluator
         private readonly Func<string, Type[]> evaluateGenericTypes;
         private readonly string genericTypes;
 
+        /// <summary>
+        /// Constructor of the <see cref="FunctionEvaluationEventArg"/>
+        /// </summary>
+        /// <param name="name">The name of the function or method</param>
+        /// <param name="args">Arguments passed to fthe function or method</param>
+        /// <param name="evaluator">The <see cref="ExpressionEvaluator"/> that detected the function or method to evaluate</param>
+        /// <param name="onInstance">The object instance on which to evaluate the method (will be <see cref="This"/>)</param>
+        /// <param name="genericTypes">The generics types specified when at function calling</param>
+        /// <param name="evaluateGenericTypes">A func to evaluate the list of specific types given between &lt; and &gt;</param>
         public FunctionEvaluationEventArg(string name, List<string> args = null, ExpressionEvaluator evaluator = null, object onInstance = null, string genericTypes = null, Func<string, Type[]> evaluateGenericTypes = null)
         {
             Name = name;

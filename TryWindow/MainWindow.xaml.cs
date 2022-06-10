@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -94,11 +95,11 @@ namespace TryWindow
                 if (exception == null)
                     ResultTextBlock.Text = result;
                 else
-                    throw exception;
+                    ExceptionDispatchInfo.Capture(exception).Throw();
             }
             catch (Exception exception)
             {
-                ResultTextBlock.Text = exception.Message;
+                ResultTextBlock.Text = exception.Message + "\r\n" + exception.StackTrace;
             }
 
             ExecutionTimeTextBlock.Text = $"Execution time : {stopWatch.Elapsed}";
