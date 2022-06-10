@@ -1637,6 +1637,8 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                     }
 
+                    
+
                     result = ProcessStack(stack);
 
                     expressionEvaluationEventArg = new ExpressionEvaluationEventArg(expression, this, result);

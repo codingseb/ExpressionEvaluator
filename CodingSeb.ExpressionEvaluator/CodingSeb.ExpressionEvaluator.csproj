@@ -14,7 +14,7 @@
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/codingseb/ExpressionEvaluator</PackageProjectUrl>
     <PackageTags>expression-evaluator evaluation math expression evaluate parser mathematical-expressions-evaluator mathematical-expressions script scripting evaluator csharp-script eval execute executescript evaluate-expressions expression-parser fluid calculations formula netcore netstandard net45 interpreter</PackageTags>
-    <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net45;net5.0;net6.0;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
@@ -25,7 +25,8 @@
    - InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList
    - InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList
    - InlineNamespacesEvaluationRule.BlockAll
-* Throw better exception and get better exception context with ExceptionDispatchInfo on TargetInvocationException.InnerException and BubbleExceptionContainer</PackageReleaseNotes>
+* Throw better exception and get better exception context with ExceptionDispatchInfo on TargetInvocationException.InnerException and BubbleExceptionContainer
+* Add net5.0 and net6.0 as target</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
