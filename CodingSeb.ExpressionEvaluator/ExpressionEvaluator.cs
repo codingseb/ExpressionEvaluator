@@ -464,10 +464,10 @@ namespace CodingSeb.ExpressionEvaluator
         #region Caching
 
         /// <summary>
-        /// if set to <c>true</c> use a cache for types that were resolved to resolve faster next time.
-        /// if set to <c>false</c> the cache of types resolution is not use for this instance of ExpressionEvaluator.
-        /// Default : false
-        /// the cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
+        /// if set to <c>true</c> use a cache for types that were resolved to resolve faster next time.<para/>
+        /// if set to <c>false</c> the cache of types resolution is not use for this instance of ExpressionEvaluator.<para/>
+        /// Default : false<para/>
+        /// The cache is the static Dictionary TypesResolutionCaching (so it is shared by all instances of ExpressionEvaluator that have CacheTypesResolutions enabled)
         /// </summary>
         public bool CacheTypesResolutions { get; set; }
 
@@ -492,8 +492,8 @@ namespace CodingSeb.ExpressionEvaluator
         private IList<Assembly> assemblies;
 
         /// <summary>
-        /// All assemblies needed to resolves Types
-        /// by default all Assemblies loaded in the current AppDomain
+        /// All assemblies needed to resolves Types<para/>
+        /// By default all assemblies loaded in the current AppDomain
         /// </summary>
         public virtual IList<Assembly> Assemblies
         {
@@ -502,7 +502,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// All Namespaces Where to find types
+        /// All Namespaces Where to find types<para/>
+        /// Equivalent of a <c>using Namespace;</c>
         /// </summary>
         public virtual IList<string> Namespaces { get; set; } = new List<string>()
         {
@@ -716,92 +717,94 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to create instance of object with the C# syntax new ClassName(...).<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionNewKeywordEvaluationActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow to call static methods on classes.
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to call static methods on classes.<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionStaticMethodsCallActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow to get static properties on classes
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to get static properties on classes<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionStaticPropertiesGetActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow to call instance methods on objects.
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to call instance methods on objects.<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionInstanceMethodsCallActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow to get instance properties on objects
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to get instance properties on objects<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionInstancePropertiesGetActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow to get object at index or key like IndexedObject[indexOrKey]
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to get object at index or key like <c>IndexedObject[indexOrKey]</c><para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionIndexingActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow string interpretation with ""
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow string interpretation with ""<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionStringEvaluationActive { get; set; } = true;
 
         /// <summary>
-        /// if <c>true</c> allow char interpretation with ''
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow char interpretation with ''<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionCharEvaluationActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> Evaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true
+        /// If <c>true</c> Evaluate function is callables in an expression.<para/>
+        /// If <c>false</c> Evaluate is not callable.<para/>
+        /// By default : true<para/>
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionEvaluateFunctionActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
-        /// If <c>false</c> unactive this functionality
+        /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)<para/>
+        /// If <c>false</c> unactive this functionality<para/>
         /// By default : true
         /// </summary>
         public bool OptionVariableAssignationActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
-        /// If <c>false</c> unactive this functionality
+        /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)<para/>
+        /// If <c>false</c> unactive this functionality<para/>
         /// By default : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
-        /// If <c>false</c> unactive this functionality
+        /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)<para/>
+        /// If <c>false</c> unactive this functionality<para/>
         /// By default : true
         /// </summary>
         public bool OptionIndexingAssignationActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> ScriptEvaluate function is callables in an expression. If <c>false</c> Evaluate is not callable.
-        /// By default : true
+        /// If <c>true</c> ScriptEvaluate function is callables in an expression.<para/>
+        /// If <c>false</c> Evaluate is not callable.<para/>
+        /// By default : true<para/>
         /// if set to false for security (also ensure that ExpressionEvaluator type is in TypesToBlock list)
         /// </summary>
         public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
@@ -823,24 +826,24 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)
-        /// If <c>false</c> Allow to access only to public members.
-        /// Default : false
+        /// If <c>true</c> Allow to access fields, properties and methods that are not declared public. (private, protected and internal)<para/>
+        /// If <c>false</c> Allow to access only to public members.<para/>
+        /// Default : false<para/>
         /// Warning : This clearly break the encapsulation principle use this only if you know what you do.
         /// </summary>
         public bool OptionAllowNonPublicMembersAccess { get; set; }
 
         /// <summary>
-        /// If <c>true</c> On unsuccessful call to an extension method, all defined overloads of that method are detected to resolve whether method is defined and called with wrong arguments or method is not defined.
-        /// If <c>false</c> Unsucessful call to an extension method will always result in "Method {name} is not defined on type {type}"
+        /// If <c>true</c> On unsuccessful call to an extension method, all defined overloads of that method are detected to resolve whether method is defined and called with wrong arguments or method is not defined.<para/>
+        /// If <c>false</c> Unsucessful call to an extension method will always result in "Method {name} is not defined on type {type}"<para/>
         /// Default : true
         /// </summary>
         public bool OptionDetectExtensionMethodsOverloadsOnExtensionMethodNotFound { get; set; } = true;
 
         /// <summary>
         /// If <c>true</c> Allow to define multi expression lambda in Expressions (not in script)<para/>
-        /// If <c>false</c> Can only define simple expression lambda if not in script
-        /// <para>Default value : <c>true</c></para>
+        /// If <c>false</c> Can only define simple expression lambda if not in script<para/>
+        /// Default value : <c>true</c>
         /// </summary>
         public bool OptionCanDeclareMultiExpressionsLambdaInSimpleExpressionEvaluate { get; set; } = true;
 
@@ -905,7 +908,8 @@ namespace CodingSeb.ExpressionEvaluator
         private int evaluationStackCount;
 
         /// <summary>
-        /// The values of the variable use in the expressions
+        /// A Dictionary of variable name/value that can be use in expressions and scripts evaluate by the current instance of <see cref="ExpressionEvaluator"/><para/>
+        /// Warning : Make a copy of the given dictionary to manage casing.
         /// </summary>
         public IDictionary<string, object> Variables
         {
@@ -924,52 +928,52 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Is fired just before an expression is evaluate.
+        /// Is fired just before an expression is evaluate.<para/>
         /// Allow to redefine the expression to evaluate or to force a result value.
         /// </summary>
         public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluating;
 
         /// <summary>
-        /// Is fired just before to return the expression evaluation.
+        /// Is fired just before to return the expression evaluation.<para/>
         /// Allow to modify on the fly the result of the evaluation.
         /// </summary>
         public event EventHandler<ExpressionEvaluationEventArg> ExpressionEvaluated;
 
         /// <summary>
-        /// Is fired before a variable, field or property resolution.
-        /// Allow to define a variable and the corresponding value on the fly.
+        /// Is fired before a variable, field or property resolution.<para/>
+        /// Allow to define a variable and the corresponding value on the fly.<para/>
         /// Allow also to cancel the evaluation of this variable (consider it does'nt exists)
         /// </summary>
         public event EventHandler<VariablePreEvaluationEventArg> PreEvaluateVariable;
 
         /// <summary>
-        /// Is fired before a function or method resolution.
-        /// Allow to define a function or method and the corresponding value on the fly.
+        /// Is fired before a function or method resolution.<para/>
+        /// Allow to define a function or method and the corresponding value on the fly.<para/>
         /// Allow also to cancel the evaluation of this function (consider it does'nt exists)
         /// </summary>
         public event EventHandler<FunctionPreEvaluationEventArg> PreEvaluateFunction;
 
         /// <summary>
-        /// Is fired before a indexing resolution.
-        /// Allow to define an indexing and the corresponding value on the fly.
+        /// Is fired before a indexing resolution.<para/>
+        /// Allow to define an indexing and the corresponding value on the fly.<para/>
         /// Allow also to cancel the evaluation of this indexing (consider it does'nt exists)
         /// </summary>
         public event EventHandler<IndexingPreEvaluationEventArg> PreEvaluateIndexing;
 
         /// <summary>
-        /// Is fired if no variable, field or property were found
+        /// Is fired if no variable, field or property were found.<para/>
         /// Allow to define a variable and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<VariableEvaluationEventArg> EvaluateVariable;
 
         /// <summary>
-        /// Is fired if no function or method were found.
+        /// Is fired if no function or method were found.<para/>
         /// Allow to define a function or method and the corresponding value on the fly.
         /// </summary>
         public event EventHandler<FunctionEvaluationEventArg> EvaluateFunction;
 
         /// <summary>
-        /// Is fired when a parameter is not of the correct type for the function.
+        /// Is fired when a parameter is not of the correct type for the function.<para/>
         /// Allow to define a custom parameter cast to make the function call work on the fly.
         /// </summary>
         public event EventHandler<ParameterCastEvaluationEventArg> EvaluateParameterCast;
@@ -1060,9 +1064,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected bool inScript;
 
         /// <summary>
-        /// Evaluate a script (multiple expressions separated by semicolon)
-        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
-        /// support also if, else if, else while and for keywords
+        /// Evaluate a script (multiple expressions separated by semicolon)<para/>
+        /// support some conditional, loop and other C# code flow management keywords
         /// </summary>
         /// <typeparam name="T">The type in which to cast the result of the expression</typeparam>
         /// <param name="script">the script to evaluate</param>
@@ -1073,9 +1076,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Evaluate a script (multiple expressions separated by semicolon)
-        /// Support Assignation with [=] (for simple variable write in the Variables dictionary)
-        /// support also if, else if, else while and for keywords
+        /// Evaluate a script (multiple expressions separated by semicolon)<para/>
+        /// support some conditional, loop and other C# code flow management keywords
         /// </summary>
         /// <param name="script">the script to evaluate</param>
         /// <returns>The result of the last evaluated expression</returns>
