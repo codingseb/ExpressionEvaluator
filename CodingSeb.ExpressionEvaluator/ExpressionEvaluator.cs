@@ -2605,8 +2605,6 @@ namespace CodingSeb.ExpressionEvaluator
 
                         namespaceMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
                     }
-
-
                 }
                 else
                 {
@@ -4753,6 +4751,9 @@ namespace CodingSeb.ExpressionEvaluator
         }
     }
 
+    /// <summary>
+    /// Represent a group of method on which the override to use is not yet known.
+    /// </summary>
     public partial class MethodsGroupEncaps
     {
         public object ContainerObject { get; set; }
@@ -4760,8 +4761,15 @@ namespace CodingSeb.ExpressionEvaluator
         public MethodInfo[] MethodsGroup { get; set; }
     }
 
+    /// <summary>
+    /// Encapsulate an exception that happend in a sub part of the expression when the evaluation need to continue before throwing the exception.
+    /// </summary>
     public partial class BubbleExceptionContainer
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="exception">the exception to encapsulate</param>
         public BubbleExceptionContainer(Exception exception)
         {
             _dispatchInfo = ExceptionDispatchInfo.Capture(exception);
@@ -4769,6 +4777,9 @@ namespace CodingSeb.ExpressionEvaluator
 
         private readonly ExceptionDispatchInfo _dispatchInfo;
 
+        /// <summary>
+        /// Rethrow the exception with proper context.
+        /// </summary>
         public void Throw() => _dispatchInfo.Throw();
     }
 
@@ -4842,12 +4853,13 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if <c>true</c> the variable is affected, if <c>false</c> it means that the variable does not exist.
+        /// if <c>true</c> the variable is affected<para/>
+        /// if <c>false</c> it means that the variable does not exist.
         /// </summary>
         public bool HasValue { get; set; }
 
         /// <summary>
-        /// In the case of on the fly instance property definition the instance of the object on which this Property is called.
+        /// In the case of on the fly instance property definition the instance of the object on which this Property is called.<para/>
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; }
@@ -4858,7 +4870,7 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
-        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.
+        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.<para/>
         /// <c>false</c> otherwise
         /// </summary>
         public bool HasGenericTypes
@@ -4870,7 +4882,7 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// In the case where generic types are specified with &lt;&gt;
+        /// In the case where generic types are specified with &lt;&gt;<para/>
         /// Evaluate all types and return an array of types
         /// </summary>
         public Type[] EvaluateGenericTypes()
@@ -4936,7 +4948,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if <c>true</c> the expression evaluation has been done, if <c>false</c> it means that the evaluation must continue.
+        /// if <c>true</c> the expression evaluation has been done<para/>
+        /// if <c>false</c> it means that the evaluation must continue.
         /// </summary>
         public bool HasValue { get; set; }
     }
@@ -5039,12 +5052,13 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if <c>true</c> the function evaluation has been done, if <c>false</c> it means that the function does not exist.
+        /// if <c>true</c> the function evaluation has been done,<para/>
+        /// if <c>false</c> it means that the function does not exist.
         /// </summary>
         public bool FunctionReturnedValue { get; set; }
 
         /// <summary>
-        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.
+        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.<para/>
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; }
@@ -5055,7 +5069,7 @@ namespace CodingSeb.ExpressionEvaluator
         public ExpressionEvaluator Evaluator { get; }
 
         /// <summary>
-        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.
+        /// Is <c>true</c> if some generic types are specified with &lt;&gt;.<para/>
         /// <c>false</c> otherwise
         /// </summary>
         public bool HasGenericTypes
@@ -5067,7 +5081,7 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// In the case where generic types are specified with &lt;&gt;
+        /// In the case where generic types are specified with &lt;&gt;<para/>
         /// Evaluate all types and return an array of types
         /// </summary>
         public Type[] EvaluateGenericTypes()
@@ -5096,6 +5110,12 @@ namespace CodingSeb.ExpressionEvaluator
     /// </summary>
     public partial class IndexingPreEvaluationEventArg : EventArgs
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="args">The not evaluated args of the indexing</param>
+        /// <param name="evaluator">A reference on the current expression evaluator.</param>
+        /// <param name="onInstance">The instance of the object on which the indexing is called.<para/>Will be the <see cref="This"/> property</param>
         public IndexingPreEvaluationEventArg(List<string> args, ExpressionEvaluator evaluator, object onInstance)
         {
             Args = args;
@@ -5129,7 +5149,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// if <c>true</c> the indexing evaluation has been done, if <c>false</c> it means that the indexing does not exist.
+        /// if <c>true</c> the indexing evaluation has been done<para/>
+        /// if <c>false</c> it means that the indexing does not exist.
         /// </summary>
         public bool HasValue { get; set; }
 
@@ -5169,15 +5190,14 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// If set to true cancel the evaluation of the current function or method and throw an exception that the function does not exists
+        /// If set to <c>true</c> cancel the evaluation of the current function or method and throw an exception that the function does not exists
         /// </summary>
         public bool CancelEvaluation { get; set; }
     }
 
     /// <summary>
-    /// Class ParameterCastEvaluationEventArg.
-    /// Implements the <see cref="System.EventArgs" /></summary>
-    /// <seealso cref="System.EventArgs" />
+    /// Class ParameterCastEvaluationEventArg
+    /// </summary>
     public partial class ParameterCastEvaluationEventArg : EventArgs
     {
         /// <summary>
@@ -5186,7 +5206,7 @@ namespace CodingSeb.ExpressionEvaluator
         public MethodInfo MethodInfo { get; }
 
         /// <summary>
-        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.
+        /// In the case of on the fly instance method definition the instance of the object on which this method (function) is called.<para/>
         /// Otherwise is set to null.
         /// </summary>
         public object This { get; }
@@ -5211,6 +5231,15 @@ namespace CodingSeb.ExpressionEvaluator
         /// </summary>
         public int ArgPosition { get; }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="methodInfo">The information of the method that it try to call</param>
+        /// <param name="parameterType">The required type of the parameter</param>
+        /// <param name="originalArg">The original argument</param>
+        /// <param name="argPosition">Position of the argument (index from 0)</param>
+        /// <param name="evaluator">A reference on the current expression evaluator.</param>
+        /// <param name="onInstance">In the case of on the fly instance method definition the instance of the object on which this method (function) is called.<para/>Otherwise is set to null.<para/>Will be the <see cref="This"/> property</param>
         public ParameterCastEvaluationEventArg(MethodInfo methodInfo, Type parameterType, object originalArg, int argPosition, ExpressionEvaluator evaluator = null, object onInstance = null)
         {
             MethodInfo = methodInfo;
