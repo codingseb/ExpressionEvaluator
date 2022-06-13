@@ -779,21 +779,21 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionEvaluateFunctionActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>true</c> allow to assign a value to a variable in the Variable disctionary with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
         /// If <c>false</c> unactive this functionality
         /// By default : true
         /// </summary>
         public bool OptionVariableAssignationActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>true</c> allow to set/modify a property or a field value with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
         /// If <c>false</c> unactive this functionality
         /// By default : true
         /// </summary>
         public bool OptionPropertyOrFieldSetActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &=, |=, ^=, <<=, >>=, ++ or --)
+        /// If <c>true</c> allow to assign a indexed element like Collections, List, Arrays and Dictionaries with (=, +=, -=, *=, /=, %=, &amp;=, |=, ^=, &lt;&lt;=, &gt;&gt;=, ++ or --)
         /// If <c>false</c> unactive this functionality
         /// By default : true
         /// </summary>
