@@ -24,7 +24,7 @@ using System.Text.RegularExpressions;
 namespace CodingSeb.ExpressionEvaluator
 {
     /// <summary>
-    /// This class allow to evaluate a string math or pseudo C# expression
+    /// This class allow to evaluate a string math or pseudo C# expression/script
     /// </summary>
     public partial class ExpressionEvaluator
     {
@@ -544,8 +544,8 @@ namespace CodingSeb.ExpressionEvaluator
         private bool optionCaseSensitiveEvaluationActive = true;
 
         /// <summary>
-        /// If <c>true</c> all evaluation are case sensitives.
-        /// If <c>false</c> evaluations are case insensitive.
+        /// If <c>true</c> all evaluation are case sensitives.<para/>
+        /// If <c>false</c> evaluations are case insensitive.<para/>
         /// By default = true
         /// </summary>
         public bool OptionCaseSensitiveEvaluationActive
@@ -565,8 +565,8 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// If <c>true</c> Variables dictionary is kept as given so variables are persist outside of the evaluator and the comparer for keys can be defined by the user
-        /// If <c>false</c> Variables dictionary references are copied internally to follow OptionCaseSensitiveEvaluationActive with an internal protected comparer for keys
+        /// If <c>true</c> Variables dictionary is kept as given so variables are persist outside of the evaluator and the comparer for keys can be defined by the user<para/>
+        /// If <c>false</c> Variables dictionary references are copied internally to follow OptionCaseSensitiveEvaluationActive with an internal protected comparer for keys<para/>
         /// By default = false
         /// </summary>
         public bool OptionVariablesPersistenceCustomComparer { get; set; }
@@ -576,8 +576,8 @@ namespace CodingSeb.ExpressionEvaluator
         protected StringComparer StringComparerForCasing => OptionCaseSensitiveEvaluationActive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
-        /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double
-        /// If <c>false</c> Integers values without decimal and suffixes will be evaluate as int as in C# (Warning some operation can round values)
+        /// If <c>true</c> all numbers without decimal and suffixes evaluations will be done as double<para/>
+        /// If <c>false</c> Integers values without decimal and suffixes will be evaluate as int as in C# (Warning some operation can round values)<para/>
         /// By default = false
         /// </summary>
         public bool OptionForceIntegerNumbersEvaluationsAsDoubleByDefault { get; set; }
@@ -585,9 +585,9 @@ namespace CodingSeb.ExpressionEvaluator
         private CultureInfo cultureInfoForNumberParsing = CultureInfo.InvariantCulture.Clone() as CultureInfo;
 
         /// <summary>
-        /// The culture used to evaluate numbers
-        /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.
-        /// So always set a full CultureInfo object and do not change CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator and CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator properties directly.
+        /// The culture used to evaluate numbers.<para/>
+        /// Synchronized with OptionNumberParsingDecimalSeparator and OptionNumberParsingThousandSeparator.<para/>
+        /// So always set a full CultureInfo object and do not change CultureInfoForNumberParsing.NumberFormat.NumberDecimalSeparator and CultureInfoForNumberParsing.NumberFormat.NumberGroupSeparator properties directly.<para/>
         /// Warning if using comma in separators change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts
         /// </summary>
         public CultureInfo CultureInfoForNumberParsing
@@ -609,9 +609,9 @@ namespace CodingSeb.ExpressionEvaluator
         private string optionNumberParsingDecimalSeparator = ".";
 
         /// <summary>
-        /// Allow to change the decimal separator of numbers when parsing expressions.
-        /// By default "."
-        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
+        /// Allow to change the decimal separator of numbers when parsing expressions.<para/>
+        /// By default "."<para/>
+        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.<para/>
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
         public string OptionNumberParsingDecimalSeparator
@@ -632,9 +632,9 @@ namespace CodingSeb.ExpressionEvaluator
         private string optionNumberParsingThousandSeparator = string.Empty;
 
         /// <summary>
-        /// Allow to change the thousand separator of numbers when parsing expressions.
-        /// By default string.Empty
-        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.
+        /// Allow to change the thousand separator of numbers when parsing expressions.<para/>
+        /// By default string.Empty<para/>
+        /// Warning if using comma change also OptionFunctionArgumentsSeparator and OptionInitializersSeparator otherwise it will create conflicts.<para/>
         /// Modify CultureInfoForNumberParsing.
         /// </summary>
         public string OptionNumberParsingThousandSeparator
@@ -653,22 +653,22 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Allow to change the separator of functions arguments.
-        /// By default ","
-        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// Allow to change the separator of functions arguments.<para/>
+        /// By default ","<para/>
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts<para/>
         /// </summary>
         public string OptionFunctionArgumentsSeparator { get; set; } = ",";
 
         /// <summary>
-        /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.
-        /// By default ","
-        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts
+        /// Allow to change the separator of Object and collections Initialization between { and } after the keyword new.<para/>
+        /// By default ","<para/>
+        /// Warning must to be changed if OptionNumberParsingDecimalSeparator = "," otherwise it will create conflicts<para/>
         /// </summary>
         public string OptionInitializersSeparator { get; set; } = ",";
 
         /// <summary>
-        /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to add the prefix Fluid or Fluent before void methods names to return back the instance on which the method is call.<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionFluidPrefixingActive { get; set; } = true;
@@ -691,8 +691,8 @@ namespace CodingSeb.ExpressionEvaluator
         private Func<ExpressionEvaluator, List<string>, object> newMethodMem;
 
         /// <summary>
-        /// if <c>true</c> allow to create instance of object with the Default function new(ClassNam,...).
-        /// if <c>false</c> unactive this functionality.
+        /// if <c>true</c> allow to create instance of object with the Default function new(ClassNam,...).<para/>
+        /// if <c>false</c> unactive this functionality.<para/>
         /// By default : true
         /// </summary>
         public bool OptionNewFunctionEvaluationActive
@@ -807,16 +807,17 @@ namespace CodingSeb.ExpressionEvaluator
         public bool OptionScriptEvaluateFunctionActive { get; set; } = true;
 
         /// <summary>
-        /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.
-        /// If <c>ReturnNull</c> return null if no return keyword is met.
-        /// If <c>ThrowSyntaxException</c> a exception is throw if no return keyword is met.
+        /// Set How to react when the keyword return is not found in a script. when using ScriptEvaluate method<para/>
+        /// If <c>ReturnAutomaticallyLastEvaluatedExpression</c> ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.<para/>
+        /// If <c>ReturnNull</c> return null if no return keyword is met.<para/>
+        /// If <c>ThrowSyntaxException</c> a exception is throw if no return keyword is met.<para/>
         /// By default : ReturnAutomaticallyLastEvaluatedExpression;
         /// </summary>
         public OptionOnNoReturnKeywordFoundInScriptAction OptionOnNoReturnKeywordFoundInScriptAction { get; set; }
 
         /// <summary>
-        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] after each expression.
-        /// If <c>false</c> Allow to omit the semicolon for the last expression of the script.
+        /// If <c>true</c> ScriptEvaluate need to have a semicolon [;] after each expression.<para/>
+        /// If <c>false</c> Allow to omit the semicolon for the last expression of the script.<para/>
         /// Default : true
         /// </summary>
         public bool OptionScriptNeedSemicolonAtTheEndOfLastExpression { get; set; } = true;
@@ -1636,8 +1637,6 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                         }
                     }
-
-                    
 
                     result = ProcessStack(stack);
 
@@ -3371,7 +3370,7 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (rightExpression.Trim().Equals(string.Empty))
                 throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
-            
+
             if (match.Groups["assignmentPrefix"].Success)
             {
                 ExpressionOperator prefixOp = operatorsDictionary[match.Groups["assignmentPrefix"].Value];
@@ -4205,7 +4204,7 @@ namespace CodingSeb.ExpressionEvaluator
             if (srcType == destType) { result = source; return true; }
             result = null;
 
-            BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+            const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy;
             MethodInfo castOperator = destType.GetMethods(bindingFlags)
                                         .Union(srcType.GetMethods(bindingFlags))
                                         .Where(methodInfo => methodInfo.Name == "op_Explicit" || methodInfo.Name == "op_Implicit")
@@ -4214,12 +4213,11 @@ namespace CodingSeb.ExpressionEvaluator
                                             var pars = methodInfo.GetParameters();
                                             return pars.Length == 1 && pars[0].ParameterType == srcType;
                                         })
-                                        .Where(mi => mi.ReturnType == destType)
-                                        .FirstOrDefault();
+                                        .FirstOrDefault(mi => mi.ReturnType == destType);
 
-            if (castOperator != null) 
+            if (castOperator != null)
                 result = castOperator.Invoke(null, new object[] { source });
-            else 
+            else
                 return false;
 
             return true;
@@ -4539,13 +4537,32 @@ namespace CodingSeb.ExpressionEvaluator
 
     #region linked enums
 
+    /// <summary>
+    /// This enum represent the way <see cref="ExpressionEvaluator.ScriptEvaluate(string)"/> behave when no <c>return</c> keyword is found.<para/>
+    /// Used for the option <see cref="ExpressionEvaluator.OptionOnNoReturnKeywordFoundInScriptAction"/>
+    /// </summary>
     public enum OptionOnNoReturnKeywordFoundInScriptAction
     {
+        /// <summary>
+        /// ScriptEvaluate return automatically the last evaluated expression if no return keyword is met.
+        /// </summary>
         ReturnAutomaticallyLastEvaluatedExpression,
+
+        /// <summary>
+        ///  ScriptEvaluate Return null if no return keyword is met.
+        /// </summary>
         ReturnNull,
+
+        /// <summary>
+        /// A exception is throw if no return keyword is met.
+        /// </summary>
         ThrowSyntaxException
     }
 
+    /// <summary>
+    /// This enum define the rules to use to allow or block inline namespaces.<para />
+    /// Used for the option <see cref="ExpressionEvaluator.OptionInlineNamespacesEvaluationRule"/>
+    /// </summary>
     public enum InlineNamespacesEvaluationRule
     {
         /// <summary>
