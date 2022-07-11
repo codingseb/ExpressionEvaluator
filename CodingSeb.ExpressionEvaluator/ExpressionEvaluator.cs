@@ -4752,12 +4752,19 @@ namespace CodingSeb.ExpressionEvaluator
     }
 
     /// <summary>
-    /// Represent a group of method on which the override to use is not yet known.
+    /// Represent a group of method on which the override to call is not yet known.<para/>
+    /// Simulate delegates
     /// </summary>
     public partial class MethodsGroupEncaps
     {
+        /// <summary>
+        /// The instance of the object on which the method group is define
+        /// </summary>
         public object ContainerObject { get; set; }
 
+        /// <summary>
+        /// An array of methods overrides infos that could be potentially use for call
+        /// </summary>
         public MethodInfo[] MethodsGroup { get; set; }
     }
 
