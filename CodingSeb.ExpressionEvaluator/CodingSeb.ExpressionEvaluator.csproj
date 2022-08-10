@@ -16,6 +16,7 @@
     <PackageTags>expression-evaluator evaluation math expression evaluate parser mathematical-expressions-evaluator mathematical-expressions script scripting evaluator csharp-script eval execute executescript evaluate-expressions expression-parser fluid calculations formula netcore netstandard net45 interpreter</PackageTags>
     <TargetFrameworks>net452;net5.0;net6.0;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Nullable>disable</Nullable>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
