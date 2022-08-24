@@ -4,7 +4,7 @@
     <Company>Coding Seb</Company>
     <Product>CodingSeb.ExpressionEvaluator.Tests</Product>
     <Copyright>Copyright © Coding Seb 2018</Copyright>
-    <TargetFrameworks>net47;netcoreapp2.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net47;netcoreapp2.1</TargetFrameworks>
     <UserSecretsId>c4ac27fa-8b9c-4784-a284-7a9a06320537</UserSecretsId>
 	<Nullable>disable</Nullable>
   </PropertyGroup>
