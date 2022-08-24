@@ -6,4 +6,3 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("Style", "RE0001:Regex issue: {0}", Justification = "<Pending>", Scope = "member", Target = "~F:CodingSeb.ExpressionEvaluator.ExpressionEvaluator.numberRegexOrigPattern")]
-[assembly: SuppressMessage("General", "CS1591:Missing XML comment for publicly visible type or member 'Type_or_Member'", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "~N:CodingSeb.ExpressionEvaluator")]
