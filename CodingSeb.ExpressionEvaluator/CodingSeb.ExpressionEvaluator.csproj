@@ -44,6 +44,7 @@
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\Icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

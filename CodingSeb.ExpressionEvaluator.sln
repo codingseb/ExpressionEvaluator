@@ -6,7 +6,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodingSeb.ExpressionEvaluat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodingSeb.ExpressionEvaluator.Tests", "CodingSeb.ExpressionEvaluator.Tests\CodingSeb.ExpressionEvaluator.Tests.csproj", "{8794CB3B-EAB2-411D-B912-7AD3425D6C62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryWindow", "TryWindow\TryWindow.csproj", "{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TryWindow", "TryWindow\TryWindow.csproj", "{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{402E2A75-2113-4744-8251-02E8C6A60BC8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

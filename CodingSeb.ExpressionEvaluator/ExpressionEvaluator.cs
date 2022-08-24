@@ -4738,6 +4738,7 @@ namespace CodingSeb.ExpressionEvaluator
     #endregion
 
     public partial class ClassOrEnumType
+
     {
         public Type Type { get; set; }
     }
