@@ -3829,7 +3829,15 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    parametersCastOK = false;
+                                    var converter = parameterType.GetMethod("op_Implicit", new[] { modifiedArgs[a].GetType() });
+                                    if(converter != null)
+                                    {
+                                        modifiedArgs[a] = converter.Invoke(null, new[] { modifiedArgs[a] });
+                                    }
+                                    else
+                                    {
+                                        parametersCastOK = false;
+                                    }
                                 }
                             }
                         }
