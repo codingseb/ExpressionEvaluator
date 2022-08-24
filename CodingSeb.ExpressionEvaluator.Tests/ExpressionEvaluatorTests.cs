@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
     [TestFixture]
+    [DefaultFloatingPointTolerance(0.00001)]
     public class ExpressionEvaluatorTests
     {
         #region Type testing
