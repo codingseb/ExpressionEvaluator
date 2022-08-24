@@ -3265,5 +3265,22 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
         #endregion
 
+        #region Method with implicit parameter
+
+        [Test]
+        [Category("ImplicitParameterMethod")]
+        public void MethodWithImplicitParameter()
+        {
+            ExpressionEvaluator evaluator = new ExpressionEvaluator();
+
+            evaluator.Variables["inObj"] = new MethodArgKeywordClass();
+
+            evaluator.Variables["x"] = "string";
+
+            evaluator.Evaluate("inObj.AcceptStringLike(x)")
+                .ShouldBe(true);
+        }
+
+        #endregion
     }
 }
