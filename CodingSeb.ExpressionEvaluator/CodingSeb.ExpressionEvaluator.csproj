@@ -21,7 +21,6 @@
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>* net45 target is now net462 because (net45 is not supported anymore)
-* Add net5.0 and net6.0 as target
 * Match function arguments considering implicit casts</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
