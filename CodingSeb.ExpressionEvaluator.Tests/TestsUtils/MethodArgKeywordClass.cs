@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using CodingSeb.ExpressionEvaluator.Tests.TestsUtils;
+using System.Linq;
 
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
@@ -53,7 +54,14 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         {
             return val1 + val2;
         }
+
+        public bool AcceptStringLike(StringLikeParameter value)
+        {
+            return true;
+        }
     }
+
+    
 
     public static class MethodArgKeywordClassExtension
     {
