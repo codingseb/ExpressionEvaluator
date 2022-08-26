@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 namespace CodingSeb.ExpressionEvaluator.Tests
 {
     [TestFixture]
+    [DefaultFloatingPointTolerance(0.00001)]
     public class ExpressionEvaluatorTests
     {
         #region Type testing
@@ -1836,6 +1837,18 @@ namespace CodingSeb.ExpressionEvaluator.Tests
 
             evaluator.Evaluate("@\"Hello \"\" Joe\"").ShouldBe(@"Hello "" Joe");
         }
+
+        //[Test]
+        //[Category("Bug")]
+        //[Category("#135")]
+        //public void Evaluate_MultiLevelPropertyAccessAfterConditionalAndBeforeDoubleEquals()
+        //{
+        //    ExpressionEvaluator ee = new ExpressionEvaluator();
+
+        //    ee.Variables["A"] = new Dictionary<string, FileStream>();
+
+        //    ee.Evaluate<bool>("A.TryGetValue(\"NotExist\", out FileStream fs) && fs.SafeFileHandle.IsClosed == true").ShouldBe<bool>(false);
+        //}
 
         #endregion
 

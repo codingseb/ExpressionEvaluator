@@ -5,27 +5,23 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.38.0</Version>
-    <AssemblyVersion>1.4.38.0</AssemblyVersion>
-    <FileVersion>1.4.38.0</FileVersion>
+    <Version>1.4.39.0</Version>
+    <AssemblyVersion>1.4.39.0</AssemblyVersion>
+    <FileVersion>1.4.39.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/codingseb/ExpressionEvaluator</PackageProjectUrl>
     <PackageTags>expression-evaluator evaluation math expression evaluate parser mathematical-expressions-evaluator mathematical-expressions script scripting evaluator csharp-script eval execute executescript evaluate-expressions expression-parser fluid calculations formula netcore netstandard net45 interpreter</PackageTags>
-    <TargetFrameworks>net47;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Nullable>disable</Nullable>
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* OptionInlineNamespacesEvaluationActive become OptionInlineNamespacesEvaluationRule and allow more possibilities with the addition of InlineNamespacesList
-   This option can now be one of those :
-   - InlineNamespacesEvaluationRule.AllowAll
-   - InlineNamespacesEvaluationRule.AllowOnlyInlineNamespacesList
-   - InlineNamespacesEvaluationRule.BlockOnlyInlineNamespacesList
-   - InlineNamespacesEvaluationRule.BlockAll
-* Throw better exception and get better exception context with ExceptionDispatchInfo on TargetInvocationException.InnerException and BubbleExceptionContainer</PackageReleaseNotes>
+    <PackageReleaseNotes>* net45 target is now net462 because (net45 is not supported anymore)
+* Match function arguments considering implicit casts</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -47,6 +43,7 @@
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\Icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

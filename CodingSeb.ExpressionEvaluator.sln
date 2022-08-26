@@ -1,13 +1,17 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodingSeb.ExpressionEvaluator", "CodingSeb.ExpressionEvaluator\CodingSeb.ExpressionEvaluator.csproj", "{21F19149-EED6-4856-AB9A-701C41F86F66}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodingSeb.ExpressionEvaluator.Tests", "CodingSeb.ExpressionEvaluator.Tests\CodingSeb.ExpressionEvaluator.Tests.csproj", "{8794CB3B-EAB2-411D-B912-7AD3425D6C62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryWindow", "TryWindow\TryWindow.csproj", "{8BB2AC61-77C6-42B9-82E3-44C88F29FD4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TryWindow", "TryWindow\TryWindow.csproj", "{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{402E2A75-2113-4744-8251-02E8C6A60BC8}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +27,10 @@ Global
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8794CB3B-EAB2-411D-B912-7AD3425D6C62}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8BB2AC61-77C6-42B9-82E3-44C88F29FD4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8BB2AC61-77C6-42B9-82E3-44C88F29FD4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8BB2AC61-77C6-42B9-82E3-44C88F29FD4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8BB2AC61-77C6-42B9-82E3-44C88F29FD4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D699FC0D-BE4C-4CDD-864F-E4C7821E1A21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
