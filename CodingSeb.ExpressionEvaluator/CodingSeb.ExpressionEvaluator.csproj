@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.38.0</Version>
-    <AssemblyVersion>1.4.38.0</AssemblyVersion>
-    <FileVersion>1.4.38.0</FileVersion>
+    <Version>1.4.39.0</Version>
+    <AssemblyVersion>1.4.39.0</AssemblyVersion>
+    <FileVersion>1.4.39.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
