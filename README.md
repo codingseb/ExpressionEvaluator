@@ -82,7 +82,7 @@ It is largely based on and inspired by the following resources [this post on st
 
 ### Reading and resources
 * [Crafting interpreters](http://www.craftinginterpreters.com)
-* [Building a compiler](https://minsk-compiler.net) An excellent Youtube tutorial
+* [Building a compiler](https://www.youtube.com/live/wgHIkdUQbp0?feature=share) An excellent Youtube tutorial
   
   
 I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read docs and licences).
