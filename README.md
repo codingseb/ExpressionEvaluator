@@ -64,7 +64,6 @@ It is largely based on and inspired by the following resources [this post on st
 * [YoowzxCalc](https://github.com/MarkusSecundus/YoowzxCalc)
 * [Scriban](https://github.com/scriban/scriban)
 * [WattleScript](https://github.com/WattleScript/wattlescript)
-* [Pidgin](https://github.com/benjamin-hodgson/Pidgin)
 * [AngouriMath](https://github.com/asc-community/AngouriMath) For advanced Math in C#
 * [Fluid](https://github.com/sebastienros/fluid)
 * [ClearScript](https://github.com/microsoft/ClearScript)
@@ -82,6 +81,7 @@ It is largely based on and inspired by the following resources [this post on st
 * [Lexepars](https://github.com/DNemtsov/Lexepars)
 * [Parlot](https://github.com/sebastienros/parlot)
 * [Irony](https://github.com/IronyProject/Irony)
+* [Pidgin](https://github.com/benjamin-hodgson/Pidgin)
 
 ### Reading and resources
 * [Crafting interpreters](http://www.craftinginterpreters.com)
