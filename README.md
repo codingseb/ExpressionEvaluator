@@ -68,7 +68,6 @@ It is largely based on and inspired by the following resources [this post on st
 * [Fluid](https://github.com/sebastienros/fluid)
 * [ClearScript](https://github.com/microsoft/ClearScript)
 * [Expressive](https://github.com/bijington/expressive)
-* [MathExecutor](https://github.com/neonxp/MathExecutor)
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
