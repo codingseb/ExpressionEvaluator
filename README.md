@@ -68,6 +68,7 @@ It is largely based on and inspired by the following resources [this post on st
 * [Fluid](https://github.com/sebastienros/fluid)
 * [ClearScript](https://github.com/microsoft/ClearScript)
 * [Expressive](https://github.com/bijington/expressive)
+* [IronPython](https://github.com/IronLanguages/ironpython3) to execute python in .Net or .Net in python
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
