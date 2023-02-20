@@ -85,6 +85,7 @@ It is largely based on and inspired by the following resources [this post on st
 ### Reading and resources
 * [Crafting interpreters](http://www.craftinginterpreters.com)
 * [Building a compiler](https://www.youtube.com/playlist?list=PLRAdsfhKI4OWNOSfS7EUu5GRAVmze1t2y) An excellent Youtube tutorial
+* Search for LEX, YACC, AST, Syntaxic trees...
   
   
 I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read docs and licences).
