@@ -68,9 +68,12 @@ It is largely based on and inspired by the following resources [this post on st
 * [AngouriMath](https://github.com/asc-community/AngouriMath) For advanced Math in C#
 * [Fluid](https://github.com/sebastienros/fluid)
 * [ClearScript](https://github.com/microsoft/ClearScript)
+* [Expressive](https://github.com/bijington/expressive)
+* [MathExecutor](https://github.com/neonxp/MathExecutor)
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
+* [mXparser](https://mathparser.org) (dual licensing) (Free for open source)
 
 ### Projects that could help you build your own expression/script evaluator
 * [SuperPower](https://github.com/datalust/superpower)
