@@ -47,14 +47,12 @@ It is largely based on and inspired by the following resources [this post on st
 * [Live Demos](https://dotnetfiddle.net/Packages/41132/CodingSeb_ExpressionEvaluator)
 * [Try it](https://dotnetfiddle.net/up4x3W)
 
-## And more is coming
-* [The Todo List](https://github.com/codingseb/ExpressionEvaluator/wiki/ExpressionEvaluator-Todo-List)
-
 ## Similar projects
 ### Free
 * [NCalc](https://github.com/pitermarx/NCalc-Edge)
 * [Jint](https://github.com/sebastienros/jint) Support scripting but with Javascript
 * [NLua](https://github.com/NLua/NLua) use Lua language in C#
+* [MoonSharp](https://github.com/moonsharp-devs/moonsharp/)
 * [DynamicExpresso](https://github.com/davideicardi/DynamicExpresso/)
 * [Flee](https://github.com/mparlak/Flee)
 * [Jace.Net](https://github.com/pieterderycke/Jace)
@@ -68,6 +66,8 @@ It is largely based on and inspired by the following resources [this post on st
 * [WattleScript](https://github.com/WattleScript/wattlescript)
 * [Pidgin](https://github.com/benjamin-hodgson/Pidgin)
 * [AngouriMath](https://github.com/asc-community/AngouriMath) For advanced Math in C#
+* [Fluid](https://github.com/sebastienros/fluid)
+* [ClearScript](https://github.com/microsoft/ClearScript)
 
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
@@ -80,6 +80,11 @@ It is largely based on and inspired by the following resources [this post on st
 * [Parlot](https://github.com/sebastienros/parlot)
 * [Irony](https://github.com/IronyProject/Irony)
 
+### Reading and resources
+* [Crafting interpreters](http://www.craftinginterpreters.com)
+* [Building a compiler](minsk-compiler.net) An excellent Youtube tutorial
+  
+  
 I would say every C# evaluation libraries have drawbacks and benefits, ExpressionEvaluator is not an exception so choose wisely (Read docs and licences).
 
 The biggest difference of ExpressionEvaluator is that everything is evaluated on the fly, nothing is compiled or transpile nor in CLR/JIT/IL nor in lambda expressions nor in javascript or other languages stuffs.
