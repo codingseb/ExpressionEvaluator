@@ -928,6 +928,13 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Is fired just before an scriptExpression is evaluate.<para/>
+        /// Allow to redefine the scriptExpression to evaluate or to force a result value.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ScriptExpressionEvaluating;
+        
+        
+        /// <summary>
         /// Is fired just before an expression is evaluate.<para/>
         /// Allow to redefine the expression to evaluate or to force a result value.
         /// </summary>
@@ -1084,6 +1091,13 @@ namespace CodingSeb.ExpressionEvaluator
         public virtual object ScriptEvaluate(string script)
         {
             inScript = true;
+            
+            ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(script, this);
+
+            ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
+
+            script = expressionEvaluationEventArg.Expression;
+            
             try
             {
                 bool isReturn = false;
