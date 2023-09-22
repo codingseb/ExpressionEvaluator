@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Dynamic;
@@ -474,7 +475,7 @@ namespace CodingSeb.ExpressionEvaluator
         /// <summary>
         /// A shared cache for types resolution.
         /// </summary>
-        public static IDictionary<string, Type> TypesResolutionCaching { get; set; } = new Dictionary<string, Type>();
+        public static IDictionary<string, Type> TypesResolutionCaching { get; set; } = new ConcurrentDictionary<string, Type>();
 
         /// <summary>
         /// Clear all ExpressionEvaluator caches
