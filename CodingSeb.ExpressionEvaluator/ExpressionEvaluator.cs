@@ -227,6 +227,12 @@ namespace CodingSeb.ExpressionEvaluator
             ExpressionOperator.UnaryMinus
         };
 
+        protected IDictionary<string, ExpressionOperator> unaryOperatorsDictionary = new Dictionary<string, ExpressionOperator>()
+        {
+            { "+",  ExpressionOperator.UnaryPlus },
+            { "-",  ExpressionOperator.UnaryMinus }
+        };
+
         protected virtual IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;
         protected virtual IList<ExpressionOperator> RightOperandOnlyOperatorsEvaluationDictionary => rightOperandOnlyOperatorsEvaluationDictionary;
         protected virtual IList<IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>>> OperatorsEvaluations => operatorsEvaluations;
@@ -2783,12 +2789,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string op = match.Value;
 
-                if (op.Equals("+") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))))
-                    stack.Push(ExpressionOperator.UnaryPlus);
-                else if (op.Equals("-") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp2 && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp2))))
-                    stack.Push(ExpressionOperator.UnaryMinus);
+                if (unaryOperatorsDictionary.ContainsKey(op) && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))))
+                    stack.Push(unaryOperatorsDictionary[op]);
                 else
                     stack.Push(operatorsDictionary[op]);
+
                 i += op.Length - 1;
                 return true;
             }
