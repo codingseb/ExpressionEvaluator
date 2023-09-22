@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.39.0 
+    Version : 1.4.40.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -225,6 +225,12 @@ namespace CodingSeb.ExpressionEvaluator
             ExpressionOperator.BitwiseComplement,
             ExpressionOperator.UnaryPlus,
             ExpressionOperator.UnaryMinus
+        };
+
+        protected IDictionary<string, ExpressionOperator> unaryOperatorsDictionary = new Dictionary<string, ExpressionOperator>()
+        {
+            { "+",  ExpressionOperator.UnaryPlus },
+            { "-",  ExpressionOperator.UnaryMinus }
         };
 
         protected virtual IList<ExpressionOperator> LeftOperandOnlyOperatorsEvaluationDictionary => leftOperandOnlyOperatorsEvaluationDictionary;
@@ -929,6 +935,18 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
+        /// Is fired just before a script is evaluate.<para/>
+        /// Allow to redefine the script to evaluate or to force a result value.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ScriptEvaluating;
+
+        /// <summary>
+        /// Is fired just before to return the script evaluation.<para/>
+        /// Allow to modify on the fly the result of the evaluation.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ScriptEvaluated;
+
+        /// <summary>
         /// Is fired just before an expression is evaluate.<para/>
         /// Allow to redefine the expression to evaluate or to force a result value.
         /// </summary>
@@ -1085,6 +1103,13 @@ namespace CodingSeb.ExpressionEvaluator
         public virtual object ScriptEvaluate(string script)
         {
             inScript = true;
+            
+            ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(script, this);
+
+            ScriptEvaluating?.Invoke(this, expressionEvaluationEventArg);
+
+            script = expressionEvaluationEventArg.Expression;
+            
             try
             {
                 bool isReturn = false;
@@ -1094,11 +1119,26 @@ namespace CodingSeb.ExpressionEvaluator
                 object result = ScriptEvaluate(script, ref isReturn, ref isBreak, ref isContinue);
 
                 if (isBreak)
+                {
                     throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
+                }
                 else if (isContinue)
+                {
                     throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
+                }
                 else
+                {
+                    expressionEvaluationEventArg = new ExpressionEvaluationEventArg(script, this, result);
+
+                    ScriptEvaluated?.Invoke(this, expressionEvaluationEventArg);
+
+                    if (expressionEvaluationEventArg.HasValue)
+                    {
+                        result = expressionEvaluationEventArg.Value;
+                    }
+
                     return result;
+                }
             }
             finally
             {
@@ -2749,12 +2789,11 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 string op = match.Value;
 
-                if (op.Equals("+") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))))
-                    stack.Push(ExpressionOperator.UnaryPlus);
-                else if (op.Equals("-") && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp2 && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp2))))
-                    stack.Push(ExpressionOperator.UnaryMinus);
+                if (unaryOperatorsDictionary.ContainsKey(op) && (stack.Count == 0 || (stack.Peek() is ExpressionOperator previousOp && !LeftOperandOnlyOperatorsEvaluationDictionary.Contains(previousOp))))
+                    stack.Push(unaryOperatorsDictionary[op]);
                 else
                     stack.Push(operatorsDictionary[op]);
+
                 i += op.Length - 1;
                 return true;
             }

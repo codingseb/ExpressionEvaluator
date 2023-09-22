@@ -5,9 +5,9 @@
     <Product>CodingSeb.ExpressionEvaluator</Product>
     <Description>A Simple Math and Pseudo C# Expression Evaluator in One C# File. Can also execute small C# like scripts</Description>
     <Copyright>Copyright © Coding Seb 2017</Copyright>
-    <Version>1.4.39.0</Version>
-    <AssemblyVersion>1.4.39.0</AssemblyVersion>
-    <FileVersion>1.4.39.0</FileVersion>
+    <Version>1.4.40.0</Version>
+    <AssemblyVersion>1.4.40.0</AssemblyVersion>
+    <FileVersion>1.4.40.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <Authors>Coding Seb</Authors>
     <PackageId>CodingSeb.ExpressionEvaluator</PackageId>
@@ -20,8 +20,9 @@
     <PackageIconUrl>https://github.com/codingseb/ExpressionEvaluator/blob/master/Icon.png?raw=true</PackageIconUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>* net45 target is now net462 because (net45 is not supported anymore)
-* Match function arguments considering implicit casts</PackageReleaseNotes>
+    <PackageReleaseNotes>* Make shared cache for types resolution thread safe
+* Add ScriptEvaluating and ScriptEvaluated events
+* Add unaryOperatorsDictionary to manage custom operators that are both unaries and binaries better</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/codingseb/ExpressionEvaluator</RepositoryUrl>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
