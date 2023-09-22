@@ -929,12 +929,17 @@ namespace CodingSeb.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Is fired just before an scriptExpression is evaluate.<para/>
-        /// Allow to redefine the scriptExpression to evaluate or to force a result value.
+        /// Is fired just before a script is evaluate.<para/>
+        /// Allow to redefine the script to evaluate or to force a result value.
         /// </summary>
-        public event EventHandler<ExpressionEvaluationEventArg> ScriptExpressionEvaluating;
-        
-        
+        public event EventHandler<ExpressionEvaluationEventArg> ScriptEvaluating;
+
+        /// <summary>
+        /// Is fired just before to return the script evaluation.<para/>
+        /// Allow to modify on the fly the result of the evaluation.
+        /// </summary>
+        public event EventHandler<ExpressionEvaluationEventArg> ScriptEvaluated;
+
         /// <summary>
         /// Is fired just before an expression is evaluate.<para/>
         /// Allow to redefine the expression to evaluate or to force a result value.
@@ -1095,7 +1100,7 @@ namespace CodingSeb.ExpressionEvaluator
             
             ExpressionEvaluationEventArg expressionEvaluationEventArg = new ExpressionEvaluationEventArg(script, this);
 
-            ExpressionEvaluating?.Invoke(this, expressionEvaluationEventArg);
+            ScriptEvaluating?.Invoke(this, expressionEvaluationEventArg);
 
             script = expressionEvaluationEventArg.Expression;
             
@@ -1108,11 +1113,26 @@ namespace CodingSeb.ExpressionEvaluator
                 object result = ScriptEvaluate(script, ref isReturn, ref isBreak, ref isContinue);
 
                 if (isBreak)
+                {
                     throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
+                }
                 else if (isContinue)
+                {
                     throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
+                }
                 else
+                {
+                    expressionEvaluationEventArg = new ExpressionEvaluationEventArg(script, this, result);
+
+                    ScriptEvaluated?.Invoke(this, expressionEvaluationEventArg);
+
+                    if (expressionEvaluationEventArg.HasValue)
+                    {
+                        result = expressionEvaluationEventArg.Value;
+                    }
+
                     return result;
+                }
             }
             finally
             {
