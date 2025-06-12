@@ -621,6 +621,10 @@ namespace CodingSeb.ExpressionEvaluator.Tests
         [TestCase("Abs(-4) > 10 / 2 ? (true ? 6 : 3+2) : (false ? Abs(-18) : 100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
         [TestCase("Abs(-4) > 10 / 2?(true ? 6 : 3+2):(false?Abs(-18):100 / 2)", ExpectedResult = 50, Category = "Conditional Operator t ? x : y")]
         [TestCase("1==1?true:false", ExpectedResult = true, Category = "Conditional Operator t ? x : y")]
+        [TestCase("1 == 2 ? 3 == 4 ? 1 : 0 : 0", ExpectedResult = 0, Category = "Conditional Operator t ? x : y")]
+        [TestCase("1 == 1 ? 3 == 3 ? 1 : 0 : 0", ExpectedResult = 1, Category = "Conditional Operator t ? x : y")]
+        [TestCase("false ? true ? 10 : 20 : 30", ExpectedResult = 30, Category = "Conditional Operator t ? x : y")]
+        [TestCase("true ? false ? 10 : 20 : 30", ExpectedResult = 20, Category = "Conditional Operator t ? x : y")]
         #endregion
 
         #region Math Constants
