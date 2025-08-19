@@ -3296,11 +3296,11 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     list[i] = operatorEvalutationsDict[eOp](left, right);
 
-                                    if (left is BubbleExceptionContainer && right is string)
+                                    if (left is BubbleExceptionContainer && right is string or null)
                                     {
                                         list[i] = left; //Bubble up the causing error
                                     }
-                                    else if (right is BubbleExceptionContainer && left is string)
+                                    else if (right is BubbleExceptionContainer && left is string or null)
                                     {
                                         list[i] = right; //Bubble up the causing error
                                     }

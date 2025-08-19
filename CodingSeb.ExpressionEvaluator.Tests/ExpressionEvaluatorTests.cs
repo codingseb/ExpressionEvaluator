@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.CSharp.RuntimeBinder;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using Shouldly;
 using System;
@@ -1836,6 +1837,15 @@ namespace CodingSeb.ExpressionEvaluator.Tests
             var evaluator = new ExpressionEvaluator();
 
             evaluator.Evaluate("@\"Hello \"\" Joe\"").ShouldBe(@"Hello "" Joe");
+        }
+        
+        [Test]
+        [Category("Bug")]
+        public void Evaluate_NullAdditionShouldThrowExceptionNotReturnString()
+        {
+            var evaluator = new ExpressionEvaluator();
+
+            Should.Throw<RuntimeBinderException>(() => evaluator.Evaluate("(null + null) + null"));
         }
 
         //[Test]
