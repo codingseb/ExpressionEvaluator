@@ -62,7 +62,7 @@ namespace CodingSeb.ExpressionEvaluator.Tests
                     else if (s2.Equals("("))
                     {
                         j++;
-                        GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
+                        GetExpressionsBetweenParenthesesOrOtherNestedBrackets(restOfExpression, ref j, false);
                     }
                     else if (s2.Equals("@"))
                     {
