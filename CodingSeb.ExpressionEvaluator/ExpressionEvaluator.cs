@@ -1,6 +1,6 @@
 /******************************************************************************************************
     Title : ExpressionEvaluator (https://github.com/codingseb/ExpressionEvaluator)
-    Version : 1.4.40.0 
+    Version : 1.4.41.0 
     (if last digit (the forth) is not a zero, the version is an intermediate version and can be unstable)
 
     Author : Coding Seb
@@ -242,56 +242,56 @@ namespace CodingSeb.ExpressionEvaluator
         {
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.UnaryPlus, (dynamic _, dynamic right) => +right },
-                {ExpressionOperator.UnaryMinus, (dynamic _, dynamic right) => -right },
-                {ExpressionOperator.LogicalNegation, (dynamic _, dynamic right) => !right },
-                {ExpressionOperator.BitwiseComplement, (dynamic _, dynamic right) => ~right },
-                {ExpressionOperator.Cast, (dynamic left, dynamic right) => ChangeType(right, left) },
+                {ExpressionOperator.UnaryPlus, (_, right) => +right },
+                {ExpressionOperator.UnaryMinus, (_, right) => -right },
+                {ExpressionOperator.LogicalNegation, (_, right) => !right },
+                {ExpressionOperator.BitwiseComplement, (_, right) => ~right },
+                {ExpressionOperator.Cast, (left, right) => ChangeType(right, left) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Multiply, (dynamic left, dynamic right) => left * right },
-                {ExpressionOperator.Divide, (dynamic left, dynamic right) => left / right },
-                {ExpressionOperator.Modulo, (dynamic left, dynamic right) => left % right },
+                {ExpressionOperator.Multiply, (left, right) => left * right },
+                {ExpressionOperator.Divide, (left, right) => left / right },
+                {ExpressionOperator.Modulo, (left, right) => left % right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Plus, (dynamic left, dynamic right) => left + right  },
-                {ExpressionOperator.Minus, (dynamic left, dynamic right) => left - right },
+                {ExpressionOperator.Plus, (left, right) => left + right  },
+                {ExpressionOperator.Minus, (left, right) => left - right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.ShiftBitsLeft, (dynamic left, dynamic right) => left << right },
-                {ExpressionOperator.ShiftBitsRight, (dynamic left, dynamic right) => left >> right },
+                {ExpressionOperator.ShiftBitsLeft, (left, right) => left << right },
+                {ExpressionOperator.ShiftBitsRight, (left, right) => left >> right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Lower, (dynamic left, dynamic right) => left < right },
-                {ExpressionOperator.Greater, (dynamic left, dynamic right) => left > right },
-                {ExpressionOperator.LowerOrEqual, (dynamic left, dynamic right) => left <= right },
-                {ExpressionOperator.GreaterOrEqual, (dynamic left, dynamic right) => left >= right },
-                {ExpressionOperator.Is, (dynamic left, dynamic right) => left != null && (((ClassOrEnumType)right).Type).IsAssignableFrom(left.GetType()) },
+                {ExpressionOperator.Lower, (left, right) => left < right },
+                {ExpressionOperator.Greater, (left, right) => left > right },
+                {ExpressionOperator.LowerOrEqual, (left, right) => left <= right },
+                {ExpressionOperator.GreaterOrEqual, (left, right) => left >= right },
+                {ExpressionOperator.Is, (left, right) => left != null && (((ClassOrEnumType)right).Type).IsAssignableFrom(left.GetType()) },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.Equal, (dynamic left, dynamic right) => left == right },
-                {ExpressionOperator.NotEqual, (dynamic left, dynamic right) => left != right },
+                {ExpressionOperator.Equal, (left, right) => left == right },
+                {ExpressionOperator.NotEqual, (left, right) => left != right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.LogicalAnd, (dynamic left, dynamic right) => left & right },
+                {ExpressionOperator.LogicalAnd, (left, right) => left & right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.LogicalXor, (dynamic left, dynamic right) => left ^ right },
+                {ExpressionOperator.LogicalXor, (left, right) => left ^ right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.LogicalOr, (dynamic left, dynamic right) => left | right },
+                {ExpressionOperator.LogicalOr, (left, right) => left | right },
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.ConditionalAnd, (dynamic left, dynamic right) => {
+                {ExpressionOperator.ConditionalAnd, (left, right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
                         leftExceptionContainer.Throw();
@@ -314,7 +314,7 @@ namespace CodingSeb.ExpressionEvaluator
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.ConditionalOr, (dynamic left, dynamic right) => {
+                {ExpressionOperator.ConditionalOr, (left, right) => {
                     if ( left is BubbleExceptionContainer leftExceptionContainer)
                     {
                         leftExceptionContainer.Throw();
@@ -337,7 +337,7 @@ namespace CodingSeb.ExpressionEvaluator
             },
             new Dictionary<ExpressionOperator, Func<dynamic, dynamic, object>>()
             {
-                {ExpressionOperator.NullCoalescing, (dynamic left, dynamic right) => left ?? right },
+                {ExpressionOperator.NullCoalescing, (left, right) => left ?? right },
             },
         };
 
@@ -3206,7 +3206,7 @@ namespace CodingSeb.ExpressionEvaluator
                 .Select(e => e is NullConditionalNullValue ? null : e)
                 .ToList();
 
-            OperatorsEvaluations.ToList().ForEach((IDictionary<ExpressionOperator, Func<dynamic, dynamic, object>> operatorEvalutationsDict) =>
+            OperatorsEvaluations.ToList().ForEach(operatorEvalutationsDict =>
             {
                 for (int i = list.Count - 1; i >= 0; i--)
                 {
@@ -3296,11 +3296,11 @@ namespace CodingSeb.ExpressionEvaluator
                                 {
                                     list[i] = operatorEvalutationsDict[eOp](left, right);
 
-                                    if (left is BubbleExceptionContainer && right is string)
+                                    if (left is BubbleExceptionContainer && (right == null || right is string))
                                     {
                                         list[i] = left; //Bubble up the causing error
                                     }
-                                    else if (right is BubbleExceptionContainer && left is string)
+                                    else if (right is BubbleExceptionContainer && (left is string || left is null))
                                     {
                                         list[i] = right; //Bubble up the causing error
                                     }
@@ -3481,7 +3481,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 bool inScriptAtDeclaration = inScript;
 
-                stack.Push(new InternalDelegate((object[] args) =>
+                stack.Push(new InternalDelegate(args =>
                 {
                     var vars = new Dictionary<string, object>(variables);
 
