@@ -2808,6 +2808,8 @@ namespace CodingSeb.ExpressionEvaluator
                 bool condition = (bool)ProcessStack(stack);
 
                 string restOfExpression = expression.Substring(i + 1);
+                // Track nesting level of ternary operators
+                int ternaryNestingLevel = 0; 
 
                 for (int j = 0; j < restOfExpression.Length; j++)
                 {
@@ -2825,15 +2827,29 @@ namespace CodingSeb.ExpressionEvaluator
                         j++;
                         GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
                     }
+                    else if (s2.Equals("?"))
+                    {
+                        // Found nested ternary operator, increase nesting level
+                        ternaryNestingLevel++;
+                    }
                     else if (s2.Equals(":"))
                     {
-                        stack.Clear();
+                        if (ternaryNestingLevel == 0)
+                        {
+                            // This colon belongs to our ternary operator
+                            stack.Clear();
 
-                        stack.Push(condition ? Evaluate(restOfExpression.Substring(0, j)) : Evaluate(restOfExpression.Substring(j + 1)));
+                            stack.Push(condition ? Evaluate(restOfExpression.Substring(0, j)) : Evaluate(restOfExpression.Substring(j + 1)));
 
-                        i = expression.Length;
+                            i = expression.Length;
 
-                        return true;
+                            return true;
+                        }
+                        else
+                        {
+                            // This colon belongs to a nested ternary operator, decrease nesting level
+                            ternaryNestingLevel--;
+                        }
                     }
                 }
             }
