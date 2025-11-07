@@ -31,7 +31,7 @@ namespace CodingSeb.ExpressionEvaluator
     {
         #region Regex declarations
 
-        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|((?<nullConditional>[?])?(?<inObject>\.))?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignationOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        protected static readonly Regex varOrFunctionRegEx = new Regex(@"^((?<sign>[+-])|(?<prefixOperator>[+][+]|--)|(?<varKeyword>var)\s+|(?<dynamicKeyword>dynamic)\s+|((?<nullConditional>[?])?(?<inObject>\.))?)(?<name>[\p{L}_](?>[\p{L}_0-9]*))(?>\s*)((?<assignmentOperator>(?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>]))|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9]))|((?<isgeneric>[<](?>([\p{L}_](?>[\p{L}_0-9]*)|(?>\s+)|[,\.])+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?(?<isfunction>[(])?))", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         //language=regex
         protected const string numberRegexOrigPattern = @"^(?<sign>[+-])?([0-9][0-9_{1}]*[0-9]|\d)(?<hasdecimal>{0}?([0-9][0-9_]*[0-9]|\d)(e[+-]?([0-9][0-9_]*[0-9]|\d))?)?(?<type>ul|[fdulm])?";
@@ -42,7 +42,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected static readonly Regex internalCharRegex = new Regex(@"^['](\\[\\'0abfnrtv]|[^'])[']", RegexOptions.Compiled);
         protected static readonly Regex indexingBeginningRegex = new Regex(@"^(?<nullConditional>[?])?\[", RegexOptions.Compiled);
         protected static readonly Regex arrayTypeDetectionRegex = new Regex(@"^(\s*(\[(?>(?>\s+)|[,])*)\])+", RegexOptions.Compiled);
-        protected static readonly Regex assignationOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
+        protected static readonly Regex assignmentOrPostFixOperatorRegex = new Regex(@"^(?>\s*)((?<assignmentPrefix>[+\-*/%&|^]|<<|>>|\?\?)?=(?![=>])|(?<postfixOperator>([+][+]|--)(?![\p{L}_0-9])))");
         protected static readonly Regex genericsDecodeRegex = new Regex("(?<name>[^,<>]+)(?<isgeneric>[<](?>[^<>]+|(?<gentag>[<])|(?<-gentag>[>]))*(?(gentag)(?!))[>])?", RegexOptions.Compiled);
         protected static readonly Regex genericsEndOnlyOneTrim = new Regex(@"(?>\s*)[>](?>\s*)$", RegexOptions.Compiled);
 
@@ -1120,11 +1120,11 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (isBreak)
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop");
+                    throw new ExpressionEvaluatorSyntaxErrorException("[break] keyword executed outside a loop.");
                 }
                 else if (isContinue)
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop");
+                    throw new ExpressionEvaluatorSyntaxErrorException("[continue] keyword executed outside a loop.");
                 }
                 else
                 {
@@ -1184,7 +1184,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException("throw keyword must be follow by an Exception instance");
+                        throw new ExpressionEvaluatorSyntaxErrorException("[throw] keyword must be follow by an [Exception] instance.");
                     }
                 }
 
@@ -1222,7 +1222,7 @@ namespace CodingSeb.ExpressionEvaluator
                 else if (script[index] == '(')
                 {
                     index++;
-                    GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref index, false);
+                    GetExpressionsBetweenParenthesesOrOtherNestedBrackets(script, ref index, false);
                 }
                 else if (script[index] == '{')
                 {
@@ -1261,7 +1261,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     if (tryStatementsList.Count == 1)
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException("a try statement need at least one catch or one finally statement.");
+                        throw new ExpressionEvaluatorSyntaxErrorException("A [try] statement requires at least one [catch] or [finally] statement.");
                     }
 
                     try
@@ -1332,7 +1332,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     i += blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Length : blockKeywordsWithoutParenthesesBeginningMatch.Length;
                     string keyword = blockKeywordsBeginingMatch.Success ? blockKeywordsBeginingMatch.Groups["keyword"].Value.Replace(" ", "").Replace("\t", "") : (blockKeywordsWithoutParenthesesBeginningMatch?.Groups["keyword"].Value ?? string.Empty);
-                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";") : null;
+                    List<string> keywordAttributes = blockKeywordsBeginingMatch.Success ? GetExpressionsBetweenParenthesesOrOtherNestedBrackets(script, ref i, true, ";") : null;
 
                     if (blockKeywordsBeginingMatch.Success)
                         i++;
@@ -1444,7 +1444,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 && blockKeywordsBeginingMatch.Groups["keyword"].Value.Equals("while", StringComparisonForCasing))
                             {
                                 i += blockKeywordsBeginingMatch.Length;
-                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(script, ref i, true, ";");
+                                keywordAttributes = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(script, ref i, true, ";");
 
                                 i++;
 
@@ -1472,12 +1472,12 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing. (After the do while condition)");
+                                    throw new ExpressionEvaluatorSyntaxErrorException("A ';' character is missing. (After the [do] [while] condition)");
                                 }
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword after the [do] keyword and block");
+                                throw new ExpressionEvaluatorSyntaxErrorException("No [while] keyword after the [do] keyword and block.");
                             }
                         }
                         else if (keyword.Equals("while", StringComparisonForCasing))
@@ -1526,11 +1526,11 @@ namespace CodingSeb.ExpressionEvaluator
 
                             if (!foreachParenthisEvaluationMatch.Success)
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException("wrong foreach syntax");
+                                throw new ExpressionEvaluatorSyntaxErrorException("Wrong [foreach] syntax.");
                             }
                             else if (!foreachParenthisEvaluationMatch.Groups["in"].Value.Equals("in", StringComparisonForCasing))
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException("no [in] keyword found in foreach");
+                                throw new ExpressionEvaluatorSyntaxErrorException("No [in] keyword found in [foreach].");
                             }
                             else
                             {
@@ -1589,7 +1589,7 @@ namespace CodingSeb.ExpressionEvaluator
             }
 
             if (!script.Substring(startOfExpression).Trim().Equals(string.Empty) && !isReturn && !isBreak && !isContinue && OptionScriptNeedSemicolonAtTheEndOfLastExpression)
-                throw new ExpressionEvaluatorSyntaxErrorException("A [;] character is missing.");
+                throw new ExpressionEvaluatorSyntaxErrorException("A ';' character is missing.");
 
             ExecuteBlocksStacks();
 
@@ -1602,7 +1602,7 @@ namespace CodingSeb.ExpressionEvaluator
             else if (OptionOnNoReturnKeywordFoundInScriptAction == OptionOnNoReturnKeywordFoundInScriptAction.ReturnNull)
                 return null;
             else
-                throw new ExpressionEvaluatorSyntaxErrorException("No [return] keyword found");
+                throw new ExpressionEvaluatorSyntaxErrorException("No [return] keyword found.");
         }
 
         #endregion
@@ -1630,7 +1630,7 @@ namespace CodingSeb.ExpressionEvaluator
             EvaluateVarOrFunc,
             EvaluateOperators,
             EvaluateChar,
-            EvaluateParenthis,
+            EvaluateParentheses,
             EvaluateIndexing,
             EvaluateString,
             EvaluateTernaryConditionalOperator,
@@ -1831,7 +1831,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"A '=' char is missing in [{subExpr}]. It is in a object initializer. It must contains one.");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"A '=' character is missing in object initializer [{subExpr}].");
                         }
                     });
 
@@ -1844,7 +1844,7 @@ namespace CodingSeb.ExpressionEvaluator
                 {
                     object element = new ExpandoObject();
 
-                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
+                    List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
 
                     InitSimpleObjet(element, initArgs);
 
@@ -1859,7 +1859,7 @@ namespace CodingSeb.ExpressionEvaluator
                     Type type = EvaluateType(completeName + genericTypes, ref typeIndex);
 
                     if (type == null || (typeIndex > 0 && typeIndex < completeName.Length))
-                        throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {completeName}{genericTypes} is unknown");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"Type or class \"{completeName}{genericTypes}\" is unknown.");
 
                     void Init(object element, List<string> initArgs)
                     {
@@ -1879,7 +1879,7 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 int subIndex = subExpr.IndexOf("{") + 1;
 
-                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
+                                List<string> subArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(subExpr, ref subIndex, true, OptionInitializersSeparator, "{", "}");
 
                                 if (subArgs.Count == 2)
                                 {
@@ -1889,7 +1889,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"Bad Number of args in initialization of [{subExpr}]");
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Bad number of args in initialization of [{subExpr}].");
                                 }
                             });
                         }
@@ -1901,7 +1901,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                     if (instanceCreationMatch.Groups["isfunction"].Success)
                     {
-                        List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionFunctionArgumentsSeparator);
+                        List<string> constructorArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionFunctionArgumentsSeparator);
                         i++;
 
                         List<object> cArgs = constructorArgs.ConvertAll(Evaluate);
@@ -1914,7 +1914,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += blockBeginningMatch.Length;
 
-                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
+                            List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
 
                             Init(element, initArgs);
                         }
@@ -1929,7 +1929,7 @@ namespace CodingSeb.ExpressionEvaluator
                     {
                         object element = Activator.CreateInstance(type, new object[0]);
 
-                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
+                        List<string> initArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
 
                         Init(element, initArgs);
 
@@ -1937,7 +1937,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else if (instanceCreationMatch.Groups["isArray"].Success)
                     {
-                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionInitializersSeparator, "[", "]");
+                        List<string> arrayArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionInitializersSeparator, "[", "]");
                         i++;
                         Array array = null;
 
@@ -1952,7 +1952,7 @@ namespace CodingSeb.ExpressionEvaluator
                         {
                             i += initInNewBeginningMatch.Length;
 
-                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
+                            List<string> arrayElements = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionInitializersSeparator, "{", "}");
 
                             if (array == null)
                                 array = Array.CreateInstance(type, arrayElements.Count);
@@ -1964,7 +1964,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException($"A new expression requires that type be followed by (), [] or {{}}(Check : {instanceCreationMatch.Value})");
+                        throw new ExpressionEvaluatorSyntaxErrorException($"[new] expression requires the type to be followed by '(', '[' or '{{'. (Check : {instanceCreationMatch.Value})");
                     }
                 }
 
@@ -1981,7 +1981,7 @@ namespace CodingSeb.ExpressionEvaluator
             Match varFuncMatch = varOrFunctionRegEx.Match(expression.Substring(i));
 
             if (varFuncMatch.Groups["varKeyword"].Success
-                && !varFuncMatch.Groups["assignationOperator"].Success)
+                && !varFuncMatch.Groups["assignmentOperator"].Success)
             {
                 throw new ExpressionEvaluatorSyntaxErrorException("Implicit variables must be initialized. [var " + varFuncMatch.Groups["name"].Value + "]");
             }
@@ -2001,7 +2001,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (varFuncMatch.Groups["isfunction"].Success)
                 {
-                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, OptionFunctionArgumentsSeparator);
+                    List<string> funcArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, OptionFunctionArgumentsSeparator);
 
                     if (inObject
                         || Context?.GetType()
@@ -2018,11 +2018,11 @@ namespace CodingSeb.ExpressionEvaluator
                         ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                         if (obj != null && TypesToBlock.Contains(obj.GetType()))
-                            throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{obj.GetType().FullName}] type is blocked.");
                         else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                            throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{staticType.FullName}] type is blocked.");
                         else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
-                            throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{classOrType.Type}] type is blocked.");
 
                         try
                         {
@@ -2190,7 +2190,7 @@ namespace CodingSeb.ExpressionEvaluator
                                                             fnOverloadsPrint += string.Join(",", parInfo.Select(x => x.ParameterType.FullName ?? x.ParameterType.Name)) + "\n";
                                                         }
 
-                                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] extension method \"{varFuncName}\" has no overload for arguments: {fnArgsPrint}. Candidates: {fnOverloadsPrint}");
+                                                        throw new ExpressionEvaluatorSyntaxErrorException($"[{objType}] extension method [{varFuncName}] has no overload for arguments: {fnArgsPrint}. Candidates: {fnOverloadsPrint}");
                                                     }
                                                 }
 
@@ -2218,7 +2218,7 @@ namespace CodingSeb.ExpressionEvaluator
                         catch (Exception ex)
                         {
                             //Transport the exception in stack.
-                            var nestedException = new ExpressionEvaluatorSyntaxErrorException($"The call of the method \"{varFuncName}\" on type [{objType}] generate this error : {ex.InnerException?.Message ?? ex.Message}", ex);
+                            var nestedException = new ExpressionEvaluatorSyntaxErrorException($"Call to method [{varFuncName}] on type [{objType}] resulted in this error : {ex.InnerException?.Message ?? ex.Message}", ex);
                             stack.Push(new BubbleExceptionContainer(nestedException));
                             return true;  //Signals an error to the parsing method array call                          
                         }
@@ -2231,7 +2231,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (functionPreEvaluationEventArg.CancelEvaluation)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expression.Replace("\r", "").Replace("\n", "")}]");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Function \"{varFuncName}\" unknown in expression : [{expression.Replace("\r", "").Replace("\n", "")}]");
                         }
                         else if (functionPreEvaluationEventArg.FunctionReturnedValue)
                         {
@@ -2277,7 +2277,7 @@ namespace CodingSeb.ExpressionEvaluator
                             }
                             else
                             {
-                                throw new ExpressionEvaluatorSyntaxErrorException($"Function [{varFuncName}] unknown in expression : [{expression.Replace("\r", "").Replace("\n", "")}]");
+                                throw new ExpressionEvaluatorSyntaxErrorException($"Function \"{varFuncName}\" unknown in expression : [{expression.Replace("\r", "").Replace("\n", "")}]");
                             }
                         }
                     }
@@ -2301,11 +2301,11 @@ namespace CodingSeb.ExpressionEvaluator
                         ValueTypeNestingTrace valueTypeNestingTrace = null;
 
                         if (obj != null && TypesToBlock.Contains(obj.GetType()))
-                            throw new ExpressionEvaluatorSecurityException($"{obj.GetType().FullName} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{obj.GetType().FullName}] type is blocked.");
                         else if (obj is Type staticType && TypesToBlock.Contains(staticType))
-                            throw new ExpressionEvaluatorSecurityException($"{staticType.FullName} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{staticType.FullName}] type is blocked.");
                         else if (obj is ClassOrEnumType classOrType && TypesToBlock.Contains(classOrType.Type))
-                            throw new ExpressionEvaluatorSecurityException($"{classOrType.Type} type is blocked");
+                            throw new ExpressionEvaluatorSecurityException($"[{classOrType.Type}] type is blocked.");
 
                         try
                         {
@@ -2373,7 +2373,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     if (isDynamic)
                                     {
-                                        if (!varFuncMatch.Groups["assignationOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
+                                        if (!varFuncMatch.Groups["assignmentOperator"].Success || varFuncMatch.Groups["assignmentPrefix"].Success)
                                             varValue = dictionaryObject.ContainsKey(varFuncName) ? dictionaryObject[varFuncName] : null;
                                         else
                                             pushVarValue = false;
@@ -2417,9 +2417,9 @@ namespace CodingSeb.ExpressionEvaluator
 
                                     if (OptionPropertyOrFieldSetActive)
                                     {
-                                        if (varFuncMatch.Groups["assignationOperator"].Success)
+                                        if (varFuncMatch.Groups["assignmentOperator"].Success)
                                         {
-                                            varValue = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => varValue, stack);
+                                            varValue = ManageKindOfAssignment(expression, ref i, varFuncMatch, () => varValue, stack);
                                         }
                                         else if (varFuncMatch.Groups["postfixOperator"].Success)
                                         {
@@ -2447,9 +2447,9 @@ namespace CodingSeb.ExpressionEvaluator
                                             }
                                         }
                                     }
-                                    else if (varFuncMatch.Groups["assignationOperator"].Success)
+                                    else if (varFuncMatch.Groups["assignmentOperator"].Success)
                                     {
-                                        i -= varFuncMatch.Groups["assignationOperator"].Length;
+                                        i -= varFuncMatch.Groups["assignmentOperator"].Length;
                                     }
                                     else if (varFuncMatch.Groups["postfixOperator"].Success)
                                     {
@@ -2483,7 +2483,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                         if (variablePreEvaluationEventArg.CancelEvaluation)
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expression}]");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Variable \"{varFuncName}\" unknown in expression : [{expression}]");
                         }
                         else if (variablePreEvaluationEventArg.HasValue)
                         {
@@ -2494,18 +2494,18 @@ namespace CodingSeb.ExpressionEvaluator
                             stack.Push(varValueToPush);
                         }
                         else if ((Variables.TryGetValue(varFuncName, out object cusVarValueToPush)
-                                || varFuncMatch.Groups["assignationOperator"].Success
+                                || varFuncMatch.Groups["assignmentOperator"].Success
                                 || (stack.Count == 1 && stack.Peek() is ClassOrEnumType && string.IsNullOrWhiteSpace(expression.Substring(i))))
                             && (cusVarValueToPush == null || !TypesToBlock.Contains(cusVarValueToPush.GetType())))
                         {
                             if (stack.Count == 1 && stack.Peek() is ClassOrEnumType classOrEnum)
                             {
                                 if (Variables.ContainsKey(varFuncName))
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not declare a new variable named [{varFuncName}]. A variable with this name already exists");
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Cannot declare a new variable named \"{varFuncName}\". A variable with this name already exists.");
                                 else if (varFuncMatch.Groups["varKeyword"].Success)
-                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable with type and var keyword.");
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Cannot declare a variable with type and [var] keyword.");
                                 else if (varFuncMatch.Groups["dynamicKeyword"].Success)
-                                    throw new ExpressionEvaluatorSyntaxErrorException("Can not declare a variable with type and dynamic keyword.");
+                                    throw new ExpressionEvaluatorSyntaxErrorException("Cannot declare a variable with type and [dynamic] keyword.");
 
                                 stack.Pop();
 
@@ -2525,9 +2525,9 @@ namespace CodingSeb.ExpressionEvaluator
                             {
                                 bool assign = true;
 
-                                if (varFuncMatch.Groups["assignationOperator"].Success)
+                                if (varFuncMatch.Groups["assignmentOperator"].Success)
                                 {
-                                    cusVarValueToPush = ManageKindOfAssignation(expression, ref i, varFuncMatch, () => cusVarValueToPush, stack);
+                                    cusVarValueToPush = ManageKindOfAssignment(expression, ref i, varFuncMatch, () => cusVarValueToPush, stack);
                                 }
                                 else if (varFuncMatch.Groups["postfixOperator"].Success)
                                 {
@@ -2549,9 +2549,9 @@ namespace CodingSeb.ExpressionEvaluator
                                     AssignVariable(varFuncName, cusVarValueToPush);
                                 }
                             }
-                            else if (varFuncMatch.Groups["assignationOperator"].Success)
+                            else if (varFuncMatch.Groups["assignmentOperator"].Success)
                             {
-                                i -= varFuncMatch.Groups["assignationOperator"].Length;
+                                i -= varFuncMatch.Groups["assignmentOperator"].Length;
                             }
                             else if (varFuncMatch.Groups["postfixOperator"].Success)
                             {
@@ -2578,7 +2578,7 @@ namespace CodingSeb.ExpressionEvaluator
                                 }
                                 else
                                 {
-                                    throw new ExpressionEvaluatorSyntaxErrorException($"Variable [{varFuncName}] unknown in expression : [{expression}]");
+                                    throw new ExpressionEvaluatorSyntaxErrorException($"Variable \"{varFuncName}\" unknown in expression : [{expression}]");
                                 }
                             }
                         }
@@ -2618,7 +2618,7 @@ namespace CodingSeb.ExpressionEvaluator
                     while (staticType == null
                         && namespaceMatch.Success
                         && !namespaceMatch.Groups["sign"].Success
-                        && !namespaceMatch.Groups["assignationOperator"].Success
+                        && !namespaceMatch.Groups["assignmentOperator"].Success
                         && !namespaceMatch.Groups["postfixOperator"].Success
                         && !namespaceMatch.Groups["isfunction"].Success
                         && i + subIndex < expression.Length
@@ -2655,7 +2655,7 @@ namespace CodingSeb.ExpressionEvaluator
                     if (staticType == null
                         && typeMatch.Success
                         && !typeMatch.Groups["sign"].Success
-                        && !typeMatch.Groups["assignationOperator"].Success
+                        && !typeMatch.Groups["assignmentOperator"].Success
                         && !typeMatch.Groups["postfixOperator"].Success
                         && !typeMatch.Groups["isfunction"].Success
                         && !typeMatch.Groups["inObject"].Success
@@ -2685,7 +2685,7 @@ namespace CodingSeb.ExpressionEvaluator
                 Match nestedTypeMatch = varOrFunctionRegEx.Match(expression.Substring(i + subIndex));
                 while (nestedTypeMatch.Success
                     && !nestedTypeMatch.Groups["sign"].Success
-                    && !nestedTypeMatch.Groups["assignationOperator"].Success
+                    && !nestedTypeMatch.Groups["assignmentOperator"].Success
                     && !nestedTypeMatch.Groups["postfixOperator"].Success
                     && !nestedTypeMatch.Groups["isfunction"].Success)
                 {
@@ -2748,12 +2748,12 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     else
                     {
-                        throw new ExpressionEvaluatorSyntaxErrorException("Not known escape sequence in literal character");
+                        throw new ExpressionEvaluatorSyntaxErrorException("Unknown escape sequence in character literal.");
                     }
                 }
                 else if (expression.Substring(i, 1).Equals("'"))
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException("Empty literal character is not valid");
+                    throw new ExpressionEvaluatorSyntaxErrorException("Empty character literal is not valid.");
                 }
                 else
                 {
@@ -2767,7 +2767,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException("Too much characters in the literal character");
+                    throw new ExpressionEvaluatorSyntaxErrorException("Too many characters in the literal.");
                 }
             }
             else
@@ -2823,7 +2823,7 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (s2.Equals("("))
                     {
                         j++;
-                        GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(restOfExpression, ref j, false);
+                        GetExpressionsBetweenParenthesesOrOtherNestedBrackets(restOfExpression, ref j, false);
                     }
                     else if (s2.Equals(":"))
                     {
@@ -2841,12 +2841,12 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual bool EvaluateParenthis(string expression, Stack<object> stack, ref int i)
+        protected virtual bool EvaluateParentheses(string expression, Stack<object> stack, ref int i)
         {
             string s = expression.Substring(i, 1);
 
             if (s.Equals(")"))
-                throw new Exception($"To much ')' characters are defined in expression : [{expression}] : no corresponding '(' fund.");
+                throw new Exception($"Too many ')' characters in expression : [{expression}] : no corresponding '(' found.");
 
             if (s.Equals("("))
             {
@@ -2854,7 +2854,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (stack.Count > 0 && stack.Peek() is InternalDelegate)
                 {
-                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true);
+                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true);
 
                     InternalDelegate lambdaDelegate = stack.Pop() as InternalDelegate;
 
@@ -2862,9 +2862,9 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(stack);
+                    CorrectStackWithUnaryPlusOrMinusBeforeParenthesesIfNecessary(stack);
 
-                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false);
+                    List<string> expressionsInParenthis = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, false);
 
                     stack.Push(Evaluate(expressionsInParenthis[0]));
                 }
@@ -2875,7 +2875,7 @@ namespace CodingSeb.ExpressionEvaluator
             return false;
         }
 
-        protected virtual void CorrectStackWithUnaryPlusOrMinusBeforeParenthisIfNecessary(Stack<object> stack)
+        protected virtual void CorrectStackWithUnaryPlusOrMinusBeforeParenthesesIfNecessary(Stack<object> stack)
         {
             if (stack.Count > 0 && stack.Peek() is ExpressionOperator op && (op == ExpressionOperator.Plus || op == ExpressionOperator.Minus))
             {
@@ -2905,7 +2905,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 dynamic left = stack.Pop();
 
-                List<string> indexingArgs = GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, true, startChar: "[", endChar: "]");
+                List<string> indexingArgs = GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, true, startChar: "[", endChar: "]");
 
                 if (left is NullConditionalNullValue || left is BubbleExceptionContainer)
                 {
@@ -2924,7 +2924,7 @@ namespace CodingSeb.ExpressionEvaluator
 
                 if (indexingPreEvaluationEventArg.CancelEvaluation)
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException($"[{left.GetType()}] can not be indexed.");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"[{left.GetType()}] cannot be indexed.");
                 }
                 else if (indexingPreEvaluationEventArg.HasValue)
                 {
@@ -2932,7 +2932,7 @@ namespace CodingSeb.ExpressionEvaluator
                 }
                 else
                 {
-                    Match assignationOrPostFixOperatorMatch = null;
+                    Match assignmentOrPostFixOperatorMatch = null;
                     dynamic valueToPush = null;
                     List<dynamic> oIndexingArgs = indexingArgs.ConvertAll(Evaluate);
                     PropertyInfo[] itemProperties = null;
@@ -2994,38 +2994,38 @@ namespace CodingSeb.ExpressionEvaluator
                             return left[oIndexingArgs[0]];
                     }
 
-                    if (OptionIndexingAssignationActive && (assignationOrPostFixOperatorMatch = assignationOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
+                    if (OptionIndexingAssignationActive && (assignmentOrPostFixOperatorMatch = assignmentOrPostFixOperatorRegex.Match(expression.Substring(i + 1))).Success)
                     {
-                        i += assignationOrPostFixOperatorMatch.Length + 1;
+                        i += assignmentOrPostFixOperatorMatch.Length + 1;
 
-                        bool postFixOperator = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
-                        string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignation";
+                        bool postFixOperator = assignmentOrPostFixOperatorMatch.Groups["postfixOperator"].Success;
+                        string exceptionContext = postFixOperator ? "++ or -- operator" : "an assignment";
 
                         if (stack.Count > 1)
-                            throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, a property or an indexer.");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"The left part of {exceptionContext} must be a variable, property or indexer.");
 
                         if (indexingBeginningMatch.Groups["nullConditional"].Success)
-                            throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional is not usable left to {exceptionContext}");
+                            throw new ExpressionEvaluatorSyntaxErrorException($"Null conditional cannot be the left part of {exceptionContext}.");
 
                         if (postFixOperator)
                         {
                             if (left is IDictionary<string, object> dictionaryLeft)
                             {
-                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[oIndexingArgs[0]]++ : dictionaryLeft[oIndexingArgs[0]]--;
+                                valueToPush = assignmentOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? dictionaryLeft[oIndexingArgs[0]]++ : dictionaryLeft[oIndexingArgs[0]]--;
                             }
                             else if (itemProperties?.Length > 0)
                             {
                                 valueToPush = itemProperties[0].GetValue(left, oIndexingArgs.Cast<object>().ToArray());
-                                itemProperties[0].SetValue(left, assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? valueToPush + 1 : valueToPush - 1, oIndexingArgs.Cast<object>().ToArray());
+                                itemProperties[0].SetValue(left, assignmentOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? valueToPush + 1 : valueToPush - 1, oIndexingArgs.Cast<object>().ToArray());
                             }
                             else
                             {
-                                valueToPush = assignationOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[oIndexingArgs[0]]++ : left[oIndexingArgs[0]]--;
+                                valueToPush = assignmentOrPostFixOperatorMatch.Groups["postfixOperator"].Value.Equals("++") ? left[oIndexingArgs[0]]++ : left[oIndexingArgs[0]]--;
                             }
                         }
                         else
                         {
-                            valueToPush = ManageKindOfAssignation(expression, ref i, assignationOrPostFixOperatorMatch, GetIndexedObject);
+                            valueToPush = ManageKindOfAssignment(expression, ref i, assignmentOrPostFixOperatorMatch, GetIndexedObject);
 
                             if (left is IDictionary<string, object> dictionaryLeft)
                                 dictionaryLeft[oIndexingArgs[0]] = valueToPush;
@@ -3163,7 +3163,7 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException("A character '}' must be escaped in a interpolated string.");
+                            throw new ExpressionEvaluatorSyntaxErrorException("A '}' character must be escaped in a interpolated string.");
                         }
                     }
                     else if (expression.Substring(i, expression.Length - i)[0] == '\\')
@@ -3177,13 +3177,13 @@ namespace CodingSeb.ExpressionEvaluator
                         }
                         else
                         {
-                            throw new ExpressionEvaluatorSyntaxErrorException("There is no corresponding escaped character for \\" + expression.Substring(i, 1));
+                            throw new ExpressionEvaluatorSyntaxErrorException($"There is no corresponding escaped character for '\\{expression.Substring(i, 1)}'.");
                         }
                     }
                 }
 
                 if (!endOfString)
-                    throw new ExpressionEvaluatorSyntaxErrorException("A \" character is missing.");
+                    throw new ExpressionEvaluatorSyntaxErrorException("A '\"' character is missing.");
 
                 return true;
             }
@@ -3198,7 +3198,7 @@ namespace CodingSeb.ExpressionEvaluator
         protected virtual object ProcessStack(Stack<object> stack)
         {
             if (stack.Count == 0)
-                throw new ExpressionEvaluatorSyntaxErrorException("Empty expression or no token found");
+                throw new ExpressionEvaluatorSyntaxErrorException("Empty expression or no token found.");
 
             List<object> list = stack
                 .Select(e => e is ValueTypeNestingTrace valueTypeNestingTrace ? valueTypeNestingTrace.Value : e)
@@ -3345,7 +3345,7 @@ namespace CodingSeb.ExpressionEvaluator
                         bubbleExceptionContainer.Throw(); //Throw the first occuring error
                     }
                 }
-                throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing");
+                throw new ExpressionEvaluatorSyntaxErrorException("Syntax error. Check that no operator is missing.");
             }
             else if (evaluationStackCount == 1 && stack.Peek() is BubbleExceptionContainer bubbleExceptionContainer)
             {
@@ -3399,17 +3399,17 @@ namespace CodingSeb.ExpressionEvaluator
 
         protected delegate dynamic InternalDelegate(params dynamic[] args);
 
-        protected virtual object ManageKindOfAssignation(string expression, ref int index, Match match, Func<object> getCurrentValue, Stack<object> stack = null)
+        protected virtual object ManageKindOfAssignment(string expression, ref int index, Match match, Func<object> getCurrentValue, Stack<object> stack = null)
         {
             if (stack?.Count > 1)
-                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignation must be a variable, a property or an indexer.");
+                throw new ExpressionEvaluatorSyntaxErrorException("The left part of an assignment must be a variable, property or indexer.");
 
             object result;
             string rightExpression = expression.Substring(index);
             index = expression.Length;
 
             if (rightExpression.Trim().Equals(string.Empty))
-                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignation");
+                throw new ExpressionEvaluatorSyntaxErrorException("Right part is missing in assignment.");
 
             if (match.Groups["assignmentPrefix"].Success)
             {
@@ -3440,7 +3440,7 @@ namespace CodingSeb.ExpressionEvaluator
             {
                 if (value == null && stronglyTypedVariable.Type.IsValueType && Nullable.GetUnderlyingType(stronglyTypedVariable.Type) == null)
                 {
-                    throw new ExpressionEvaluatorSyntaxErrorException($"Can not cast null to {stronglyTypedVariable.Type} because it's not a nullable valueType");
+                    throw new ExpressionEvaluatorSyntaxErrorException($"Cannot cast [null] to [{stronglyTypedVariable.Type}] because it is not a nullable value type.");
                 }
 
                 Type typeToAssign = value?.GetType();
@@ -3456,7 +3456,7 @@ namespace CodingSeb.ExpressionEvaluator
                     }
                     catch(Exception exception)
                     {
-                        throw new InvalidCastException($"A object of type {typeToAssign} can not be cast implicitely in {stronglyTypedVariable.Type}", exception);
+                        throw new InvalidCastException($"A object of type [{typeToAssign}] cannot be cast implicitly to [{stronglyTypedVariable.Type}].", exception);
                     }
                 }
             }
@@ -4007,14 +4007,14 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (bracketCount > 0)
             {
-                string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} '" + "}" + $"' character {beVerb} missing in script at : [{index}]");
+                string beVerb = bracketCount == 1 ? "character is" : "characters are";
+                throw new Exception($"{bracketCount} '}}' {beVerb} missing in script at : [{index}]");
             }
 
             return currentScript;
         }
 
-        protected virtual List<string> GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(string expression, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
+        protected virtual List<string> GetExpressionsBetweenParenthesesOrOtherNestedBrackets(string expression, ref int i, bool checkSeparator, string separator = ",", string startChar = "(", string endChar = ")")
         {
             List<string> expressionsList = new List<string>();
 
@@ -4049,19 +4049,19 @@ namespace CodingSeb.ExpressionEvaluator
                     else if (s.Equals("("))
                     {
                         i++;
-                        currentExpression += "(" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "(", ")").SingleOrDefault() + ")";
+                        currentExpression += "(" + GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, false, ",", "(", ")").SingleOrDefault() + ")";
                         continue;
                     }
                     else if (s.Equals("{"))
                     {
                         i++;
-                        currentExpression += "{" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "{", "}").SingleOrDefault() + "}";
+                        currentExpression += "{" + GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, false, ",", "{", "}").SingleOrDefault() + "}";
                         continue;
                     }
                     else if (s.Equals("["))
                     {
                         i++;
-                        currentExpression += "[" + GetExpressionsBetweenParenthesesOrOtherImbricableBrackets(expression, ref i, false, ",", "[", "]").SingleOrDefault() + "]";
+                        currentExpression += "[" + GetExpressionsBetweenParenthesesOrOtherNestedBrackets(expression, ref i, false, ",", "[", "]").SingleOrDefault() + "]";
                         continue;
                     }
 
@@ -4090,8 +4090,8 @@ namespace CodingSeb.ExpressionEvaluator
 
             if (bracketCount > 0)
             {
-                string beVerb = bracketCount == 1 ? "is" : "are";
-                throw new Exception($"{bracketCount} '{endChar}' character {beVerb} missing in expression : [{expression}]");
+                string beVerb = bracketCount == 1 ? "character is" : "characters are";
+                throw new Exception($"{bracketCount} '{endChar}' {beVerb} missing in expression : [{expression}]");
             }
 
             return expressionsList;
@@ -4196,7 +4196,7 @@ namespace CodingSeb.ExpressionEvaluator
                 result = null;
 
             if (result == null && throwExceptionIfNotFound)
-                throw new ExpressionEvaluatorSyntaxErrorException($"Type or class {typeName}{genericTypes} is unknown");
+                throw new ExpressionEvaluatorSyntaxErrorException($"Type or class \"{typeName}{genericTypes}\" is unknown.");
 
             if (CacheTypesResolutions && (result != null) && !isCached)
                 TypesResolutionCaching[typeName + genericTypes] = result;
