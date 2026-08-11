@@ -73,6 +73,7 @@ It is largely based on and inspired by the following resources [this post on st
 ### Commercial
 * [Eval Expression.NET](http://eval-expression.net/)
 * [mXparser](https://mathparser.org) (dual licensing) (Free for open source)
+* [uCalc Fast Math Parser](https://www.ucalc.com/fast-math-parser) - A highly flexible and powerful expression evaluator supporting C#, C++, and VB (Commercial / Free Community License).
 
 ### Projects that could help you build your own expression/script evaluator
 * [SuperPower](https://github.com/datalust/superpower)
